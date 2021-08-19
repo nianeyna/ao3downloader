@@ -1,0 +1,7 @@
+venv/
+.vscode/
+__pycache__/
+*.pyc
+downloads/
+pinboard.xml
+settings.json
