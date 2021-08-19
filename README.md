@@ -5,7 +5,7 @@ This is a program intended to help you download fanfiction from the [Archive of 
 
 - install [python](https://www.python.org/downloads/) 
     - make sure to choose the option "add to PATH" when you are installing python. if you do not do this the program is even less likely to work correctly than it already was.
-- clone (or download and unzip) the repository. the "repository" means the folder containing the code. you can download the repository by clicking on the three dots next to the "clone" button in bitbucket.
+- clone (or download and unzip) the repository. the "repository" means the folder containing the code. you can download the repository by clicking on the "Code" button in github and selecting "Download ZIP"
 - windows: double-click on "ao3downloader.cmd"
 - other platforms: ao3downloader should work on any platform that supports python, however, you will need to do your own research into how to run python programs on your system.
 
