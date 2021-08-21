@@ -22,7 +22,7 @@ def action():
     link = input()
 
     print(strings.AO3_PROMPT_PAGES)
-    pages = input()        
+    pages = input()
 
     try:
         pages = int(pages)
@@ -42,6 +42,6 @@ def action():
     
     fileio.write_log(logfile, {'starting': link})
     
-    ao3.download(link, filetype, folder, logfile, session, pages, subfolders)
+    ao3.download(link, filetype, folder, logfile, session, subfolders, pages)
 
     session.close()
