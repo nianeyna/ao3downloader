@@ -20,6 +20,21 @@ This is a program intended to help you download fanfiction from the [Archive of 
 ## Notes
 
 - The purpose of entering your ao3 login information is to download archive-locked works or anything else that is not visible when you are not logged in. If you don't care about that, there is no need to enter your login information.
+- Try to keep your ao3 browsing to a minimum while the script is running. It won't break anything, but it may cause you to hit ao3's limit on how many hits to the site you are allowed within a certain time frame. This limit is per user, or per IP if you are not logged in. If this happens, the script will pause for 5 minutes to let the limit reset, and you may see a "Retry later" message when you try to open an ao3 page during that time. Don't be alarmed by this, just wait it out.
 - You should be able to guess the approximate runtime in seconds by taking the number of works to be downloaded times five. This is a very rough estimate as many factors can affect the total runtime.
-- For multi-page downloads from ao3, a message will be printed to the console each time a new page starts downloading. If you need to stop the download in the middle, take note of the last page downloaded. When you restart, enter the link to that specific page instead of the first page, to avoid repeating downloads as much as possible. Note that pinboard bookmarks are not paginated in the same way, so this will not work if you are downloading bookmarks from pinboard.
-- **IMPORTANT**: some of your input choices are saved in settings.json. In some cases you will not be able to change these choices unless you clear your settings by deleting settings.json. In addition, please note that saved settings include passwords and keys and are saved in plain text. Use appropriate caution with this file.
+- If the script encounters a work that is part of a series, it will also download the entire series that the work is a part of.
+- For multi-page downloads from ao3, a message will be printed to the console each time a new page starts downloading. If you need to stop the download in the middle, take note of the last page downloaded before you close the window. When you restart, enter the link to that specific page instead of the first page, to avoid repeating downloads as much as possible. Note that pinboard bookmarks are not paginated in the same way, so this will not work if you are downloading bookmarks from pinboard.
+- **IMPORTANT**: some of your input choices are saved in settings.json. In some cases you will not be able to change these choices unless you clear your settings by deleting settings.json (or editing it, if you are comfortable with json). In addition, please note that saved settings include passwords and keys and are saved in plain text. **Use appropriate caution with this file.**
+
+## Troubleshooting
+- First, if you are able to create logvisualization.html (menu option 'v'), take a look through the logs to see if there are any helpful error messages.
+- If there are no logs or the logs are unhelpful, look for a folder called "venv" inside the repository. Delete "venv" and try re-running the script.
+- If deleting venv doesn't work, try deleting the entire repository and re-downloading from github (but remember to save your existing downloads if you have any!)
+- If re-downloading the repository doesn't work, try reinstalling python. Make sure to choose the option "add to PATH" during the installation.
+- If reinstalling python doesn't work, [see this stackoverflow answer](https://stackoverflow.com/a/58773979).
+- If you have tried all of the above and it still doesn't work, see below for how to send me a bug report.
+
+## Questions? Comments? Bug reports?
+Feel free to email me at nianeyna@gmail.com. Please include "ao3downloader" in the subject line. If you are reporting a bug, please describe exactly what you did to make the bug happen to the best of your ability. (More is more! Be as detailed as possible.) Optionally when reporting bugs, it is also helpful if you include log.jsonl in the email as an attachment. 
+
+(Please note that while I will absolutely do my best to get back to you, I can't make any promises - I have a job, etc.)
