@@ -40,7 +40,10 @@ def action():
     for item in data:
         tr = '<tr>'
         for key in keys:
-            tr += '<td>' + str(item[key]) + '</td>'
+            key_item = str(item[key])
+            if key == 'link':
+                key_item = f'<a href="{key_item}">{key_item}</a>'
+            tr += '<td>' + key_item + '</td>'
         tr += '</tr>'
         tbody += tr
     tbody += '</tbody>'
