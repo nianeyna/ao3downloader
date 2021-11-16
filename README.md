@@ -1,3 +1,7 @@
+# IMPORTANT NOTE
+
+The latest version of python (3.10.0) broke this. Make sure you are using version 3.9.9 or earlier! Check your python version (on Windows) by opening a command prompt and typing "python --version".
+
 ## What is this?
 This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard. This program is lightly tested and is currently very likely to have bugs.
 
