@@ -3,13 +3,8 @@ import pdfquery
 import xml.etree.ElementTree as ET
 import ao3downloader.strings as strings
 
+from bs4 import BeautifulSoup
 from ebooklib import epub
-
-# TODO TEST:
-# - pdf less than 3 pages
-# - non-ao3 pdf
-# - single-chapter pdf
-# - 'Chapters: ' in summary? probably not practical to test
 
 
 def process_file(path: str, urls: list, filetype: str) -> None:
@@ -22,9 +17,17 @@ def process_file(path: str, urls: list, filetype: str) -> None:
         xml = ET.fromstring(content)
         href = get_work_link_epub(xml)
         stats = get_stats_epub(xml)
+    elif filetype == 'HTML':
+        with open(path, 'r', encoding='utf-8') as f:
+            soup = BeautifulSoup(f, 'html.parser')
+            href = get_work_link_html(soup)
+            stats = get_stats_html(soup)
     elif filetype == 'PDF':
         pdf = pdfquery.PDFQuery(path, input_text_formatter='utf-8')
-        pdf.load(range(3)) # load the first 3 pages. please god no one has a longer tag wall than that.
+        if len(pdf._pages) >= 3:
+            pdf.load(0, 1, 2) # load the first 3 pages. please god no one has a longer tag wall than that.
+        else:
+            pdf.load(0) # handle super short pdfs just in case
         href = get_work_link_pdf(pdf)
         stats = get_stats_pdf(pdf)
     else:
@@ -63,6 +66,21 @@ def get_stats_epub(xml: ET.Element) -> str:
     for dd in xml.iter('{http://www.w3.org/1999/xhtml}dd'):
         cls = dd.get('class')
         if cls and 'calibre5' in cls:
+            return dd.text
+    return None
+
+
+def get_work_link_html(soup: BeautifulSoup) -> str:
+    msg = soup.select('#preface .message a')
+    if msg and len(msg) == 2:
+        return msg[1].get('href')
+    return None
+
+
+def get_stats_html(soup: BeautifulSoup) -> str:
+    stats = soup.select('#preface .meta .tags dd')
+    for dd in stats:
+        if 'Chapters: ' in dd.text:
             return dd.text
     return None
 

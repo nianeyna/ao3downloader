@@ -56,7 +56,7 @@ UPDATE_INFO_NUM_RETURNED = '{} {} files found'
 UPDATE_INFO_URLS = 'getting urls of incomplete fics'
 UPDATE_INFO_URLS_DONE = 'finished getting urls of incomplete fics'
 UPDATE_INFO_DOWNLOADING = 're-downloading incomplete works'
-UPDATE_ACCEPTABLE_DOWNLOAD_TYPES = ['EPUB', 'PDF']
+UPDATE_ACCEPTABLE_DOWNLOAD_TYPES = ['EPUB', 'PDF', 'HTML']
 UPDATE_PROMPT_DOWNLOAD_TYPE = 'please enter the file type of the files you would like to check for updates. choose from the following (case-sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_DOWNLOAD_TYPES)
 
 INFO_NO_LOG_FILE = 'no log file'
