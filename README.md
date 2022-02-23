@@ -1,16 +1,32 @@
-# IMPORTANT NOTE
-
-The latest version of python (3.10.0) broke this. Make sure you are using version 3.9.9 or earlier! Check your python version (on Windows) by opening a command prompt and typing "python --version".
-
 ## What is this?
-This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard. This program is lightly tested and is currently very likely to have bugs.
+This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard.
 
 ## Instructions
 
-- install [python](https://www.python.org/downloads/) 
-    - make sure to choose the option "add to PATH" when you are installing python. if you do not do this the program is even less likely to work correctly than it already was.
-- clone (or download and unzip) the repository. the "repository" means the folder containing the code. you can download the repository by clicking on the "Code" button in github and selecting "Download ZIP"
+- install python [version 3.9.9](https://www.python.org/downloads/release/python-399/)
+    - as of the time of writing, any version of python that was released after version 3.9.9 WILL NOT work with this script. MAKE SURE you are using version 3.9.9 or earlier. To check which version of python you have installed:
+        - windows: open a command prompt and enter "python --version"
+        - mac: open a terminal window and enter "python3 --version"
+    - make sure to choose the option "add to PATH" when you are installing python.
+- download the repository as a zip file. the "repository" means the folder containing the code. you can download the repository by clicking on the "Code" button in github and selecting "Download ZIP"
+- unzip the zip file you just downloaded. this will create a folder. open it. if you see a file called "ao3downloader.py" then you're in the right place.
 - windows: double-click on "ao3downloader.cmd"
+- mac:
+    - open a terminal window pointed to the folder containing "ao3downloader.py"
+    - enter the following commands one by one:
+        ```
+        python3 -m venv venv
+        source venv/bin/activate
+        python3 -m pip install --upgrade pip
+        pip install -r requirements.txt
+        python3 ao3downloader.py
+        ```
+    - after this initial setup, when you want to run the program you only need to enter:
+        ```
+        source venv/bin/activate
+        python3 ao3downloader.py
+        ```
+    - note that if you delete the "venv" folder for any reason you will need to do the initial setup again.
 - other platforms: ao3downloader should work on any platform that supports python, however, you will need to do your own research into how to run python programs on your system.
 
 ## Menu Options Explanation
@@ -31,10 +47,12 @@ This is a program intended to help you download fanfiction from the [Archive of 
 - **IMPORTANT**: some of your input choices are saved in settings.json. In some cases you will not be able to change these choices unless you clear your settings by deleting settings.json (or editing it, if you are comfortable with json). In addition, please note that saved settings include passwords and keys and are saved in plain text. **Use appropriate caution with this file.**
 
 ## Troubleshooting
-- First, if you are able to create logvisualization.html (menu option 'v'), take a look through the logs to see if there are any helpful error messages.
+- If you are able to create logvisualization.html (menu option 'v'), take a look through the logs to see if there are any helpful error messages.
 - If there are no logs or the logs are unhelpful, look for a folder called "venv" inside the repository. Delete "venv" and try re-running the script.
 - If deleting venv doesn't work, try deleting the entire repository and re-downloading from github (but remember to save your existing downloads if you have any!)
-- If re-downloading the repository doesn't work, try reinstalling python. Make sure to choose the option "add to PATH" during the installation.
+- If re-downloading the repository doesn't work, try uninstalling and reinstalling python. 
+    - Make sure you install python 3 version 3.9.9 or earlier.
+    - Make sure to choose the option "add to PATH" during the installation.
 - If reinstalling python doesn't work, [see this stackoverflow answer](https://stackoverflow.com/a/58773979).
 - If you have tried all of the above and it still doesn't work, see below for how to send me a bug report.
 
