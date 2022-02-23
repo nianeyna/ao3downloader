@@ -16,7 +16,7 @@ from ao3downloader.exceptions import LoginException
 
 # for reasons I don't fully understand, specifying the user agent makes requests faster
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit'
-           '/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
+           '/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36 +nianeyna@gmail.com'}
 
 # login form for ao3
 ao3_login_url = 'https://archiveofourown.org/users/login'
