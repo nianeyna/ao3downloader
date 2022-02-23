@@ -1,25 +1,37 @@
-import xml.etree.ElementTree as ET
-
 import ebooklib
+import pdfquery
+import xml.etree.ElementTree as ET
+import ao3downloader.strings as strings
+
 from ebooklib import epub
 
+# TODO TEST:
+# - pdf less than 3 pages
+# - non-ao3 pdf
+# - single-chapter pdf
+# - 'Chapters: ' in summary? probably not practical to test
 
-def process_epub(path, urls):
+
+def process_file(path: str, urls: list, filetype: str) -> None:
     '''add url of work to list if current version of work is incomplete'''
 
-    # get front matter of epub in xml format
-    book = epub.read_epub(path)
-    preface = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))[0]
-    content = preface.get_content().decode('utf-8')
-    xml = ET.fromstring(content)
+    if filetype == 'EPUB':
+        book = epub.read_epub(path)
+        preface = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))[0]
+        content = preface.get_content().decode('utf-8')
+        xml = ET.fromstring(content)
+        href = get_work_link_epub(xml)
+        stats = get_stats_epub(xml)
+    elif filetype == 'PDF':
+        pdf = pdfquery.PDFQuery(path, input_text_formatter='utf-8')
+        pdf.load(range(3)) # load the first 3 pages. please god no one has a longer tag wall than that.
+        href = get_work_link_pdf(pdf)
+        stats = get_stats_pdf(pdf)
+    else:
+        raise ValueError('Invalid filetype argument: {}. Valid filetypes are '.format(filetype) + ','.join(strings.UPDATE_ACCEPTABLE_DOWNLOAD_TYPES))
 
-    # if this isn't a work from ao3, return
-    href = get_work_link(xml)
-    if href is None: return
-
-    # if we can't find the series metadata, return
-    stats = get_calibre5_content(xml)
-    if stats is None: return
+    if href is None: return # if this isn't a work from ao3, return
+    if stats is None: return # if we can't find the series metadata, return
 
     # if the series metadata does not contain the character "/", return
     # we assume that the "/" character represents chapter count
@@ -35,12 +47,10 @@ def process_epub(path, urls):
         urls.append({'link': href, 'chapters': currentchap})
 
 
-def get_work_link(xml):
-    ''' 
-    we assume that the xml does not contain any links to other works than the one we are interested in. 
-    since this file should not include user-generated html (such as summary) this should be safe.
-    that's a lot of shoulds but we'll let it go because I said so.
-    '''
+def get_work_link_epub(xml: ET.Element) -> str:
+    # assumption: the xml does not contain any links to other works than the one we are interested in. 
+    # since this file should not include user-generated html (such as summary) this should be safe.
+    # that's a lot of shoulds but we'll let it go because I said so.
     for a in xml.iter('{http://www.w3.org/1999/xhtml}a'):
         href = a.get('href')
         if href and 'archiveofourown.org/works/' in href:
@@ -48,8 +58,8 @@ def get_work_link(xml):
     return None
 
 
-def get_calibre5_content(xml):
-    '''ao3 stores chapter stats in a dd tag with class 'calibre5' for whatever reason.'''
+def get_stats_epub(xml: ET.Element) -> str:
+    # ao3 stores chapter stats in a dd tag with class 'calibre5' for whatever reason.
     for dd in xml.iter('{http://www.w3.org/1999/xhtml}dd'):
         cls = dd.get('class')
         if cls and 'calibre5' in cls:
@@ -57,7 +67,25 @@ def get_calibre5_content(xml):
     return None
 
 
-def get_total_chapters(text, index):
+def get_work_link_pdf(pdf: pdfquery.PDFQuery) -> str:
+    # assumption: work link is on the same line as preceding text. probably fine. ¯\_(ツ)_/¯
+    # doing some weird string parsing here. considered taking a similar approach to the epub function
+    # and parsing the xml tree for URIs. however that might break if someone linked another work in their summary.
+    linktext = pdf.pq('LTTextLineHorizontal:contains("Posted originally on the Archive of Our Own at ")').text()
+    workindex = linktext.find('/works/')
+    endindex = linktext[workindex:].find('.')
+    worknumber = linktext[workindex:workindex+endindex]
+    return strings.AO3_BASE_URL + worknumber
+
+
+def get_stats_pdf(pdf: pdfquery.PDFQuery) -> str:
+    # assumption: chapter count is on same line as 'Chapters: '. reasonably safe because the 
+    # preceding metadata is always going to be no longer than 'Published: yyyy-MM-dd Updated: yyyy-MM-dd '.
+    # if someone puts 'Chapters: ' in their summary for some fool reason... I don't know, it might still work.
+    return pdf.pq('LTTextLineHorizontal:contains("Chapters: ")').text()
+
+
+def get_total_chapters(text: str, index: int) -> str:
     '''read characters after index until encountering a space.'''
     totalchap = ''
     for c in text[index+1:]:
@@ -68,7 +96,7 @@ def get_total_chapters(text, index):
     return totalchap
 
 
-def get_current_chapters(text, index):
+def get_current_chapters(text: str, index: int) -> str:
     ''' 
     reverse text before index, then read characters from beginning of reversed text 
     until encountering a space, then un-reverse the value you got. 

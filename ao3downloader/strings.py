@@ -12,6 +12,7 @@ SETTING_PASSWORD = 'password'
 SETTING_FILETYPE = 'filetype'
 SETTING_API_TOKEN = 'api_token'
 SETTING_UPDATE_FOLDER = 'update_folder'
+SETTING_UPDATE_FILETYPE = 'update_filetype'
 
 # endregion
 
@@ -28,7 +29,7 @@ ACTION_DESCRIPTION_DISPLAY_MENU = 'display menu'
 ACTION_DESCRIPTION_PINBOARD_XML = 'download pinboard xml document'
 ACTION_DESCRIPTION_PINBOARD = 'download bookmarks from pinboard xml document'
 ACTION_DESCRIPTION_AO3 = 'download from ao3 link'
-ACTION_DESCRIPTION_UPDATE = 'download latest version of incomplete fics (ao3 epub files only)'
+ACTION_DESCRIPTION_UPDATE = 'download latest version of incomplete fics (does not work with MOBI/AZW3 files)'
 ACTION_DESCRIPTION_VISUALIZATION = 'convert logfile into interactable html'
 
 PINBOARD_PROMPT_API_TOKEN = 'please enter api token'
@@ -49,12 +50,14 @@ AO3_PROMPT_SUBFOLDERS = 'do you want to create series subfolders? ({}/{})'.forma
 AO3_INFO_LOGIN = 'logging in'
 AO3_INFO_DOWNLOADING = 'downloading works'
 
-UPDATE_PROMPT_INPUT = 'input path to folder containing epub files you want to check for updates (also checks subfolders)'
-UPDATE_INFO_FILES = 'getting list of epubs'
-UPDATE_INFO_NUM_RETURNED = '{} epub files found'
+UPDATE_PROMPT_INPUT = 'input path to folder containing files you want to check for updates (also checks subfolders)'
+UPDATE_INFO_FILES = 'getting list of files in {} format'
+UPDATE_INFO_NUM_RETURNED = '{} {} files found'
 UPDATE_INFO_URLS = 'getting urls of incomplete fics'
 UPDATE_INFO_URLS_DONE = 'finished getting urls of incomplete fics'
 UPDATE_INFO_DOWNLOADING = 're-downloading incomplete works'
+UPDATE_ACCEPTABLE_DOWNLOAD_TYPES = ['EPUB', 'PDF']
+UPDATE_PROMPT_DOWNLOAD_TYPE = 'please enter the file type of the files you would like to check for updates. choose from the following (case-sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_DOWNLOAD_TYPES)
 
 INFO_NO_LOG_FILE = 'no log file'
 

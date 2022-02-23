@@ -3,7 +3,7 @@ import ao3downloader.strings as strings
 from ao3downloader.actions import ao3download
 from ao3downloader.actions import pinboardget
 from ao3downloader.actions import pinboarddownload
-from ao3downloader.actions import updateepubs
+from ao3downloader.actions import updatefics
 from ao3downloader.actions import logvisualization
 
 
@@ -12,7 +12,7 @@ def ao3_download_action():
 
 
 def update_epubs_action():
-    updateepubs.action()
+    updatefics.action()
     
 
 def pinboard_get_action():

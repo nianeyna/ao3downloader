@@ -116,7 +116,7 @@ def try_download(work_url, download_type, folder, session, chapters):
     filename = fileio.get_valid_filename(title)
     filetype = get_file_type(download_type)
 
-    if chapters is not None:
+    if chapters is not None: # TODO this is a super awkward place for this logic to be and I don't like it.
         currentchapters = soup.get_current_chapters(thesoup)
         if currentchapters <= chapters:
             return False
