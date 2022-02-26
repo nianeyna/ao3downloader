@@ -45,6 +45,7 @@ AO3_PROMPT_PASSWORD = 'please enter password'
 AO3_ACCEPTABLE_DOWNLOAD_TYPES = ['AZW3', 'EPUB', 'MOBI', 'PDF', 'HTML']
 AO3_PROMPT_DOWNLOAD_TYPE = 'please enter download type. choose from the following (case-sensitive):\n' + '\n'.join(AO3_ACCEPTABLE_DOWNLOAD_TYPES)
 AO3_PROMPT_LINK = 'please enter link to ao3'
+AO3_PROMPT_LAST_PAGE = 'do you want to start downloading from the page you stopped on last time? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_PAGES = 'please enter page number to stop on. enter 0 to download all pages.'
 AO3_PROMPT_SUBFOLDERS = 'do you want to create series subfolders? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_INFO_LOGIN = 'logging in'
@@ -92,5 +93,6 @@ ERROR_FAILED_LOGIN = 'Failed login'
 ERROR_PROCEED_LINK = 'Problem getting proceed link'
 ERROR_DOWNLOAD_LINK = 'Problem getting download link'
 ERROR_SERIES = 'Problem getting series'
+ERROR_LOG_FILE = 'Problem parsing log file during initial setup'
 
 # endregion
