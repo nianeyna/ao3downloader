@@ -14,12 +14,7 @@ def action():
     folder = strings.DOWNLOAD_FOLDER_NAME
     logfile = globals.get_logfile(folder)
 
-    filetype = ''
-    while filetype not in strings.AO3_ACCEPTABLE_DOWNLOAD_TYPES:
-        filetype = fileio.setting(
-            strings.AO3_PROMPT_DOWNLOAD_TYPE,
-            strings.SETTINGS_FILE_NAME,
-            strings.SETTING_FILETYPE)
+    filetypes = globals.get_download_types()
 
     print(strings.AO3_PROMPT_SUBFOLDERS)
     subfolders = True if input() == strings.PROMPT_YES else False
@@ -64,6 +59,6 @@ def action():
 
     fileio.write_log(logfile, {'starting': link})
 
-    ao3.download(link, filetype, folder, logfile, session, subfolders, pages)
+    ao3.download(link, filetypes, folder, logfile, session, subfolders, pages)
 
     session.close()

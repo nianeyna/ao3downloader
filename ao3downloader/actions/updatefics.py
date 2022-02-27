@@ -10,6 +10,7 @@ import ao3downloader.update as update
 
 from tqdm import tqdm
 
+
 def action():
     logfile = globals.get_logfile(strings.DOWNLOAD_FOLDER_NAME)
 
@@ -52,4 +53,4 @@ def action():
     print(strings.UPDATE_INFO_DOWNLOADING)
 
     for work in tqdm(works):
-        ao3.update(work['link'], filetype, strings.DOWNLOAD_FOLDER_NAME, logfile, session, work['chapters'])
+        ao3.update(work['link'], [filetype], strings.DOWNLOAD_FOLDER_NAME, logfile, session, work['chapters'])

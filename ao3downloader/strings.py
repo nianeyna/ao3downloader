@@ -9,7 +9,7 @@ SETTINGS_FILE_NAME = 'settings.json'
 
 SETTING_USERNAME = 'username'
 SETTING_PASSWORD = 'password'
-SETTING_FILETYPE = 'filetype'
+SETTING_FILETYPES = 'filetypes'
 SETTING_API_TOKEN = 'api_token'
 SETTING_UPDATE_FOLDER = 'update_folder'
 SETTING_UPDATE_FILETYPE = 'update_filetype'
@@ -42,14 +42,17 @@ PINBOARD_INFO_NUM_RETURNED = '{} bookmarks returned'
 AO3_PROMPT_LOGIN = 'do you want to log in to ao3? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_USERNAME = 'please enter username'
 AO3_PROMPT_PASSWORD = 'please enter password'
+AO3_PROMPT_USE_SAVED_DOWNLOAD_TYPES = 'use saved download type list? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_ACCEPTABLE_DOWNLOAD_TYPES = ['AZW3', 'EPUB', 'MOBI', 'PDF', 'HTML']
 AO3_PROMPT_DOWNLOAD_TYPE = 'please enter download type. choose from the following (case-sensitive):\n' + '\n'.join(AO3_ACCEPTABLE_DOWNLOAD_TYPES)
+AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE = 'done entering file types? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_LINK = 'please enter link to ao3'
 AO3_PROMPT_LAST_PAGE = 'do you want to start downloading from the page you stopped on last time? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_PAGES = 'please enter page number to stop on. enter 0 to download all pages.'
 AO3_PROMPT_SUBFOLDERS = 'do you want to create series subfolders? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_INFO_LOGIN = 'logging in'
 AO3_INFO_DOWNLOADING = 'downloading works'
+AO3_INFO_FILE_TYPE = 'added {} to list of download types'
 
 UPDATE_PROMPT_INPUT = 'input path to folder containing files you want to check for updates (also checks subfolders)'
 UPDATE_INFO_FILES = 'getting list of files in {} format'
