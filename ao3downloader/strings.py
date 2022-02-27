@@ -12,7 +12,7 @@ SETTING_PASSWORD = 'password'
 SETTING_FILETYPES = 'filetypes'
 SETTING_API_TOKEN = 'api_token'
 SETTING_UPDATE_FOLDER = 'update_folder'
-SETTING_UPDATE_FILETYPE = 'update_filetype'
+SETTING_UPDATE_FILETYPES = 'update_filetypes'
 
 # endregion
 
@@ -55,18 +55,21 @@ AO3_INFO_DOWNLOADING = 'downloading works'
 AO3_INFO_FILE_TYPE = 'added {} to list of download types'
 
 UPDATE_PROMPT_INPUT = 'input path to folder containing files you want to check for updates (also checks subfolders)'
-UPDATE_INFO_FILES = 'getting list of files in {} format'
-UPDATE_INFO_NUM_RETURNED = '{} {} files found'
+UPDATE_INFO_FILES = 'getting list of files to update'
+UPDATE_INFO_NUM_RETURNED = '{} files found'
 UPDATE_INFO_URLS = 'getting urls of incomplete fics'
 UPDATE_INFO_URLS_DONE = 'finished getting urls of incomplete fics'
 UPDATE_INFO_DOWNLOADING = 're-downloading incomplete works'
-UPDATE_ACCEPTABLE_DOWNLOAD_TYPES = ['EPUB', 'PDF', 'HTML']
-UPDATE_PROMPT_DOWNLOAD_TYPE = 'please enter the file type of the files you would like to check for updates. choose from the following (case-sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_DOWNLOAD_TYPES)
+UPDATE_ACCEPTABLE_FILE_TYPES = ['EPUB', 'PDF', 'HTML']
+UPDATE_PROMPT_USE_SAVED_FILE_TYPES = 'use saved list of file types to check for updates? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
+UPDATE_PROMPT_FILE_TYPE = 'please enter the file type of the files you would like to check for updates. choose from the following (case-sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_FILE_TYPES)
+UPDATE_INFO_FILE_TYPE = 'added {} to list of file types to check for updates'
 
 INFO_NO_LOG_FILE = 'no log file'
 
 MESSAGE_TOO_MANY_REQUESTS = 'too many requests to server. resuming in 5 minutes. paused at: {}'
 MESSAGE_RESUMING = 'resuming execution'
+MESSAGE_INCOMPLETE_FIC = 'found incomplete fic'
 
 # endregion
 
@@ -97,5 +100,6 @@ ERROR_PROCEED_LINK = 'Problem getting proceed link'
 ERROR_DOWNLOAD_LINK = 'Problem getting download link'
 ERROR_SERIES = 'Problem getting series'
 ERROR_LOG_FILE = 'Problem parsing log file during initial setup'
+ERROR_INCOMPLETE_FIC = 'Problem parsing file while checking for incomplete fics'
 
 # endregion

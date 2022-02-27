@@ -29,7 +29,7 @@ def action():
     except FileNotFoundError:
         pass
     except Exception as e:
-        fileio.write_log(logfile, {'error': str(e), 'errordesc': strings.ERROR_LOG_FILE, 'stacktrace': traceback.format_exc()})
+        fileio.write_log(logfile, {'error': str(e), 'message': strings.ERROR_LOG_FILE, 'stacktrace': traceback.format_exc()})
 
     link = None
     if latest:

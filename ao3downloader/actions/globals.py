@@ -55,3 +55,23 @@ def get_download_types() -> list[str]:
             filetypes = list(set(filetypes))
             fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_FILETYPES, filetypes)
             return filetypes
+
+
+def get_update_types() -> list[str]:
+    filetypes = fileio.get_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_UPDATE_FILETYPES)
+    if isinstance(filetypes, list):
+        print(strings.UPDATE_PROMPT_USE_SAVED_FILE_TYPES)
+        if input() == strings.PROMPT_YES: return filetypes
+    filetypes = []
+    while(True):
+        filetype = ''
+        while filetype not in strings.UPDATE_ACCEPTABLE_FILE_TYPES:
+            print(strings.UPDATE_PROMPT_FILE_TYPE)
+            filetype = input()
+        filetypes.append(filetype)
+        print(strings.UPDATE_INFO_FILE_TYPE.format(filetype))
+        print(strings.AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE)
+        if input() == strings.PROMPT_YES:
+            filetypes = list(set(filetypes))
+            fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_UPDATE_FILETYPES, filetypes)
+            return filetypes

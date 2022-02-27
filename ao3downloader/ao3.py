@@ -150,7 +150,7 @@ def get_file_type(filetype: str) -> str:
 
 def log_error(log: dict, logfile: str, exception: BaseException, errordesc: str):
     log['error'] = str(exception)
-    log['errordesc'] = errordesc
+    log['message'] = errordesc
     log['success'] = False
     log['stacktrace'] = ''.join(traceback.TracebackException.from_exception(exception).format())
     fileio.write_log(logfile, log)

@@ -1,5 +1,6 @@
 import ebooklib
 import pdfquery
+
 import xml.etree.ElementTree as ET
 import ao3downloader.strings as strings
 
@@ -7,7 +8,7 @@ from bs4 import BeautifulSoup
 from ebooklib import epub
 
 
-def process_file(path: str, urls: list, filetype: str) -> None:
+def process_file(path: str, filetype: str) -> dict:
     '''add url of work to list if current version of work is incomplete'''
 
     if filetype == 'EPUB':
@@ -31,7 +32,7 @@ def process_file(path: str, urls: list, filetype: str) -> None:
         href = get_work_link_pdf(pdf)
         stats = get_stats_pdf(pdf)
     else:
-        raise ValueError('Invalid filetype argument: {}. Valid filetypes are '.format(filetype) + ','.join(strings.UPDATE_ACCEPTABLE_DOWNLOAD_TYPES))
+        raise ValueError('Invalid filetype argument: {}. Valid filetypes are '.format(filetype) + ','.join(strings.UPDATE_ACCEPTABLE_FILE_TYPES))
 
     if href is None: return # if this isn't a work from ao3, return
     if stats is None: return # if we can't find the series metadata, return
@@ -45,9 +46,9 @@ def process_file(path: str, urls: list, filetype: str) -> None:
     totalchap = get_total_chapters(stats, index)
     currentchap = get_current_chapters(stats, index)
 
-    # if the work is incomplete, add url to list
+    # if the work is incomplete, return the info
     if currentchap != totalchap:
-        urls.append({'link': href, 'chapters': currentchap})
+        return {'link': href, 'chapters': currentchap}
 
 
 def get_work_link_epub(xml: ET.Element) -> str:
