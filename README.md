@@ -4,7 +4,7 @@ This is a program intended to help you download fanfiction from the [Archive of 
 ## Instructions
 
 - install python [version 3.9.9](https://www.python.org/downloads/release/python-399/)
-    - as of the time of writing, any version of python that was released after version 3.9.9 WILL NOT work with this script. MAKE SURE you are using version 3.9.9 or earlier. To check which version of python you have installed:
+    - as of the time of writing, any version of python that was released *after* version 3.9.9 or *before* 3.9.0 WILL NOT work with this script. MAKE SURE you are using a version of python between 3.9.0 and 3.9.9. To check which version of python you have installed:
         - windows: open a command prompt and enter "python --version"
         - mac: open a terminal window and enter "python3 --version"
     - make sure to choose the option "add to PATH" when you are installing python.
@@ -55,7 +55,7 @@ This is a program intended to help you download fanfiction from the [Archive of 
 - If there are no logs or the logs are unhelpful, look for a folder called "venv" inside the repository. Delete "venv" and try re-running the script.
 - If deleting venv doesn't work, try deleting the entire repository and re-downloading from github (but remember to save your existing downloads if you have any!)
 - If re-downloading the repository doesn't work, try uninstalling and reinstalling python. 
-    - Make sure you install python 3 version 3.9.9 or earlier.
+    - Make sure you install a version between 3.9.0 and 3.9.9 (inclusive). Version 3.9.9 exactly is strongly preferred.
     - Make sure to choose the option "add to PATH" during the installation.
 - If reinstalling python doesn't work, [see this stackoverflow answer](https://stackoverflow.com/a/58773979).
 - If you have tried all of the above and it still doesn't work, see below for how to send me a bug report.
