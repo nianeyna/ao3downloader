@@ -1,5 +1,8 @@
+import mobi
 import ebooklib
+import os
 import pdfquery
+import shutil
 
 import xml.etree.ElementTree as ET
 import ao3downloader.strings as strings
@@ -12,28 +15,58 @@ def process_file(path: str, filetype: str) -> dict:
     '''add url of work to list if current version of work is incomplete'''
 
     if filetype == 'EPUB':
-        book = epub.read_epub(path)
-        preface = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))[0]
-        content = preface.get_content().decode('utf-8')
-        xml = ET.fromstring(content)
+        xml = get_epub_preface(path)
         href = get_work_link_epub(xml)
         stats = get_stats_epub(xml)
+
     elif filetype == 'HTML':
         with open(path, 'r', encoding='utf-8') as f:
             soup = BeautifulSoup(f, 'html.parser')
             href = get_work_link_html(soup)
             stats = get_stats_html(soup)
+
+    elif filetype == 'AZW3':
+        tempdir, filepath = mobi.extract(path)
+        try:
+            if os.path.splitext(filepath)[1].upper()[1:] != 'EPUB':
+                # assuming all AO3 AZW3 files are packaged in the same way (why wouldn't they be?) 
+                # we can take this as an indication that the source of this file was not AO3
+                return
+            # the extracted epub is formatted the same way as the regular epubs, yay
+            xml = get_epub_preface(filepath)
+            href = get_work_link_epub(xml)
+            stats = get_stats_epub(xml)
+        finally:
+            # putting this in a finally block *should* ensure that 
+            # I never accidentally leave temp files lying around
+            # (unless mobi somehow messes up which I can't control)
+            shutil.rmtree(tempdir) 
+
+    elif filetype == 'MOBI':
+        tempdir, filepath = mobi.extract(path)
+        try:
+            if os.path.splitext(filepath)[1].upper()[1:] != 'HTML':
+                return
+            with open(filepath, 'r', encoding='utf-8') as f:
+                soup = BeautifulSoup(f, 'html.parser')
+                href = get_work_link_mobi(soup)
+                stats = get_stats_mobi(soup)
+        finally:
+            shutil.rmtree(tempdir)
+
     elif filetype == 'PDF':
         pdf = pdfquery.PDFQuery(path, input_text_formatter='utf-8')
         if len(pdf._pages) >= 3:
             pdf.load(0, 1, 2) # load the first 3 pages. please god no one has a longer tag wall than that.
         else:
-            pdf.load(0) # handle super short pdfs just in case
+            pdf.load() # handle pdfs with fewer than 3 pages
         href = get_work_link_pdf(pdf)
         stats = get_stats_pdf(pdf)
+
     else:
         raise ValueError('Invalid filetype argument: {}. Valid filetypes are '.format(filetype) + ','.join(strings.UPDATE_ACCEPTABLE_FILE_TYPES))
 
+    # done with format-specific parsing, now we can proceed in the same way for all
     if href is None: return # if this isn't a work from ao3, return
     if stats is None: return # if we can't find the series metadata, return
 
@@ -49,6 +82,13 @@ def process_file(path: str, filetype: str) -> dict:
     # if the work is incomplete, return the info
     if currentchap != totalchap:
         return {'link': href, 'chapters': currentchap}
+
+
+def get_epub_preface(path: str) -> ET.Element:
+    book = epub.read_epub(path)
+    preface = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))[0]
+    content = preface.get_content().decode('utf-8')
+    return ET.fromstring(content)
 
 
 def get_work_link_epub(xml: ET.Element) -> str:
@@ -73,8 +113,8 @@ def get_stats_epub(xml: ET.Element) -> str:
 
 def get_work_link_html(soup: BeautifulSoup) -> str:
     msg = soup.select('#preface .message a')
-    if msg and len(msg) == 2:
-        return msg[1].get('href')
+    if msg and len(msg) == 2: # there should be exactly two links in here
+        return msg[1].get('href') # we want the second one
     return None
 
 
@@ -83,6 +123,20 @@ def get_stats_html(soup: BeautifulSoup) -> str:
     for dd in stats:
         if 'Chapters: ' in dd.text:
             return dd.text
+    return None
+
+
+def get_work_link_mobi(soup: BeautifulSoup) -> str:
+    # it's ok if there are other work links in the file, because the relevant one will always be the first to appear
+    # can't use a more specific selector because the html that comes out of the mobi parser is poorly formatted rip me
+    link = soup.find('a', href=lambda x: x and 'archiveofourown.org/works/' in x)
+    if link: return link.get('href')
+    return None
+
+
+def get_stats_mobi(soup: BeautifulSoup) -> str:
+    stats = soup.find('blockquote', string=lambda x: x and 'Chapters: ' in x)
+    if stats: return stats.text
     return None
 
 

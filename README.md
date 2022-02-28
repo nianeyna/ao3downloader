@@ -32,7 +32,7 @@ This is a program intended to help you download fanfiction from the [Archive of 
 ## Menu Options Explanation
 
 - 'download from ao3 link' - this works for most links to [ao3](https://archiveofourown.org/). for example, you can use this to download a single work, a series, or any ao3 page that contains links to works or series (such as your bookmarks or an author's works). the program will download multiple pages automatically without the need to enter the next page link manually.
-- 'download latest version of incomplete fics (does not work with MOBI/AZW3 files)' - you can use this to check a folder on your computer (and any subfolders) for html, pdf, or epub files downloaded from ao3 that are incomplete works. for each incomplete fic found, the program will check ao3 to see if there are any new chapters, and if so, will download the new version to the downloads folder. apologies but this does not currently work for azw3 or mobi files.
+- 'download latest version of incomplete fics' - you can use this to check a folder on your computer (and any subfolders) for files downloaded from ao3 that are incomplete works. for each incomplete fic found, the program will check ao3 to see if there are any new chapters, and if so, will download the new version to the downloads folder.
 - 'download pinboard xml document' - this is the first step in downloading your ao3 bookmarks from [pinboard](https://pinboard.in/). ignore this if you don't use pinboard. to get the api token go to settings -> password on the pinboard website.
 - 'download bookmarks from pinboard xml document' - this is the second step in downloading your ao3 bookmarks from pinboard. ignore this if you don't use pinboard or if you haven't yet downloaded the pinboard xml document.
 - 'convert logfile into interactable html' - all downloads from ao3 (and some other actions) are logged in a file called log.jsonl in the downloads folder, along with information such as whether or not the download was successful, details about errors encountered, and so on. this option converts log.jsonl into a much more human-readable, searchable and sortable html file that can be opened in any browser. the file is saved in the downloads folder and is called 'logvisualization.html'
@@ -48,6 +48,7 @@ This is a program intended to help you download fanfiction from the [Archive of 
         - Using the option to generate the log visualization file is fine
         - If you don't care about keeping track of the last page you were on, you can do whatever you wish with log.jsonl
     - Pinboard bookmarks are not paginated in the same way, so this will not work if you are downloading bookmarks from pinboard.
+- When checking for incomplete fics, the code makes certain assumptions about how fic files are formatted. I have tried to make this logic as flexible as possible, but there is still some possibility that not all incomplete fics will be properly identified by the updater, especially if the files are old (since ao3 may have made changes to how they format fics for download over time) or have been edited.
 - **IMPORTANT**: some of your input choices are saved in settings.json. In some cases you will not be able to change these choices unless you clear your settings by deleting settings.json (or editing it, if you are comfortable with json). In addition, please note that saved settings include passwords and keys and are saved in plain text. **Use appropriate caution with this file.**
 
 ## Troubleshooting
@@ -61,6 +62,6 @@ This is a program intended to help you download fanfiction from the [Archive of 
 - If you have tried all of the above and it still doesn't work, see below for how to send me a bug report.
 
 ## Questions? Comments? Bug reports?
-Feel free to email me at nianeyna@gmail.com. Please include "ao3downloader" in the subject line. If you are reporting a bug, please describe exactly what you did to make the bug happen to the best of your ability. (More is more! Be as detailed as possible.) Optionally when reporting bugs, it is also helpful if you include log.jsonl in the email as an attachment. 
+Feel free to head over to [the discussion board](https://github.com/nianeyna/ao3downloader/discussions) and make a post, or create an [issue](https://github.com/nianeyna/ao3downloader/issues). You can also email me at nianeyna@gmail.com if you prefer. Please include "ao3downloader" in the subject line of emails about the downloader. If you are reporting a bug, please describe exactly what you did to make the bug happen to the best of your ability. (More is more! Be as detailed as possible.)
 
 (Please note that while I will absolutely do my best to get back to you, I can't make any promises - I have a job, etc.)

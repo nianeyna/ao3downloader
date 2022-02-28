@@ -29,7 +29,7 @@ ACTION_DESCRIPTION_DISPLAY_MENU = 'display menu'
 ACTION_DESCRIPTION_PINBOARD_XML = 'download pinboard xml document'
 ACTION_DESCRIPTION_PINBOARD = 'download bookmarks from pinboard xml document'
 ACTION_DESCRIPTION_AO3 = 'download from ao3 link'
-ACTION_DESCRIPTION_UPDATE = 'download latest version of incomplete fics (does not work with MOBI/AZW3 files)'
+ACTION_DESCRIPTION_UPDATE = 'download latest version of incomplete fics'
 ACTION_DESCRIPTION_VISUALIZATION = 'convert logfile into interactable html'
 
 PINBOARD_PROMPT_API_TOKEN = 'please enter api token'
@@ -60,7 +60,7 @@ UPDATE_INFO_NUM_RETURNED = '{} files found'
 UPDATE_INFO_URLS = 'getting urls of incomplete fics'
 UPDATE_INFO_URLS_DONE = 'finished getting urls of incomplete fics'
 UPDATE_INFO_DOWNLOADING = 're-downloading incomplete works'
-UPDATE_ACCEPTABLE_FILE_TYPES = ['EPUB', 'PDF', 'HTML']
+UPDATE_ACCEPTABLE_FILE_TYPES = ['AZW3', 'EPUB', 'MOBI', 'PDF', 'HTML']
 UPDATE_PROMPT_USE_SAVED_FILE_TYPES = 'use saved list of file types to check for updates? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 UPDATE_PROMPT_FILE_TYPE = 'please enter the file type of the files you would like to check for updates. choose from the following (case-sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_FILE_TYPES)
 UPDATE_INFO_FILE_TYPE = 'added {} to list of file types to check for updates'
