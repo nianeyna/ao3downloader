@@ -1,0 +1,7 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - init: |
+      echo '3.9.9' > /home/gitpod/.pyenv/version
+      pip install -r requirements.txt
