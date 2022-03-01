@@ -1,4 +1,4 @@
-FROM gitpod/workspace-full
+FROM gitpod/workspace-python
 
 RUN pyenv update && \
     pyenv install 3.9.9 && \
