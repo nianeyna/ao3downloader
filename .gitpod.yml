@@ -3,5 +3,5 @@ image:
 
 tasks:
   - init: |
-      echo '3.9.9' > /home/gitpod/.pyenv/version
-      pip install -r requirements.txt
+      python -m pip install --upgrade pip
+      python -m pip install -r requirements.txt
