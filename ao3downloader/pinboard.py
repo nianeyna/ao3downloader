@@ -2,8 +2,8 @@
 
 import xml.etree.ElementTree as ET
 
-from ao3downloader.fileio import save_bytes
 from ao3downloader.repo import my_get
+from datetime import datetime
 
 
 POSTS_FROM_DATE_URL = 'https://api.pinboard.in/v1/posts/all?auth_token={}&fromdt={}'
@@ -11,13 +11,14 @@ ALL_POSTS_URL = 'https://api.pinboard.in/v1/posts/all?auth_token={}'
 TIMESTAMP_URL = '{}-{}-{}T00:00:00Z'
 
 
-def download_xml(api_token, date, filename):
+def get_bookmarks(api_token: str, date: datetime, exclude_toread: bool) -> list[dict[str, str]]:
     url = get_pinboard_url(api_token, date)
-    xml = my_get(url, None).content
-    save_bytes('', filename, xml)
+    content = my_get(url, None).content
+    bookmark_xml = ET.XML(content)
+    return get_bookmark_list(bookmark_xml, exclude_toread)
 
 
-def get_pinboard_url(api_token, date):
+def get_pinboard_url(api_token: str, date: datetime) -> str:
     if date == None:
         return ALL_POSTS_URL.format(api_token)
     else:
@@ -28,18 +29,7 @@ def get_pinboard_url(api_token, date):
         return POSTS_FROM_DATE_URL.format(api_token, timestamp)
 
 
-def get_bookmarks(filename, exclude_toread):
-    bookmark_xml = get_bookmark_xml(filename)
-    return get_bookmark_list(bookmark_xml, exclude_toread)
-
-
-def get_bookmark_xml(filename):
-    with open(filename, 'r', encoding='utf-8') as f:
-        xml = f.read()
-    return ET.fromstring(xml)
-
-
-def get_bookmark_list(bookmark_xml, exclude_toread):
+def get_bookmark_list(bookmark_xml: ET.Element, exclude_toread: bool) -> list[dict[str, str]]:
     bookmark_list = []
     for child in bookmark_xml:
         attributes = child.attrib

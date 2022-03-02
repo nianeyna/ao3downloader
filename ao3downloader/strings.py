@@ -26,17 +26,16 @@ PROMPT_INVALID_ACTION = 'please choose a valid action'
 
 # for action description changes be sure to update readme
 ACTION_DESCRIPTION_DISPLAY_MENU = 'display menu'
-ACTION_DESCRIPTION_PINBOARD_XML = 'download pinboard xml document'
-ACTION_DESCRIPTION_PINBOARD = 'download bookmarks from pinboard xml document'
 ACTION_DESCRIPTION_AO3 = 'download from ao3 link'
 ACTION_DESCRIPTION_UPDATE = 'download latest version of incomplete fics'
+ACTION_DESCRIPTION_PINBOARD = 'download bookmarks from pinboard'
 ACTION_DESCRIPTION_VISUALIZATION = 'convert logfile into interactable html'
 
 PINBOARD_PROMPT_API_TOKEN = 'please enter api token'
 PINBOARD_PROMPT_INCLUDE_UNREAD = 'do you want to include unread bookmarks? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 PINBOARD_PROMPT_DATE = 'do you want to get bookmarks only after a specific date? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 PINBOARD_PROMPT_ENTER_DATE = 'please enter the date formatted {}:'
-PINBOARD_INFO_GETTING_BOOKMARKS = 'getting bookmarks from pinboard'
+PINBOARD_INFO_GETTING_BOOKMARKS = 'getting bookmark urls from pinboard'
 PINBOARD_INFO_NUM_RETURNED = '{} bookmarks returned'
 
 AO3_PROMPT_LOGIN = 'do you want to log in to ao3? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
