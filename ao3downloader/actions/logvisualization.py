@@ -50,7 +50,7 @@ def action():
 
     table = thead + tbody
 
-    with open(strings.TEMPLATE_FILE_NAME, encoding='utf-8') as f:
+    with open(os.path.join(strings.HTML_FOLDER_NAME, strings.TEMPLATE_FILE_NAME), encoding='utf-8') as f:
         template = f.read()
 
     logvisualization = template.replace('%TABLE%', table)

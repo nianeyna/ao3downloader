@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="html/lib/jquery-3.6.0.min.js"></script>
+    <script src="html/lib/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="html/css/jquery.dataTables.min.css">
+    <script>
+        $(document).ready(function () {
+            $('#log').DataTable({
+                paging: false
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <table id="log">
+        %TABLE%  
+    </table>  
+</body>
+</html>

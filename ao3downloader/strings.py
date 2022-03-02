@@ -1,10 +1,10 @@
 # region file ops
 
 DOWNLOAD_FOLDER_NAME = 'downloads'
+HTML_FOLDER_NAME = 'html'
 LOG_FILE_NAME = 'log.jsonl'
 TEMPLATE_FILE_NAME = 'template.html'
 VISUALIZATION_FILE_NAME = 'logvisualization.html'
-PINBOARD_FILE_NAME = 'pinboard.xml'
 SETTINGS_FILE_NAME = 'settings.json'
 
 SETTING_USERNAME = 'username'
