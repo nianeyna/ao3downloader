@@ -44,9 +44,11 @@ def action():
     print(strings.PINBOARD_INFO_NUM_RETURNED.format(len(bookmarks)))
 
     folder = strings.DOWNLOAD_FOLDER_NAME
-    logfile = globals.get_logfile(folder)
+    logfile = strings.LOG_FILE_NAME
 
     print(strings.AO3_INFO_DOWNLOADING)
+
+    fileio.make_dir(folder)
 
     for item in tqdm(bookmarks):
         link = item['href']

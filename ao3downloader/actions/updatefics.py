@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 
 def action():
-    logfile = globals.get_logfile(strings.DOWNLOAD_FOLDER_NAME)
+    logfile = strings.LOG_FILE_NAME
 
     folder = fileio.setting(
         strings.UPDATE_PROMPT_INPUT, 
@@ -60,6 +60,8 @@ def action():
     print(strings.UPDATE_INFO_URLS_DONE)
 
     print(strings.UPDATE_INFO_DOWNLOADING)
+
+    fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
 
     for work in tqdm(works_cleaned):
         ao3.update(work['link'], download_filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, work['chapters'])

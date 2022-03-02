@@ -1,4 +1,3 @@
-import os
 import requests
 
 import ao3downloader.exceptions as exceptions
@@ -29,12 +28,6 @@ def ao3_login(session: requests.sessions.Session) -> None:
             fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_USERNAME, None)
             fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_PASSWORD, None)
             raise
-
-
-def get_logfile(folder: str) -> str:
-    fileio.make_dir(folder)
-    logfile = os.path.join(folder, strings.LOG_FILE_NAME)
-    return logfile
 
 
 def get_download_types() -> list[str]:

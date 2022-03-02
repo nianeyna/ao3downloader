@@ -12,7 +12,7 @@ import ao3downloader.strings as strings
 def action():
 
     folder = strings.DOWNLOAD_FOLDER_NAME
-    logfile = globals.get_logfile(folder)
+    logfile = strings.LOG_FILE_NAME
 
     filetypes = globals.get_download_types()
 
@@ -58,7 +58,8 @@ def action():
     print(strings.AO3_INFO_DOWNLOADING)
 
     fileio.write_log(logfile, {'starting': link})
-
+    fileio.make_dir(folder)
+    
     ao3.download(link, filetypes, folder, logfile, session, subfolders, pages)
 
     session.close()

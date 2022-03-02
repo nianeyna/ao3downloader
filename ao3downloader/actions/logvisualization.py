@@ -10,8 +10,8 @@ def action():
     keys = []
     data = []
 
-    logfile = os.path.join(strings.DOWNLOAD_FOLDER_NAME, strings.LOG_FILE_NAME)
-    visfile = os.path.join(strings.DOWNLOAD_FOLDER_NAME, strings.VISUALIZATION_FILE_NAME)
+    logfile = strings.LOG_FILE_NAME
+    visfile = strings.VISUALIZATION_FILE_NAME
 
     if not os.path.exists(logfile):
         print(strings.INFO_NO_LOG_FILE)

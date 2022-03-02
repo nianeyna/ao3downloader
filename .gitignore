@@ -3,5 +3,6 @@ venv/
 __pycache__/
 *.pyc
 downloads/
-pinboard.xml
 settings.json
+log.jsonl
+logvisualization.html
