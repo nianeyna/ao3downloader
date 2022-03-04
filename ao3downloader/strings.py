@@ -1,6 +1,7 @@
 # region file ops
 
 DOWNLOAD_FOLDER_NAME = 'downloads'
+LOG_FOLDER_NAME = 'logs'
 HTML_FOLDER_NAME = 'html'
 LOG_FILE_NAME = 'log.jsonl'
 TEMPLATE_FILE_NAME = 'template.html'

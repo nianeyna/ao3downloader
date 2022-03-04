@@ -44,7 +44,7 @@ def action():
     print(strings.PINBOARD_INFO_NUM_RETURNED.format(len(bookmarks)))
 
     folder = strings.DOWNLOAD_FOLDER_NAME
-    logfile = strings.LOG_FILE_NAME
+    logfile = globals.get_logfile()
 
     print(strings.AO3_INFO_DOWNLOADING)
 

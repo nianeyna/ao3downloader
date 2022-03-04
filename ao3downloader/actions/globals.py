@@ -1,9 +1,16 @@
+import os
 import requests
 
 import ao3downloader.exceptions as exceptions
 import ao3downloader.fileio as fileio
 import ao3downloader.repo as repo
 import ao3downloader.strings as strings
+
+
+def get_logfile() -> str:
+    if not os.path.exists(strings.LOG_FOLDER_NAME):
+        os.mkdir(strings.LOG_FOLDER_NAME)
+    return os.path.join(strings.LOG_FOLDER_NAME, strings.LOG_FILE_NAME)
 
 
 def ao3_login(session: requests.sessions.Session) -> None:

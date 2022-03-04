@@ -11,14 +11,13 @@ import ao3downloader.strings as strings
 
 def action():
 
-    folder = strings.DOWNLOAD_FOLDER_NAME
-    logfile = strings.LOG_FILE_NAME
-
     filetypes = globals.get_download_types()
 
     print(strings.AO3_PROMPT_SUBFOLDERS)
     subfolders = True if input() == strings.PROMPT_YES else False
 
+    logfile = globals.get_logfile()
+    
     latest = None
     try:
         with open(logfile, 'r', encoding='utf-8') as f:
@@ -58,8 +57,8 @@ def action():
     print(strings.AO3_INFO_DOWNLOADING)
 
     fileio.write_log(logfile, {'starting': link})
-    fileio.make_dir(folder)
+    fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
     
-    ao3.download(link, filetypes, folder, logfile, session, subfolders, pages)
+    ao3.download(link, filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, subfolders, pages)
 
     session.close()

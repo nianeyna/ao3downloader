@@ -13,7 +13,6 @@ from tqdm import tqdm
 
 
 def action():
-    logfile = strings.LOG_FILE_NAME
 
     folder = fileio.setting(
         strings.UPDATE_PROMPT_INPUT, 
@@ -39,6 +38,8 @@ def action():
     print(strings.UPDATE_INFO_NUM_RETURNED.format(len(fics)))
 
     print(strings.UPDATE_INFO_URLS)
+
+    logfile = globals.get_logfile()
 
     works = []
     for fic in tqdm(fics):
