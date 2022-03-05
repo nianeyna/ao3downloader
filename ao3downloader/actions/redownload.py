@@ -27,7 +27,18 @@ def action():
             oldtypes = list(set(oldtypes))
             break
 
-    newtypes = globals.get_download_types()
+    newtypes = []
+    while True:
+        filetype = ''
+        while filetype not in strings.AO3_ACCEPTABLE_DOWNLOAD_TYPES:
+            print(strings.AO3_PROMPT_DOWNLOAD_TYPE)
+            filetype = input()
+        newtypes.append(filetype)
+        print(strings.AO3_INFO_FILE_TYPE.format(filetype))
+        print(strings.AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE)
+        if input() == strings.PROMPT_YES:
+            newtypes = list(set(newtypes))
+            break
 
     session = requests.sessions.Session()
     globals.ao3_login(session)

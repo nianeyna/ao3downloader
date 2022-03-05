@@ -67,7 +67,7 @@ UPDATE_PROMPT_FILE_TYPE = 'please enter the file type of the files you would lik
 UPDATE_INFO_FILE_TYPE = 'added {} to list of file types to check for updates'
 
 REDOWNLOAD_PROMPT_FOLDER = 'please enter the folder containing the files you want to re-download (also checks subfolders):'
-REDOWNLOAD_PROMPT_FILE_TYPE = 'please enter file type you want to convert from. choose from the following (case sensitive):\n' + '\n'.join(strings.UPDATE_ACCEPTABLE_FILE_TYPES)
+REDOWNLOAD_PROMPT_FILE_TYPE = 'please enter file type you want to convert from. choose from the following (case sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_FILE_TYPES)
 REDOWNLOAD_INFO_FILE_TYPE = 'added {} to list of file types to convert from'
 REDOWNLOAD_INFO_URLS = 'getting work urls'
 REDOWNLOAD_INFO_DONE = 'done getting work urls. {} urls found'
