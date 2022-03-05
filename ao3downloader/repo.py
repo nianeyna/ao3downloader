@@ -57,7 +57,7 @@ def my_get(url, session):
         print(strings.MESSAGE_RESUMING)
         return my_get(url, session)
 
-    if(strings.AO3_BASE_URL in url):
+    if('archiveofourown.org' in url):
         sleep(sleep_time)
         
     return response
