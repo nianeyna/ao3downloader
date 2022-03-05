@@ -27,14 +27,8 @@ def action():
 
     print(strings.UPDATE_INFO_FILES)
 
-    fics = []
-    for subdir, dirs, files in os.walk(folder):
-        for file in files:
-            filetype = os.path.splitext(file)[1].upper()[1:]
-            if filetype in update_filetypes:
-                path = os.path.join(subdir, file)
-                fics.append({'path': path, 'filetype': filetype})
-
+    fics = globals.get_files_of_type(folder, update_filetypes)
+    
     print(strings.UPDATE_INFO_NUM_RETURNED.format(len(fics)))
 
     print(strings.UPDATE_INFO_URLS)
@@ -66,3 +60,5 @@ def action():
 
     for work in tqdm(works_cleaned):
         ao3.update(work['link'], download_filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, work['chapters'])
+
+    session.close()

@@ -13,6 +13,17 @@ def get_logfile() -> str:
     return os.path.join(strings.LOG_FOLDER_NAME, strings.LOG_FILE_NAME)
 
 
+def get_folder(prompt: str) -> str:
+    while True:
+        print(prompt)
+        folder = input()
+        if os.path.exists(folder): 
+            break
+        else:
+            print(strings.INFO_NO_FOLDER)
+    return folder
+
+
 def ao3_login(session: requests.sessions.Session) -> None:
 
     print(strings.AO3_PROMPT_LOGIN)
@@ -75,3 +86,14 @@ def get_update_types() -> list[str]:
             filetypes = list(set(filetypes))
             fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_UPDATE_FILETYPES, filetypes)
             return filetypes
+
+
+def get_files_of_type(folder: str, filetypes: list[str]) -> list[dict[str, str]]:
+    results = []
+    for subdir, dirs, files in os.walk(folder):
+        for file in files:
+            filetype = os.path.splitext(file)[1].upper()[1:]
+            if filetype in filetypes:
+                path = os.path.join(subdir, file)
+                results.append({'path': path, 'filetype': filetype})
+    return results

@@ -31,6 +31,7 @@ ACTION_DESCRIPTION_AO3 = 'download from ao3 link'
 ACTION_DESCRIPTION_UPDATE = 'download latest version of incomplete fics'
 ACTION_DESCRIPTION_PINBOARD = 'download bookmarks from pinboard'
 ACTION_DESCRIPTION_VISUALIZATION = 'convert logfile into interactable html'
+ACTION_DESCRIPTION_REDOWNLOAD = 're-download fics saved in one format in a different format'
 
 PINBOARD_PROMPT_API_TOKEN = 'please enter api token'
 PINBOARD_PROMPT_INCLUDE_UNREAD = 'do you want to include unread bookmarks? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
@@ -65,11 +66,19 @@ UPDATE_PROMPT_USE_SAVED_FILE_TYPES = 'use saved list of file types to check for 
 UPDATE_PROMPT_FILE_TYPE = 'please enter the file type of the files you would like to check for updates. choose from the following (case-sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_FILE_TYPES)
 UPDATE_INFO_FILE_TYPE = 'added {} to list of file types to check for updates'
 
+REDOWNLOAD_PROMPT_FOLDER = 'please enter the folder containing the files you want to re-download (also checks subfolders):'
+REDOWNLOAD_PROMPT_FILE_TYPE = 'please enter file type you want to convert from. choose from the following (case sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_FILE_TYPES)
+REDOWNLOAD_INFO_FILE_TYPE = 'added {} to list of file types to convert from'
+REDOWNLOAD_INFO_URLS = 'getting work urls'
+REDOWNLOAD_INFO_DONE = 'done getting work urls. {} urls found'
+
 INFO_NO_LOG_FILE = 'no log file'
+INFO_NO_FOLDER = 'folder does not exist'
 
 MESSAGE_TOO_MANY_REQUESTS = 'too many requests to server. resuming in 5 minutes. paused at: {}'
 MESSAGE_RESUMING = 'resuming execution'
 MESSAGE_INCOMPLETE_FIC = 'found incomplete fic'
+MESSAGE_FIC_FILE = 'found fic file'
 
 # endregion
 
@@ -101,5 +110,6 @@ ERROR_DOWNLOAD_LINK = 'Problem getting download link'
 ERROR_SERIES = 'Problem getting series'
 ERROR_LOG_FILE = 'Problem parsing log file during initial setup'
 ERROR_INCOMPLETE_FIC = 'Problem parsing file while checking for incomplete fics'
+ERROR_REDOWNLOAD = 'error processing file for re-download'
 
 # endregion
