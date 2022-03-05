@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from ebooklib import epub
 
 
-def process_file(path: str, filetype: str) -> dict:
+def process_file(path: str, filetype: str, update: bool=True) -> dict:
     '''add url of work to list if current version of work is incomplete'''
 
     if filetype == 'EPUB':
@@ -68,6 +68,11 @@ def process_file(path: str, filetype: str) -> dict:
 
     # done with format-specific parsing, now we can proceed in the same way for all
     if href is None: return # if this isn't a work from ao3, return
+    
+    # if we don't care whether the fic is incomplete, just return the work link
+    if not update: return {'link': href}
+
+    # otherwise continue checking for incomplete fics
     if stats is None: return # if we can't find the series metadata, return
 
     # if the series metadata does not contain the character "/", return
