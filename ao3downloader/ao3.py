@@ -4,17 +4,13 @@ import os
 import requests
 import traceback
 
+import ao3downloader.exceptions as exceptions
 import ao3downloader.fileio as fileio
 import ao3downloader.repo as repo
 import ao3downloader.soup as soup
 import ao3downloader.strings as strings
 
 from bs4 import BeautifulSoup
-
-from ao3downloader.exceptions import LockedException
-from ao3downloader.exceptions import DeletedException
-from ao3downloader.exceptions import ProceedException
-from ao3downloader.exceptions import DownloadException
 
 
 def download(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int = None) -> None:
@@ -25,7 +21,7 @@ def download(link: str, filetypes: list[str], folder: str, logfile: str, session
     try:
         download_recursive(link, filetypes, folder, log, logfile, session, subfolders, pages, visited)
     except Exception as e:
-        log_error(log, logfile, e, strings.ERROR_UNKNOWN)
+        log_error(log, logfile, e)
 
 
 def update(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, chapters: str) -> None:
@@ -35,7 +31,7 @@ def update(link: str, filetypes: list[str], folder: str, logfile: str, session: 
     try:
         download_work(link, filetypes, folder, log, logfile, session, chapters)
     except Exception as e:
-        log_error(log, logfile, e, strings.ERROR_UNKNOWN)
+        log_error(log, logfile, e)
 
 
 def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int, visited: list[str]) -> None:
@@ -60,7 +56,7 @@ def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, 
             if pages and soup.get_page_number(link) == pages + 1: break
             fileio.write_log(logfile, {'starting': link})
     else:
-        log_error(log, logfile, None, strings.ERROR_INVALID_LINK)
+        raise exceptions.InvalidLinkException(strings.ERROR_INVALID_LINK)
 
 
 def download_series(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool) -> None:
@@ -80,7 +76,7 @@ def download_series(link: str, filetypes: list[str], folder: str, log: dict, log
             download_work(work_url, filetypes, folder, log, logfile, session)
     except Exception as e:
         log['link'] = link
-        log_error(log, logfile, e, strings.ERROR_SERIES)
+        log_error(log, logfile, e)
 
 
 def download_work(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, chapters: str = None) -> None:
@@ -91,18 +87,8 @@ def download_work(link: str, filetypes: list[str], folder: str, log: dict, logfi
         title = try_download(link, filetypes, folder, session, chapters)
         if title == False: return
         log['title'] = title
-    except LockedException as e:
-        log_error(log, logfile, e, strings.ERROR_LOCKED)
-    except DeletedException as e:
-        log_error(log, logfile, e, strings.ERROR_DELETED)
-    except ProceedException as e:
-        log_error(log, logfile, e, strings.ERROR_PROCEED_LINK)
-    except DownloadException as e:
-        log_error(log, logfile, e, strings.ERROR_DOWNLOAD_LINK)
-    except AttributeError as e:
-        log_error(log, logfile, e, strings.ERROR_ATTRIBUTE)
     except Exception as e:
-        log_error(log, logfile, e, strings.ERROR_UNKNOWN)
+        log_error(log, logfile, e)
     else:
         log['success'] = True
         fileio.write_log(logfile, log)
@@ -135,9 +121,9 @@ def proceed(thesoup: BeautifulSoup, session: requests.sessions.Session) -> Beaut
     """Check locked/deleted and proceed through explicit agreement if needed"""
 
     if soup.is_locked(thesoup):
-        raise LockedException
+        raise exceptions.LockedException(strings.ERROR_LOCKED)
     if soup.is_deleted(thesoup):
-        raise DeletedException
+        raise exceptions.DeletedException(strings.ERROR_DELETED)
     if soup.is_explicit(thesoup):
         proceed_url = soup.get_proceed_link(thesoup)
         thesoup = repo.get_soup(proceed_url, session)
@@ -148,9 +134,9 @@ def get_file_type(filetype: str) -> str:
     return '.' + filetype.lower()
 
 
-def log_error(log: dict, logfile: str, exception: BaseException, errordesc: str):
+def log_error(log: dict, logfile: str, exception: Exception):
     log['error'] = str(exception)
-    log['message'] = errordesc
     log['success'] = False
-    log['stacktrace'] = ''.join(traceback.TracebackException.from_exception(exception).format())
+    if not isinstance(exception, exceptions.Ao3DownloaderException):
+        log['stacktrace'] = ''.join(traceback.TracebackException.from_exception(exception).format())
     fileio.write_log(logfile, log)

@@ -85,7 +85,7 @@ def get_proceed_link(soup):
                     .find('a', text=strings.AO3_PROCEED)
                     .get('href'))
     except AttributeError as e:
-        raise ProceedException from e
+        raise ProceedException(strings.ERROR_PROCEED_LINK) from e
     return strings.AO3_BASE_URL + link
 
 
@@ -97,7 +97,7 @@ def get_download_link(soup, download_type):
                     .find('a', text=download_type)
                     .get('href'))
     except AttributeError as e:
-        raise DownloadException from e
+        raise DownloadException(strings.ERROR_DOWNLOAD_LINK) from e
     return strings.AO3_BASE_URL + link
 
 

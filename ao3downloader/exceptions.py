@@ -1,21 +1,29 @@
 """Custom exceptions go here."""
 
 
-class LockedException(Exception):
+class Ao3DownloaderException(Exception):
     pass
 
 
-class DeletedException(Exception):
+class LockedException(Ao3DownloaderException):
     pass
 
 
-class ProceedException(Exception):
+class DeletedException(Ao3DownloaderException):
     pass
 
 
-class DownloadException(Exception):
+class ProceedException(Ao3DownloaderException):
     pass
 
 
-class LoginException(Exception):
+class DownloadException(Ao3DownloaderException):
+    pass
+
+
+class InvalidLinkException(Ao3DownloaderException):
+    pass
+
+
+class LoginException(Ao3DownloaderException):
     pass

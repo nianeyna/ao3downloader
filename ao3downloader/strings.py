@@ -99,15 +99,12 @@ AO3_CHAPTER_TITLE = 'Chapter 1 - '
 
 # region error messages
 
-ERROR_INVALID_LINK = 'Not a series or work'
+ERROR_INVALID_LINK = 'Not an ao3 link'
 ERROR_LOCKED = 'Locked'
 ERROR_DELETED = 'Deleted'
-ERROR_UNKNOWN = 'Unspecified error'
-ERROR_ATTRIBUTE = 'Unrecognized'
 ERROR_FAILED_LOGIN = 'Failed login'
 ERROR_PROCEED_LINK = 'Problem getting proceed link'
 ERROR_DOWNLOAD_LINK = 'Problem getting download link'
-ERROR_SERIES = 'Problem getting series'
 ERROR_LOG_FILE = 'Problem parsing log file during initial setup'
 ERROR_INCOMPLETE_FIC = 'Problem parsing file while checking for incomplete fics'
 ERROR_REDOWNLOAD = 'error processing file for re-download'
