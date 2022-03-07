@@ -32,6 +32,7 @@ ACTION_DESCRIPTION_UPDATE = 'download latest version of incomplete fics'
 ACTION_DESCRIPTION_PINBOARD = 'download bookmarks from pinboard'
 ACTION_DESCRIPTION_VISUALIZATION = 'convert logfile into interactable html'
 ACTION_DESCRIPTION_REDOWNLOAD = 're-download fics saved in one format in a different format'
+ACTION_DESCRIPTION_UPDATE_SERIES = 'download missing fics from series'
 
 PINBOARD_PROMPT_API_TOKEN = 'please enter api token'
 PINBOARD_PROMPT_INCLUDE_UNREAD = 'do you want to include unread bookmarks? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
@@ -56,7 +57,7 @@ AO3_INFO_DOWNLOADING = 'downloading works'
 AO3_INFO_FILE_TYPE = 'added {} to list of download types'
 
 UPDATE_PROMPT_INPUT = 'input path to folder containing files you want to check for updates (also checks subfolders)'
-UPDATE_INFO_FILES = 'getting list of files to update'
+UPDATE_INFO_FILES = 'getting list of files'
 UPDATE_INFO_NUM_RETURNED = '{} files found'
 UPDATE_INFO_URLS = 'getting urls of incomplete fics'
 UPDATE_INFO_URLS_DONE = 'finished getting urls of incomplete fics'
@@ -65,6 +66,11 @@ UPDATE_ACCEPTABLE_FILE_TYPES = ['AZW3', 'EPUB', 'MOBI', 'PDF', 'HTML']
 UPDATE_PROMPT_USE_SAVED_FILE_TYPES = 'use saved list of file types to check for updates? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 UPDATE_PROMPT_FILE_TYPE = 'please enter the file type of the files you would like to check for updates. choose from the following (case-sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_FILE_TYPES)
 UPDATE_INFO_FILE_TYPE = 'added {} to list of file types to check for updates'
+
+SERIES_INFO_FILES = 'getting list of works belonging to series'
+SERIES_INFO_URLS = 'finding all series urls'
+SERIES_INFO_NUM = '{} series found'
+SERIES_INFO_DOWNLOADING = 'downloading works missing from series'
 
 REDOWNLOAD_PROMPT_FOLDER = 'please enter the folder containing the files you want to re-download (also checks subfolders):'
 REDOWNLOAD_PROMPT_FILE_TYPE = 'please enter file type you want to convert from. choose from the following (case sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_FILE_TYPES)
@@ -79,6 +85,7 @@ MESSAGE_TOO_MANY_REQUESTS = 'too many requests to server. resuming in 5 minutes.
 MESSAGE_RESUMING = 'resuming execution'
 MESSAGE_INCOMPLETE_FIC = 'found incomplete fic'
 MESSAGE_FIC_FILE = 'found fic file'
+MESSAGE_SERIES_FILE = 'found work in series'
 
 # endregion
 
@@ -107,6 +114,7 @@ ERROR_PROCEED_LINK = 'Problem getting proceed link'
 ERROR_DOWNLOAD_LINK = 'Problem getting download link'
 ERROR_LOG_FILE = 'Problem parsing log file during initial setup'
 ERROR_INCOMPLETE_FIC = 'Problem parsing file while checking for incomplete fics'
-ERROR_REDOWNLOAD = 'error processing file for re-download'
+ERROR_FIC_IN_SERIES = 'Problem parsing file while checking for fics in series'
+ERROR_REDOWNLOAD = 'Error processing file for re-download'
 
 # endregion
