@@ -34,6 +34,16 @@ def update(link: str, filetypes: list[str], folder: str, logfile: str, session: 
         log_error(log, logfile, e)
 
 
+def update_series(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, subfolders: bool, visited: list[str]) -> None:
+
+    log = {}
+
+    try:
+        download_series(link, filetypes, folder, log, logfile, session, subfolders, visited)
+    except Exception as e:
+        log_error(log, logfile, e)
+
+
 def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int, visited: list[str]) -> None:
 
     if link in visited: return
@@ -59,7 +69,7 @@ def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, 
         raise exceptions.InvalidLinkException(strings.ERROR_INVALID_LINK)
 
 
-def download_series(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool) -> None:
+def download_series(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, visited: list[str]=None) -> None:
     """"Download all works in a series into a subfolder"""
 
     try:
@@ -73,7 +83,8 @@ def download_series(link: str, filetypes: list[str], folder: str, log: dict, log
             folder = os.path.join(folder, valid_title)
             fileio.make_dir(folder)
         for work_url in series_info['work_urls']:
-            download_work(work_url, filetypes, folder, log, logfile, session)
+            if not visited or work_url not in visited:
+                download_work(work_url, filetypes, folder, log, logfile, session)
     except Exception as e:
         log['link'] = link
         log_error(log, logfile, e)

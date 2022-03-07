@@ -5,6 +5,7 @@ from ao3downloader.actions import pinboarddownload
 from ao3downloader.actions import updatefics
 from ao3downloader.actions import redownload
 from ao3downloader.actions import logvisualization
+from ao3downloader.actions import updateseries
 
 
 def ao3_download_action():
@@ -13,6 +14,10 @@ def ao3_download_action():
 
 def update_epubs_action():
     updatefics.action()
+
+
+def update_series_action():
+    updateseries.action()
     
 
 def re_download_action():
@@ -54,6 +59,7 @@ update_epubs_action.description = strings.ACTION_DESCRIPTION_UPDATE
 pinboard_download_action.description = strings.ACTION_DESCRIPTION_PINBOARD
 log_visualization_action.description = strings.ACTION_DESCRIPTION_VISUALIZATION
 re_download_action.description = strings.ACTION_DESCRIPTION_REDOWNLOAD
+update_series_action.description = strings.ACTION_DESCRIPTION_UPDATE_SERIES
 
 QUIT_ACTION = 'q'
 MENU_ACTION = 'd'
@@ -62,6 +68,7 @@ actions = {
     MENU_ACTION: display_menu,
     'a': ao3_download_action,
     'u': update_epubs_action,
+    's': update_series_action,
     'r': re_download_action,
     'p': pinboard_download_action,
     'v': log_visualization_action
