@@ -12,7 +12,8 @@ This is a program intended to help you download fanfiction from the [Archive of 
 - unzip the zip file you just downloaded. this will create a folder. open it. if you see a file called "ao3downloader.py" then you're in the right place.
 - windows: double-click on "ao3downloader.cmd"
 - mac:
-    - open a terminal window pointed to the folder containing "ao3downloader.py"
+    - open a terminal window pointed to the folder containing "ao3downloader.py".
+        - You can do this by right-clicking on the folder, going to Services at the bottom of the menu, and clicking "New Terminal at Folder". Alternatively, you can type "cd " and drag the folder to the terminal to copy the folder path.
     - enter the following commands one by one:
         ```
         python3 -m venv venv
