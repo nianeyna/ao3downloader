@@ -2,11 +2,15 @@
 <html>
 
 <head>
-    <script src="../html/lib/jquery-3.6.0.min.js"></script>
-    <script src="../html/lib/jquery.dataTables.min.js"></script>
-    <link rel="stylesheet" href="../html/css/jquery.dataTables.min.css">
+    <title>ao3downloader log file</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+    <style>body{font-family: 'Lucida Grande','Lucida Sans Unicode','GNU Unifont',Verdana,Helvetica,sans-serif; font-size: 14px;}</style>
     <script>
         $(document).ready(function () {
+            var regex = /(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+            $('#log').html($('#log').html().replace(regex, '<a href="$1">$1</a>'));                        
             $('#log').DataTable({
                 paging: false
             });
@@ -15,7 +19,7 @@
 </head>
 
 <body>
-    <table id="log">
+    <table id="log", class="display">
         %TABLE%  
     </table>  
 </body>

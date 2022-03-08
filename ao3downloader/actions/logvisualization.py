@@ -7,7 +7,7 @@ import ao3downloader.strings as strings
 
 def action():
 
-    keys = []
+    keys = ['timestamp'] # always put timestamp first
     data = []
 
     logfile = os.path.join(strings.LOG_FOLDER_NAME, strings.LOG_FILE_NAME)
@@ -41,8 +41,6 @@ def action():
         tr = '<tr>'
         for key in keys:
             key_item = str(item[key])
-            if key == 'link':
-                key_item = f'<a href="{key_item}">{key_item}</a>'
             tr += '<td>' + key_item + '</td>'
         tr += '</tr>'
         tbody += tr
