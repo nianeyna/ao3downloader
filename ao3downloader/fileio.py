@@ -3,37 +3,36 @@
 import datetime
 import json
 import os
-import string
 
 
-def write_log(filename, log):
+# based on https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
+invalid_filename_characters = '<>:"/\|?*.' + ''.join(chr(i) for i in range(32))
+
+
+def write_log(filename: str, log: dict) -> None:
     log['timestamp'] = datetime.datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
     with open(filename, 'a', encoding='utf-8') as f:
         json.dump(log, f, ensure_ascii=False)
         f.write('\n')
 
 
-def make_dir(folder):
+def make_dir(folder: str) -> None:
     if not os.path.exists(folder):
         os.mkdir(folder)
 
 
-def save_bytes(folder, filename, content):
+def save_bytes(folder: str, filename: str, content: bytes) -> None:
     file = os.path.join(folder, filename)
     with open(file, 'wb') as f:
         f.write(content)
 
 
-def get_valid_filename(filename):
-    valid_chars = '-_.() {}{}'.format(string.ascii_letters, string.digits)
-    valid_name = ''
-    for c in filename:
-        if c in valid_chars:
-            valid_name = valid_name + c
+def get_valid_filename(filename: str) -> str:
+    valid_name = filename.translate({ord(i):None for i in invalid_filename_characters})
     return valid_name[:100].strip()
 
 
-def save_setting(filename, setting, value):
+def save_setting(filename: str, setting: str, value) -> None:
     js = get_json(filename)
     if value is None:
         js.pop(setting, None)
@@ -43,7 +42,7 @@ def save_setting(filename, setting, value):
         f.write(json.dumps(js))
 
 
-def get_setting(filename, setting):
+def get_setting(filename: str, setting: str):
     js = get_json(filename)
     try:
         return js[setting]
@@ -51,7 +50,7 @@ def get_setting(filename, setting):
         return ''
 
 
-def get_json(filename):
+def get_json(filename: str) -> dict:
     with open(filename, 'a', encoding='utf-8'):
         pass
     with open(filename, 'r', encoding='utf-8') as f:
@@ -61,7 +60,7 @@ def get_json(filename):
             return {}
 
 
-def setting(prompt, filename, setting):
+def setting(prompt: str, filename: str, setting: str):
     value = get_setting(filename, setting)
     if value == '':
         print(prompt)

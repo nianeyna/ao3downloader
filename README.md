@@ -1,6 +1,10 @@
 ## What is this?
 This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard.
 
+## Announcements
+
+As of March 8, 2022 I have changed how file names are generated to allow for the inclusion of non-alphanumeric characters (cnovel fans rejoice). If you have a Process going on which relies on file names for the same fic being the same, please take note of this if/when you download the new version of the code.
+
 ## Instructions
 
 - install python [version 3.9.9](https://www.python.org/downloads/release/python-399/)
