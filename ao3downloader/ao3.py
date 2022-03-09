@@ -13,13 +13,13 @@ import ao3downloader.strings as strings
 from bs4 import BeautifulSoup
 
 
-def download(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int = None) -> None:
+def download(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int = None, series: bool = True) -> None:
 
     log = {}
     visited = []
 
     try:
-        download_recursive(link, filetypes, folder, log, logfile, session, subfolders, pages, visited)
+        download_recursive(link, filetypes, folder, log, logfile, session, subfolders, pages, visited, series)
     except Exception as e:
         log_error(log, logfile, e)
 
@@ -44,14 +44,15 @@ def update_series(link: str, filetypes: list[str], folder: str, logfile: str, se
         log_error(log, logfile, e)
 
 
-def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int, visited: list[str]) -> None:
+def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int, visited: list[str], series: bool) -> None:
 
     if link in visited: return
     visited.append(link)
 
     if '/series/' in link:
-        log = {}
-        download_series(link, filetypes, folder, log, logfile, session, subfolders)
+        if series:
+            log = {}
+            download_series(link, filetypes, folder, log, logfile, session, subfolders)
     elif '/works/' in link:
         log = {}
         download_work(link, filetypes, folder, log, logfile, session)
@@ -61,7 +62,7 @@ def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, 
             urls = soup.get_work_and_series_urls(thesoup)
             if len(urls) == 0: break
             for url in urls:
-                download_recursive(url, filetypes, folder, log, logfile, session, subfolders, pages, visited)
+                download_recursive(url, filetypes, folder, log, logfile, session, subfolders, pages, visited, series)
             link = soup.get_next_page(link)
             if pages and soup.get_page_number(link) == pages + 1: break
             fileio.write_log(logfile, {'starting': link})
