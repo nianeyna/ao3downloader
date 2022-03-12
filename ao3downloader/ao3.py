@@ -44,6 +44,38 @@ def update_series(link: str, filetypes: list[str], folder: str, logfile: str, se
         log_error(log, logfile, e)
 
 
+def get_work_links(link: str, session: requests.sessions.Session, pages: int, series: bool) -> list[str]:
+    links_list = []
+    visited_series = []
+    get_work_links_recursive(links_list, link, session, pages, series, visited_series)
+    return links_list
+
+
+def get_work_links_recursive(links_list: list[str], link: str, session: requests.sessions.Session, pages: int, series: bool, visited_series: list[str]) -> None:
+
+    if '/works/' in link:
+        if link not in links_list:
+            links_list.append(link)
+    elif '/series/' in link:
+        if series and link not in visited_series:
+            visited_series.append(link)
+            series_soup = repo.get_soup(link, session)
+            series_soup = proceed(series_soup, session)
+            work_urls = soup.get_work_urls(series_soup)
+            for work_url in work_urls:
+                if work_url not in links_list:
+                    links_list.append(work_url)
+    elif strings.AO3_BASE_URL in link:
+        while True:
+            thesoup = repo.get_soup(link, session)
+            urls = soup.get_work_and_series_urls(thesoup)
+            if len(urls) == 0: break
+            for url in urls:
+                get_work_links_recursive(links_list, url, session, pages, series, visited_series)
+            link = soup.get_next_page(link)
+            if pages and soup.get_page_number(link) == pages + 1: break
+
+
 def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int, visited: list[str], series: bool) -> None:
 
     if link in visited: return

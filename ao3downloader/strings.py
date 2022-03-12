@@ -33,6 +33,7 @@ ACTION_DESCRIPTION_PINBOARD = 'download bookmarks from pinboard'
 ACTION_DESCRIPTION_VISUALIZATION = 'convert logfile into interactable html'
 ACTION_DESCRIPTION_REDOWNLOAD = 're-download fics saved in one format in a different format'
 ACTION_DESCRIPTION_UPDATE_SERIES = 'download missing fics from series'
+ACTION_DESCRIPTION_LINKS_ONLY = 'get all work links from an ao3 listing (saves links only)'
 
 PINBOARD_PROMPT_API_TOKEN = 'please enter api token'
 PINBOARD_PROMPT_INCLUDE_UNREAD = 'do you want to include unread bookmarks? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
@@ -51,7 +52,7 @@ AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE = 'done entering file types? ({}/{})'.format(
 AO3_PROMPT_LINK = 'please enter link to ao3'
 AO3_PROMPT_LAST_PAGE = 'do you want to start downloading from the page you stopped on last time? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_PAGES = 'please enter page number to stop on. enter 0 to download all pages.'
-AO3_PROMPT_SERIES = 'do you want to download series? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
+AO3_PROMPT_SERIES = 'do you want to get works from series links? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_SUBFOLDERS = 'do you want to create series subfolders? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_INFO_LOGIN = 'logging in'
 AO3_INFO_DOWNLOADING = 'downloading works'

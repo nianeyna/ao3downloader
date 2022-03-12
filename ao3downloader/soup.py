@@ -174,7 +174,7 @@ def get_page_number(link):
     else:
         i = index + 5
         page = get_num_from_link(link, i)
-        return page
+        return int(page)
 
 
 def get_num_from_link(link, start):
