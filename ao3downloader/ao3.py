@@ -13,33 +13,33 @@ import ao3downloader.strings as strings
 from bs4 import BeautifulSoup
 
 
-def download(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int = None, series: bool = True) -> None:
+def download(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int, series: bool, images: bool) -> None:
 
     log = {}
     visited = []
 
     try:
-        download_recursive(link, filetypes, folder, log, logfile, session, subfolders, pages, visited, series)
+        download_recursive(link, filetypes, folder, log, logfile, session, subfolders, pages, visited, series, images)
     except Exception as e:
         log_error(log, logfile, e)
 
 
-def update(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, chapters: str) -> None:
+def update(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, chapters: str, images: bool) -> None:
     
     log = {}
     
     try:
-        download_work(link, filetypes, folder, log, logfile, session, chapters)
+        download_work(link, filetypes, folder, log, logfile, session, chapters, images)
     except Exception as e:
         log_error(log, logfile, e)
 
 
-def update_series(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, subfolders: bool, visited: list[str]) -> None:
+def update_series(link: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, subfolders: bool, visited: list[str], images: bool) -> None:
 
     log = {}
 
     try:
-        download_series(link, filetypes, folder, log, logfile, session, subfolders, visited)
+        download_series(link, filetypes, folder, log, logfile, session, subfolders, images, visited)
     except Exception as e:
         log_error(log, logfile, e)
 
@@ -76,7 +76,7 @@ def get_work_links_recursive(links_list: list[str], link: str, session: requests
             if pages and soup.get_page_number(link) == pages + 1: break
 
 
-def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int, visited: list[str], series: bool) -> None:
+def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int, visited: list[str], series: bool, images: bool) -> None:
 
     if link in visited: return
     visited.append(link)
@@ -84,17 +84,17 @@ def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, 
     if '/series/' in link:
         if series:
             log = {}
-            download_series(link, filetypes, folder, log, logfile, session, subfolders)
+            download_series(link, filetypes, folder, log, logfile, session, subfolders, images)
     elif '/works/' in link:
         log = {}
-        download_work(link, filetypes, folder, log, logfile, session)
+        download_work(link, filetypes, folder, log, logfile, session, None, images)
     elif strings.AO3_BASE_URL in link:
         while True:
             thesoup = repo.get_soup(link, session)
             urls = soup.get_work_and_series_urls(thesoup)
             if len(urls) == 0: break
             for url in urls:
-                download_recursive(url, filetypes, folder, log, logfile, session, subfolders, pages, visited, series)
+                download_recursive(url, filetypes, folder, log, logfile, session, subfolders, pages, visited, series, images)
             link = soup.get_next_page(link)
             if pages and soup.get_page_number(link) == pages + 1: break
             fileio.write_log(logfile, {'starting': link})
@@ -102,7 +102,7 @@ def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, 
         raise exceptions.InvalidLinkException(strings.ERROR_INVALID_LINK)
 
 
-def download_series(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, visited: list[str]=None) -> None:
+def download_series(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, images: bool, visited: list[str]=None) -> None:
     """"Download all works in a series into a subfolder"""
 
     try:
@@ -117,18 +117,18 @@ def download_series(link: str, filetypes: list[str], folder: str, log: dict, log
             fileio.make_dir(folder)
         for work_url in series_info['work_urls']:
             if not visited or work_url not in visited:
-                download_work(work_url, filetypes, folder, log, logfile, session)
+                download_work(work_url, filetypes, folder, log, logfile, session, None, images)
     except Exception as e:
         log['link'] = link
         log_error(log, logfile, e)
 
 
-def download_work(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, chapters: str = None) -> None:
+def download_work(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, chapters: str, images: bool) -> None:
     """Download a single work"""
 
     try:
         log['link'] = link
-        title = try_download(link, filetypes, folder, session, chapters)
+        title = try_download(link, filetypes, folder, logfile, session, chapters, images)
         if title == False: return
         log['title'] = title
     except Exception as e:
@@ -138,7 +138,7 @@ def download_work(link: str, filetypes: list[str], folder: str, log: dict, logfi
         fileio.write_log(logfile, log)
 
 
-def try_download(work_url: str, filetypes: list[str], folder: str, session: requests.sessions.Session, chapters: str) -> str:
+def try_download(work_url: str, filetypes: list[str], folder: str, logfile: str, session: requests.sessions.Session, chapters: str, images: bool) -> str:
     """Main download logic"""
 
     thesoup = repo.get_soup(work_url, session)
@@ -157,6 +157,24 @@ def try_download(work_url: str, filetypes: list[str], folder: str, session: requ
         response = repo.get_book(link, session)
         filetype = get_file_type(filetype)
         fileio.save_bytes(folder, filename + filetype, response)
+
+    if images:
+        imagelinks = soup.get_image_links(thesoup)
+        counter = 0
+        for img in imagelinks:
+            try:
+                ext = os.path.splitext(img)[1]
+                response = repo.get_book(img, session)
+                imagefile = filename + ' img' + str(counter).zfill(3) + ext
+                imagefolder = os.path.join(folder, strings.IMAGE_FOLDER_NAME)
+                fileio.make_dir(imagefolder)
+                fileio.save_bytes(imagefolder, imagefile, response)
+            except Exception as e:
+                fileio.write_log(logfile, {
+                    'message': strings.ERROR_IMAGE, 'link': work_url, 'title': title, 'img': img, 'error': str(e), 
+                    'stacktrace': ''.join(traceback.TracebackException.from_exception(exception).format())})
+            finally:
+                counter += 1
 
     return title
 

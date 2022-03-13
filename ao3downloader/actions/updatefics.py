@@ -22,6 +22,9 @@ def action():
     update_filetypes = globals.get_update_types()
     download_filetypes = globals.get_download_types()
 
+    print(strings.AO3_PROMPT_IMAGES)
+    images = True if input() == strings.PROMPT_YES else False
+
     session = requests.sessions.Session()
     globals.ao3_login(session)    
 
@@ -59,6 +62,6 @@ def action():
     fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
 
     for work in tqdm(works_cleaned):
-        ao3.update(work['link'], download_filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, work['chapters'])
+        ao3.update(work['link'], download_filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, work['chapters'], images)
 
     session.close()

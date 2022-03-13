@@ -22,6 +22,9 @@ def action():
     print(strings.AO3_PROMPT_SUBFOLDERS)
     subfolders = True if input() == strings.PROMPT_YES else False
 
+    print(strings.AO3_PROMPT_IMAGES)
+    images = True if input() == strings.PROMPT_YES else False
+
     session = requests.sessions.Session()
     globals.ao3_login(session)
 
@@ -63,4 +66,4 @@ def action():
     fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
 
     for key, value in tqdm(series.items()):
-        ao3.update_series(key, download_filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, subfolders, value)
+        ao3.update_series(key, download_filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, subfolders, value, images)

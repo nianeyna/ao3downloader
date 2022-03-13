@@ -30,6 +30,9 @@ def action():
     print(strings.PINBOARD_PROMPT_INCLUDE_UNREAD)
     exclude_toread = False if input() == strings.PROMPT_YES else True
 
+    print(strings.AO3_PROMPT_IMAGES)
+    images = True if input() == strings.PROMPT_YES else False
+
     api_token = fileio.setting(
         strings.PINBOARD_PROMPT_API_TOKEN, 
         strings.SETTINGS_FILE_NAME, 
@@ -52,6 +55,6 @@ def action():
 
     for item in tqdm(bookmarks):
         link = item['href']
-        ao3.download(link, filetypes, folder, logfile, session, subfolders)
+        ao3.download(link, filetypes, folder, logfile, session, subfolders, None, True, images)
     
     session.close()

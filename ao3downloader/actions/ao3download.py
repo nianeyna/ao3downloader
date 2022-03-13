@@ -56,6 +56,9 @@ def action():
     except:
         pages = None
 
+    print(strings.AO3_PROMPT_IMAGES)
+    images = True if input() == strings.PROMPT_YES else False
+
     session = requests.sessions.Session()
 
     globals.ao3_login(session)
@@ -65,6 +68,6 @@ def action():
     fileio.write_log(logfile, {'starting': link})
     fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
     
-    ao3.download(link, filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, subfolders, pages, series)
+    ao3.download(link, filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, subfolders, pages, series, images)
 
     session.close()

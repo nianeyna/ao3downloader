@@ -17,6 +17,18 @@ def get_token(soup):
     return token
 
 
+def get_image_links(soup):
+    links = []
+    work = soup.find('div', id='workskin')
+    if not work: return links
+    images = work.find_all('img')
+    for img in images:
+        href = img.get('src')
+        if href:
+            links.append(href)
+    return links
+
+
 def get_series_info(soup):
     """Get series title and list of work urls."""
 
