@@ -159,22 +159,23 @@ def try_download(work_url: str, filetypes: list[str], folder: str, logfile: str,
         fileio.save_bytes(folder, filename + filetype, response)
 
     if images:
-        imagelinks = soup.get_image_links(thesoup)
         counter = 0
+        imagelinks = soup.get_image_links(thesoup)
         for img in imagelinks:
+            if str.startswith(img, '/'): break
             try:
                 ext = os.path.splitext(img)[1]
+                if '?' in ext: ext = ext[:ext.index('?')]
                 response = repo.get_book(img, session)
                 imagefile = filename + ' img' + str(counter).zfill(3) + ext
                 imagefolder = os.path.join(folder, strings.IMAGE_FOLDER_NAME)
                 fileio.make_dir(imagefolder)
                 fileio.save_bytes(imagefolder, imagefile, response)
+                counter += 1
             except Exception as e:
                 fileio.write_log(logfile, {
-                    'message': strings.ERROR_IMAGE, 'link': work_url, 'title': title, 'img': img, 'error': str(e), 
-                    'stacktrace': ''.join(traceback.TracebackException.from_exception(exception).format())})
-            finally:
-                counter += 1
+                    'message': strings.ERROR_IMAGE, 'link': work_url, 'title': title, 
+                    'img': img, 'error': str(e), 'stacktrace': traceback.format_exc()})
 
     return title
 
