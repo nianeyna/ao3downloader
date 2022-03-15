@@ -1,12 +1,13 @@
 # region file ops
 
 DOWNLOAD_FOLDER_NAME = 'downloads'
-LOG_FOLDER_NAME = 'logs'
+IMAGE_FOLDER_NAME = 'images'
 HTML_FOLDER_NAME = 'html'
+LOG_FOLDER_NAME = 'logs'
 LOG_FILE_NAME = 'log.jsonl'
+SETTINGS_FILE_NAME = 'settings.json'
 TEMPLATE_FILE_NAME = 'template.html'
 VISUALIZATION_FILE_NAME = 'logvisualization.html'
-SETTINGS_FILE_NAME = 'settings.json'
 
 SETTING_USERNAME = 'username'
 SETTING_PASSWORD = 'password'
@@ -52,6 +53,7 @@ AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE = 'done entering file types? ({}/{})'.format(
 AO3_PROMPT_LINK = 'please enter link to ao3'
 AO3_PROMPT_LAST_PAGE = 'do you want to start downloading from the page you stopped on last time? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_PAGES = 'please enter page number to stop on. enter 0 to download all pages.'
+AO3_PROMPT_IMAGES = 'do you want to download embedded images? (will be saved separately) ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_SERIES = 'do you want to get works from series links? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_SUBFOLDERS = 'do you want to create series subfolders? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_INFO_LOGIN = 'logging in'
@@ -118,5 +120,6 @@ ERROR_LOG_FILE = 'Problem parsing log file during initial setup'
 ERROR_INCOMPLETE_FIC = 'Problem parsing file while checking for incomplete fics'
 ERROR_FIC_IN_SERIES = 'Problem parsing file while checking for fics in series'
 ERROR_REDOWNLOAD = 'Error processing file for re-download'
+ERROR_IMAGE = 'Problem getting image'
 
 # endregion

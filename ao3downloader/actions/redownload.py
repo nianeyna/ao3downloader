@@ -40,6 +40,9 @@ def action():
             newtypes = list(set(newtypes))
             break
 
+    print(strings.AO3_PROMPT_IMAGES)
+    images = True if input() == strings.PROMPT_YES else False
+
     session = requests.sessions.Session()
     globals.ao3_login(session)
 
@@ -68,6 +71,6 @@ def action():
     fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
 
     for url in tqdm(urls):
-        ao3.download(url, newtypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, False)
+        ao3.download(url, newtypes, strings.DOWNLOAD_FOLDER_NAME, logfile, session, False, None, False, images)
 
     session.close()
