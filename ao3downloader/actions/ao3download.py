@@ -3,7 +3,7 @@ import json
 import traceback
 import requests
 
-import ao3downloader.actions.globals as globals
+import ao3downloader.actions.shared as shared
 import ao3downloader.ao3 as ao3
 import ao3downloader.fileio as fileio
 import ao3downloader.strings as strings
@@ -11,7 +11,7 @@ import ao3downloader.strings as strings
 
 def action():
 
-    filetypes = globals.get_download_types()
+    filetypes = shared.get_download_types()
 
     print(strings.AO3_PROMPT_SERIES)
     series = True if input() == strings.PROMPT_YES else False
@@ -22,7 +22,7 @@ def action():
     else:
         subfolders = False
 
-    logfile = globals.get_logfile()
+    logfile = shared.get_logfile()
     
     latest = None
     try:
@@ -61,7 +61,7 @@ def action():
 
     session = requests.sessions.Session()
 
-    globals.ao3_login(session)
+    shared.ao3_login(session)
 
     print(strings.AO3_INFO_DOWNLOADING)
 

@@ -2,7 +2,7 @@ import datetime
 import os
 import requests
 
-import ao3downloader.actions.globals as globals
+import ao3downloader.actions.shared as shared
 import ao3downloader.ao3 as ao3
 import ao3downloader.fileio as fileio
 import ao3downloader.strings as strings
@@ -27,7 +27,7 @@ def action():
 
     session = requests.sessions.Session()
 
-    globals.ao3_login(session)
+    shared.ao3_login(session)
 
     links = ao3.get_work_links(link, session, pages, series)
 

@@ -1,7 +1,7 @@
 import requests
 import traceback
 
-import ao3downloader.actions.globals as globals
+import ao3downloader.actions.shared as shared
 import ao3downloader.ao3 as ao3
 import ao3downloader.fileio as fileio
 import ao3downloader.strings as strings
@@ -16,8 +16,8 @@ def action():
         strings.SETTINGS_FILE_NAME, 
         strings.SETTING_UPDATE_FOLDER)
 
-    update_filetypes = globals.get_update_types()
-    download_filetypes = globals.get_download_types()
+    update_filetypes = shared.get_update_types()
+    download_filetypes = shared.get_download_types()
 
     print(strings.AO3_PROMPT_SUBFOLDERS)
     subfolders = True if input() == strings.PROMPT_YES else False
@@ -26,17 +26,17 @@ def action():
     images = True if input() == strings.PROMPT_YES else False
 
     session = requests.sessions.Session()
-    globals.ao3_login(session)
+    shared.ao3_login(session)
 
     print(strings.UPDATE_INFO_FILES)
 
-    files = globals.get_files_of_type(folder, update_filetypes)
+    files = shared.get_files_of_type(folder, update_filetypes)
     
     print(strings.UPDATE_INFO_NUM_RETURNED.format(len(files)))
 
     print(strings.SERIES_INFO_FILES)
 
-    logfile = globals.get_logfile()
+    logfile = shared.get_logfile()
 
     works = []
     for file in tqdm(files):

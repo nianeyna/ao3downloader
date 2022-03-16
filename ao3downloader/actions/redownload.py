@@ -1,8 +1,7 @@
-import os
 import requests
 import traceback
 
-import ao3downloader.actions.globals as globals
+import ao3downloader.actions.shared as shared
 import ao3downloader.ao3 as ao3
 import ao3downloader.fileio as fileio
 import ao3downloader.strings as strings
@@ -12,7 +11,7 @@ from tqdm import tqdm
 
 def action():
     
-    folder = globals.get_folder(strings.REDOWNLOAD_PROMPT_FOLDER)
+    folder = shared.get_folder(strings.REDOWNLOAD_PROMPT_FOLDER)
 
     oldtypes = []
     while True:
@@ -44,15 +43,15 @@ def action():
     images = True if input() == strings.PROMPT_YES else False
 
     session = requests.sessions.Session()
-    globals.ao3_login(session)
+    shared.ao3_login(session)
 
-    fics = globals.get_files_of_type(folder, oldtypes)
+    fics = shared.get_files_of_type(folder, oldtypes)
     
     print(strings.UPDATE_INFO_NUM_RETURNED.format(len(fics)))
 
     print(strings.REDOWNLOAD_INFO_URLS)
 
-    logfile = globals.get_logfile()
+    logfile = shared.get_logfile()
 
     works = []
     for fic in tqdm(fics):

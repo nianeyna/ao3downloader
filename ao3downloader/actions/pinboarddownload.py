@@ -1,6 +1,6 @@
 import requests
 
-import ao3downloader.actions.globals as globals
+import ao3downloader.actions.shared as shared
 import ao3downloader.ao3 as ao3
 import ao3downloader.fileio as fileio
 import ao3downloader.pinboard as pinboard
@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 def action():
 
-    filetypes = globals.get_download_types()
+    filetypes = shared.get_download_types()
 
     print(strings.AO3_PROMPT_SUBFOLDERS)
     subfolders = True if input() == strings.PROMPT_YES else False
@@ -40,14 +40,14 @@ def action():
 
     session = requests.sessions.Session()
 
-    globals.ao3_login(session)
+    shared.ao3_login(session)
     
     print(strings.PINBOARD_INFO_GETTING_BOOKMARKS)
     bookmarks = pinboard.get_bookmarks(api_token, date, exclude_toread)
     print(strings.PINBOARD_INFO_NUM_RETURNED.format(len(bookmarks)))
 
     folder = strings.DOWNLOAD_FOLDER_NAME
-    logfile = globals.get_logfile()
+    logfile = shared.get_logfile()
 
     print(strings.AO3_INFO_DOWNLOADING)
 
