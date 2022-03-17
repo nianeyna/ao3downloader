@@ -67,3 +67,23 @@ def setting(prompt: str, filename: str, setting: str):
         value = input()
         save_setting(filename, setting, value)
     return value
+
+
+def load_logfile(logfile: str) -> list[dict]:
+    logs = []
+    try:
+        with open(logfile, 'r', encoding='utf-8') as f:
+            objects = map(lambda x: json.loads(x), f.readlines())
+            logs.extend(list(objects))
+    except FileNotFoundError:
+        pass
+    return logs
+
+
+def file_exists(link: str, titles: dict[str, str], filetypes: list[str], folder: str) -> bool:
+    filename = get_valid_filename(titles[link])
+    files = list(map(lambda x: os.path.join(folder, filename, '.' + x.tolower()), filetypes))
+    for file in files:
+        if not os.path.exists(file):
+            return False
+    return True

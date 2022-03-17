@@ -49,6 +49,13 @@ def action():
     folder = strings.DOWNLOAD_FOLDER_NAME
     logfile = shared.get_logfile()
 
+    print(strings.INFO_EXCLUDING_WORKS)
+    logs = fileio.load_logfile(logfile)
+    titles = shared.get_title_dict(logs)
+    unsuccessful = shared.get_unsuccessful_downloads(logs)
+    bookmarks = list(filter(lambda x: fileio.file_exists(x['href'], titles, filetypes, folder), bookmarks))
+    bookmarks = list(filter(lambda x: x['href'] not in unsuccessful, bookmarks))
+
     print(strings.AO3_INFO_DOWNLOADING)
 
     fileio.make_dir(folder)
