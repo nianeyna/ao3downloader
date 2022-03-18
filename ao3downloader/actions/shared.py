@@ -104,14 +104,25 @@ def get_title_dict(logs: list[dict]) -> dict[str, str]:
     titles = filter(lambda x: 'title' in x and 'link' in x, logs)
     for obj in list(titles):
         link = obj['link']
-        if link not in dictionary:
+        worknumber = worknumber(link)
+        if worknumber and worknumber not in dictionary:
             title = obj['title']
-            dictionary[link] = title
+            dictionary[worknumber] = title
     return dictionary
 
 
 def get_unsuccessful_downloads(logs: list[dict]) -> list[str]:
-    links = []
+    worknumbers = []
     errors = filter(lambda x:'link' in x and 'success' in x and x['success'] == False, logs)
-    links.extend(list(map(lambda x: x['link'], errors)))
-    return links
+    for error in errors:
+        worknumber = worknumber(error['link'])
+        if worknumber and worknumber not in worknumbers: 
+            worknumbers.append(worknumber)
+    return worknumbers
+
+
+def worknumber(link: str) -> str:
+    workindex = link.find('/works/')
+    if workindex == -1: return None
+    worknumber = link[workindex:]
+    return worknumber
