@@ -67,12 +67,15 @@ def action():
 
     print(strings.REDOWNLOAD_INFO_DONE.format(len(urls)))
 
-    print(strings.INFO_EXCLUDING_WORKS)
     logs = fileio.load_logfile(logfile)
-    titles = shared.get_title_dict(logs)
-    unsuccessful = shared.get_unsuccessful_downloads(logs)
-    urls = list(filter(lambda x: not fileio.file_exists(shared.worknumber(x), titles, newtypes, strings.DOWNLOAD_FOLDER_NAME), urls))
-    urls = list(filter(lambda x: shared.worknumber(x) not in unsuccessful, urls))
+    if logs:
+        print(strings.INFO_EXCLUDING_WORKS)
+        titles = shared.get_title_dict(logs)
+        unsuccessful = shared.get_unsuccessful_downloads(logs)
+        urls = list(filter(lambda x: not fileio.file_exists(x, titles, newtypes, strings.DOWNLOAD_FOLDER_NAME), urls))
+        urls = list(filter(lambda x: x not in unsuccessful, urls))
+
+    print(strings.AO3_INFO_DOWNLOADING)
 
     fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
 

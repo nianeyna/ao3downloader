@@ -192,7 +192,8 @@ def get_work_link_pdf(pdf: pdfquery.PDFQuery) -> str:
     workindex = linktext.find('/works/')
     endindex = linktext[workindex:].find('.')
     worknumber = linktext[workindex:workindex+endindex]
-    return strings.AO3_BASE_URL + worknumber
+    if worknumber: return strings.AO3_BASE_URL + worknumber
+    return None
 
 
 def get_stats_pdf(pdf: pdfquery.PDFQuery) -> str:

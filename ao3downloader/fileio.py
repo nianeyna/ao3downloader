@@ -80,9 +80,9 @@ def load_logfile(logfile: str) -> list[dict]:
     return logs
 
 
-def file_exists(worknumber: str, titles: dict[str, str], filetypes: list[str], folder: str) -> bool:
-    if worknumber not in titles: return False
-    filename = get_valid_filename(titles[worknumber])
+def file_exists(id: str, titles: dict[str, str], filetypes: list[str], folder: str) -> bool:
+    if id not in titles: return False
+    filename = get_valid_filename(titles[id])
     files = list(map(lambda x: os.path.join(folder, filename + '.' + x.lower()), filetypes))
     for file in files:
         if not os.path.exists(file):
