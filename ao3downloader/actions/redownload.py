@@ -72,8 +72,10 @@ def action():
         print(strings.INFO_EXCLUDING_WORKS)
         titles = shared.get_title_dict(logs)
         unsuccessful = shared.get_unsuccessful_downloads(logs)
-        urls = list(filter(lambda x: not fileio.file_exists(x, titles, newtypes, strings.DOWNLOAD_FOLDER_NAME), urls))
-        urls = list(filter(lambda x: x not in unsuccessful, urls))
+        urls = list(filter(lambda x: 
+            not fileio.file_exists(x, titles, newtypes, strings.DOWNLOAD_FOLDER_NAME)
+            and x not in unsuccessful,
+            urls))
 
     print(strings.AO3_INFO_DOWNLOADING)
 
