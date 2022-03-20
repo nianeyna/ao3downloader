@@ -67,6 +67,18 @@ def action():
 
     print(strings.REDOWNLOAD_INFO_DONE.format(len(urls)))
 
+    logs = fileio.load_logfile(logfile)
+    if logs:
+        print(strings.INFO_EXCLUDING_WORKS)
+        titles = shared.get_title_dict(logs)
+        unsuccessful = shared.get_unsuccessful_downloads(logs)
+        urls = list(filter(lambda x: 
+            not fileio.file_exists(x, titles, newtypes, strings.DOWNLOAD_FOLDER_NAME)
+            and x not in unsuccessful,
+            urls))
+
+    print(strings.AO3_INFO_DOWNLOADING)
+
     fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
 
     for url in tqdm(urls):

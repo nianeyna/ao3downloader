@@ -97,3 +97,24 @@ def get_files_of_type(folder: str, filetypes: list[str]) -> list[dict[str, str]]
                 path = os.path.join(subdir, file)
                 results.append({'path': path, 'filetype': filetype})
     return results
+
+
+def get_title_dict(logs: list[dict]) -> dict[str, str]:
+    dictionary = {}
+    titles = filter(lambda x: 'title' in x and 'link' in x, logs)
+    for obj in list(titles):
+        link = obj['link']
+        if link not in dictionary:
+            title = obj['title']
+            dictionary[link] = title
+    return dictionary
+
+
+def get_unsuccessful_downloads(logs: list[dict]) -> list[str]:
+    links = []
+    errors = filter(lambda x:'link' in x and 'success' in x and x['success'] == False, logs)
+    for error in errors:
+        link = error['link']
+        if link not in links: 
+            links.append(link)
+    return links
