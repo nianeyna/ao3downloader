@@ -1,0 +1,21 @@
+name: validate readme
+on: push
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: setup python
+        uses: actions/setup-python@v3
+        with: 
+          python-version: '3.9.9'
+      - name: run script
+        id: script
+        run:  echo "::set-output name=bad-values::$(python readme_util.py)"
+      - name: check output
+        if: ${{steps.script.outputs.bad-values != 0}}
+        uses: actions/github-script@v3
+        with:
+          script:
+            core.setFailed("${{steps.script.outputs.bad-values}}")
