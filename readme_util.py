@@ -3,21 +3,26 @@
 import re
 import ao3downloader.strings as strings
 
-def get_text():
+def get_text() -> str:
     with open('README.md') as f:
         return f.read()
 
-def check_values(text, pos):
+def check_value(text: str, pos: int) -> str:
     start = re.search('<!--', text[pos:])
     value = text[pos:pos+start.start()]
     pos = pos + start.end()
     end = re.search('-->', text[pos:])
     variable = text[pos:pos+end.start()]
-    realval = getattr(strings, variable)
-    if value not in realval: return (realval, value)
+    try:
+        realval = getattr(strings, variable)
+    except AttributeError:
+        return f'Bad variable name. Variable: {variable} Value: {value}'
+    if value not in realval: 
+        return f'Bad value. Expected: {realval} Actual: {value} Variable: {variable}'
+    return None
 
 text = get_text()
-errors = list(filter(lambda e: e is not None, [check_values(text, x.end()) for x in re.finditer('<!--CHECK-->', text)]))
+errors = list(filter(lambda e: e is not None, [check_value(text, x.end()) for x in re.finditer('<!--CHECK-->', text)]))
 if errors:
-    output = ';'.join([f'Expected: {error[0]} Actual: {error[1]}' for error in errors])
+    output = '; '.join(errors)
     print(output)
