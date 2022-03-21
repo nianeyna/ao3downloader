@@ -12,7 +12,9 @@ jobs:
           python-version: '3.9.9'
       - name: run script
         id: script
-        run: echo "::set-output name=bad-values::$(python readme_util.py)"
+        run: |
+          output=$(python readme_util.py)
+          echo "::set-output name=bad-values::$output"
       - name: check variable
         run: echo "${{steps.script.bad-values}}"
       - name: check output
