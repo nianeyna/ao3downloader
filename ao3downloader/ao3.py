@@ -68,8 +68,8 @@ def get_work_links_recursive(links_list: list[str], link: str, session: requests
     elif strings.AO3_BASE_URL in link:
         while True:
             thesoup = repo.get_soup(link, session)
-            urls = soup.get_work_and_series_urls(thesoup)
-            if len(urls) == 0: break
+            urls = soup.get_work_and_series_urls(thesoup) if series else soup.get_work_urls(thesoup)
+            if all(x in links_list + visited_series for x in urls): break
             for url in urls:
                 get_work_links_recursive(links_list, url, session, pages, series, visited_series)
             link = soup.get_next_page(link)
@@ -92,7 +92,7 @@ def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, 
         while True:
             thesoup = repo.get_soup(link, session)
             urls = soup.get_work_and_series_urls(thesoup)
-            if len(urls) == 0: break
+            if all(x in visited for x in urls): break
             for url in urls:
                 download_recursive(url, filetypes, folder, log, logfile, session, subfolders, pages, visited, series, images)
             link = soup.get_next_page(link)
