@@ -13,13 +13,13 @@ jobs:
       - name: run script
         id: script
         run: |
-          output=$(python readme_util.py)
-          echo "::set-output name=bad-values::$output"
+          python readme_util.py
+          echo "::set-output name=bad-values::TEST"
       - name: check variable
-        run: echo "${{steps.script.bad-values}}"
+        run: echo "${{ steps.script.bad-values }}"
       - name: check output
-        if: ${{steps.script.bad-values != 0}}
+        if: ${{ steps.script.bad-values != 0 }}
         uses: actions/github-script@v3
         with:
           script:
-            core.setFailed(${{steps.script.bad-values}})
+            core.setFailed(${{ steps.script.bad-values }})
