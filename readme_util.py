@@ -18,7 +18,7 @@ def check_value(text: str, pos: int) -> str:
     except AttributeError:
         return f'Bad variable name. Variable: {variable} Value: {value}'
     if value not in realval: 
-        return f'Bad value. Expected: {realval} Actual: {value} Variable: {variable}'
+        return f'Bad value. Variable: {variable} Expected: {realval} Actual: {value}'
     return None
 
 text = get_text()

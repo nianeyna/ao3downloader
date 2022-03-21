@@ -77,6 +77,3 @@ As of March 8, 2022 I have changed how file names are generated to allow for the
 Feel free to head over to [the discussion board](https://github.com/nianeyna/ao3downloader/discussions) and make a post, or create an [issue](https://github.com/nianeyna/ao3downloader/issues). You can also email me at nianeyna@gmail.com if you prefer. Please include "ao3downloader" in the subject line of emails about the downloader. If you are reporting a bug, please describe exactly what you did to make the bug happen to the best of your ability. (More is more! Be as detailed as possible.)
 
 (Please note that while I will absolutely do my best to get back to you, I can't make any promises - I have a job, etc.)
-
-<!--CHECK-->fake value again<!--VISUALIZATION_FILE_NAME-->
-<!--CHECK-->more fake stuff<!--FAKE_VARIABLE-->
