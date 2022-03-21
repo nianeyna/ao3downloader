@@ -12,7 +12,9 @@ jobs:
           python-version: '3.9.9'
       - name: run script
         id: script
-        run: echo "::set-output name=errors::$(python readme_util.py)"
+        run: echo '::set-output name=errors::$(python readme_util.py)'
+      - name: check variable
+        run: echo ${{steps.script.errors}}
       - name: check output
         if: ${{steps.script.errors != 0}}
         uses: actions/github-script@v3

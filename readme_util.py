@@ -19,5 +19,5 @@ def check_values(text, pos):
 text = get_text()
 errors = list(filter(lambda e: e is not None, [check_values(text, x.end()) for x in re.finditer('<!--CHECK-->', text)]))
 if errors:
-    output = '\n'.join([f'Expected: {error[0]}\nActual: {error[1]}' for error in errors])
+    output = ';'.join([f'Expected: {error[0]} Actual: {error[1]}' for error in errors])
     print(output)
