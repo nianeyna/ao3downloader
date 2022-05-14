@@ -29,7 +29,7 @@ def save_bytes(folder: str, filename: str, content: bytes) -> None:
 
 def get_valid_filename(filename: str) -> str:
     valid_name = filename.translate({ord(i):None for i in invalid_filename_characters})
-    return valid_name[:100].strip()
+    return valid_name[:50].strip()
 
 
 def save_setting(filename: str, setting: str, value) -> None:
