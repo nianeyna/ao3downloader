@@ -65,6 +65,10 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
 
 ## Known Issues
 - With the exception of series links, if you enter a link to an ao3 page that contains links to works or series, but does not support multiple pages of results, the script will loop infinitely. Most notably, this applies to user dashboard pages. If this happens, you can close the window to get out of the loop.
+- Works that contain certain archive messages in either the work text or the tags may cause unexpected behavior. These problem phrases are:
+    - <!--CHECK-->Error 404<!--AO3_DELETED-->
+    - <!--CHECK-->This work could have adult content.<!--AO3_EXPLICIT-->
+    - <!--CHECK-->This work is only available to registered users of the Archive<!--AO3_LOCKED-->
 
 ## Troubleshooting
 - Make sure you are using python version 3.9.0 or later. To check which version of python you are using:
