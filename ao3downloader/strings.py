@@ -75,6 +75,7 @@ SERIES_INFO_FILES = 'getting list of works belonging to series'
 SERIES_INFO_URLS = 'finding all series urls'
 SERIES_INFO_NUM = '{} series found'
 SERIES_INFO_DOWNLOADING = 'downloading works missing from series'
+SERIES_INFO_FILTER = 'filtering out series that could not be downloaded on previous runs'
 
 REDOWNLOAD_PROMPT_FOLDER = 'please enter the folder containing the files you want to re-download (also checks subfolders):'
 REDOWNLOAD_PROMPT_FILE_TYPE = 'please enter file type you want to convert from. choose from the following (case sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_FILE_TYPES)

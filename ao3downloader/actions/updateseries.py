@@ -59,6 +59,13 @@ def action():
             if link not in series[s]:
                 series[s].append(link)
 
+    logs = fileio.load_logfile(logfile)
+    if logs:
+        unsuccessful = shared.get_unsuccessful_downloads(logs)
+        if any('/series/' in x for x in unsuccessful):
+            print(strings.SERIES_INFO_FILTER)
+            series = {k: v for k, v in series.items() if k not in unsuccessful}
+
     print(strings.SERIES_INFO_NUM.format(len(series)))
 
     print(strings.SERIES_INFO_DOWNLOADING)
