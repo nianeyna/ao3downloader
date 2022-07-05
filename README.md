@@ -1,6 +1,16 @@
 ## What is this?
 This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard.
 
+## Table of Contents
+
+- [Announcements](#announcements): List of changes that may be of note for returning users (not a complete changelog).
+- [Instructions](#instructions): Complete instructions for downloading and starting ao3downloader on Windows and Mac (running ao3downloader on Linux is left as an exercise for the reader). I have tried to make this as easy to follow as possible, even for those who have little experience with computers. If any of it is confusing, or you have a suggestion to improve the instructions, please [contact](#questions-comments-bug-reports) me.
+- [Menu Options](#menu-options-explanation): Explanation of the options you will see when you start ao3downloader and what they do. Note that most of these options will in turn present you with a series of prompts. These should largely be self-explanatory, however, if you are confused by any of the prompts your question may be answered in the [notes](#notes).
+- [Notes](#notes): Explanation of some of ao3downloader's features and quirks that may not be immediately obvious. I recommend reading this.
+- [Known Issues](#known-issues): List of bugs that I know about but haven't yet been able to fix. If you encounter strange behavior, there may be a workaround here.
+- [Troubleshooting](#troubleshooting): If you encounter a problem running the script, please read this section carefully and do *all* of the steps in order to the best of your ability before sending a bug report.
+- [Contact](#questions-comments-bug-reports): How to get in contact with me. Don't be shy!
+
 ## Announcements
 
 The script now works with python version 3.10!
@@ -84,6 +94,6 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
 - If you have tried all of the above and it still doesn't work, see below for how to send me a bug report.
 
 ## Questions? Comments? Bug reports?
-Feel free to head over to [the discussion board](https://github.com/nianeyna/ao3downloader/discussions) and make a post, or create an [issue](https://github.com/nianeyna/ao3downloader/issues). You can also email me at nianeyna@gmail.com if you prefer. Please include "ao3downloader" in the subject line of emails about the downloader. If you are reporting a bug, please describe exactly what you did to make the bug happen to the best of your ability. (More is more! Be as detailed as possible.)
+Feel free to head over to [the discussion board](https://github.com/nianeyna/ao3downloader/discussions) and make a post, or create an [issue](https://github.com/nianeyna/ao3downloader/issues). I prefer to communicate through the above channels if possible, however I understand many of my users don't have github accounts and may not want to make one just for this, so you can also email me at nianeyna@gmail.com if you prefer. Please include "ao3downloader" in the subject line of emails about the downloader. If you are reporting a bug, please describe exactly what you did to make the bug happen to the best of your ability. (More is more! Be as detailed as possible.)
 
 (Please note that while I will absolutely do my best to get back to you, I can't make any promises - I have a job, etc.)
