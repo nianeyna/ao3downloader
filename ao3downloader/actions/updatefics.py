@@ -57,6 +57,13 @@ def action():
 
     print(strings.UPDATE_INFO_URLS_DONE)
 
+    logs = fileio.load_logfile(logfile)
+    if logs:
+        unsuccessful = shared.get_unsuccessful_downloads(logs)
+        if any('/works/' in x for x in unsuccessful):
+            print(strings.UPDATE_INFO_FILTER)
+            works_cleaned = list(filter(lambda x: x['link'] not in unsuccessful, works_cleaned))
+
     print(strings.UPDATE_INFO_DOWNLOADING)
 
     fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
