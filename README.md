@@ -29,7 +29,7 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
     - open a terminal window pointed to the folder containing "ao3downloader.py".
         - You can do this by right-clicking on the folder, going to Services at the bottom of the menu, and clicking "New Terminal at Folder". Alternatively, you can type "cd " and drag the folder to the terminal to copy the folder path.
     - enter the following commands one by one:
-        ```
+        ```txt
         python3 -m venv venv
         source venv/bin/activate
         python3 -m pip install --upgrade pip
@@ -37,7 +37,7 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
         python3 ao3downloader.py
         ```
     - after this initial setup, when you want to run the program you only need to enter:
-        ```
+        ```txt
         source venv/bin/activate
         python3 ao3downloader.py
         ```
@@ -59,8 +59,9 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
 - **The purpose of entering your ao3 login information** is to download archive-locked works or anything else that is not visible when you are not logged in. If you don't care about that, there is no need to enter your login information.
 - **Try to keep your ao3 browsing to a minimum** while the script is running. It won't break anything, but it may cause you to hit ao3's limit on how many hits to the site you are allowed within a certain time frame. This limit is per user, or per IP if you are not logged in. If this happens, the script will pause for 5 minutes to let the limit reset, and you may see a "Retry later" message when you try to open an ao3 page during that time. Don't be alarmed by this, just wait it out.
 - **If you choose to '<!--CHECK-->get works from series links<!--AO3_PROMPT_SERIES-->'** then if the script encounters a work that is part of a series, it will also download the entire series that the work is a part of. This can *dramatically* extend the amount of time the script takes to run. If you don't want this, choose 'n' when you get this prompt. (Note that this will cause the program to ignore *all* series links, including e.g. series that you have bookmarked.)
-- **If you choose to '<!--CHECK-->download embedded images<!--AO3_PROMPT_IMAGES-->'** the script will look for image links on all works it downloads and attempt to save those images to an '<!--CHECK-->images<!--IMAGE_FOLDER_NAME-->' subfolder. Images will be titled with the name of the fic + 'imgxxx' to distinguish them. If you are saving in PDF format, images will also be saved inside the PDF file itself (regardless of whether you choose this option or not). For all other formats, only the image *link* is preserved inside the file.
+- **If you choose to '<!--CHECK-->download embedded images<!--AO3_PROMPT_IMAGES-->'** the script will look for image links on all works it downloads and attempt to save those images to an '<!--CHECK-->images<!--IMAGE_FOLDER_NAME-->' subfolder. Images will be titled with the name of the fic + 'imgxxx' to distinguish them.
     - Note that this feature does not encode any association between the downloaded images and the fic file aside from the file name. 
+    - Most file formats will include embedded image files anyway, regardless of whether you choose this option. I have confirmed this for PDF, EPUB, MOBI, and AZW3 file formats. (If you saw me contradict this in an earlier version of this readme... no you didn't)
     - Should an image download fail, the details of the failure will be logged in the log file with the message '<!--CHECK-->Problem getting image<!--ERROR_IMAGE-->' along with the work link and the image link. It's a good idea to check the log file for these messages, since you may still be able to download the image manually or track it down some other way.
 - **If you need to stop a download in the middle,** you can just close the window. When you restart the script:
     - If you are using the option '<!--CHECK-->download from ao3 link<!--ACTION_DESCRIPTION_AO3-->', you will be given an option to restart the download from the page you left off on. Some downloads may be repeated.
