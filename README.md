@@ -21,14 +21,17 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
 
 ## Instructions
 
-- install [python](https://www.python.org/downloads/). make sure to install version 3.9.0 or later. you should choose the option "add to PATH" when you are installing python, if it is available.
-- download the repository as a zip file. the "repository" means the folder containing the code. you can download the repository by clicking on the "Code" button in github and selecting "Download ZIP"
-- unzip the zip file you just downloaded. this will create a folder. open it. if you see a file called "ao3downloader.py" then you're in the right place.
-- windows: double-click on "ao3downloader.cmd"
-- mac:
-    - open a terminal window pointed to the folder containing "ao3downloader.py".
-        - You can do this by right-clicking on the folder, going to Services at the bottom of the menu, and clicking "New Terminal at Folder". Alternatively, you can type "cd " and drag the folder to the terminal to copy the folder path.
-    - enter the following commands one by one:
+1. install [python](https://www.python.org/downloads/). make sure to install version 3.9.0 or later. as of the time of writing, the latest version (currently 3.10.5) will work.
+2. download the repository as a zip file. the "repository" means the folder containing the code. 
+    - if you are reading this on [github](https://github.com/nianeyna/ao3downloader), you can download the repository by clicking on the "Code" button in github and selecting "Download ZIP"
+    - if you are reading this on [my website](https://nianeyna.dev/ao3downloader/), you can download the repository by clicking the button at the top of the page that says "Click to Download"
+3. unzip the zip file you just downloaded. this will create a folder. open it. if you see a file called "ao3downloader.py" then you're in the right place.
+4. run the script using the instructions for your operating system:
+    - windows: double-click on "ao3downloader.cmd"
+    - mac:
+        - open a terminal window pointed to the folder containing "ao3downloader.py".
+            - You can do this by right-clicking on the folder, going to Services at the bottom of the menu, and clicking "New Terminal at Folder". Alternatively, you can type "cd " and drag the folder to the terminal to copy the folder path.
+        - enter the following commands one by one:
         ```txt
         python3 -m venv venv
         source venv/bin/activate
@@ -36,13 +39,13 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
         pip install -r requirements.txt
         python3 ao3downloader.py
         ```
-    - after this initial setup, when you want to run the program you only need to enter:
+        - after this initial setup, when you want to run the program you only need to enter:
         ```txt
         source venv/bin/activate
         python3 ao3downloader.py
         ```
-    - note that if you delete the "venv" folder for any reason you will need to do the initial setup again.
-- other platforms: ao3downloader should work on any platform that supports python, however, you will need to do your own research into how to run python programs on your system.
+        - note that if you delete the "venv" folder for any reason you will need to do the initial setup again.
+    - other platforms: ao3downloader should work on any platform that supports python, however, you will need to do your own research into how to run python programs on your system.
 
 ## Menu Options Explanation
 
@@ -56,6 +59,7 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
 
 ## Notes
 
+- **IMPORTANT**: some of your input choices are saved in a file called <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME--> (in the same folder as ao3downloader.py). In some cases you will not be able to change these choices unless you clear your settings by deleting <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME--> (or editing it, if you are comfortable with json). In addition, please note that saved settings include passwords and keys and are saved in plain text. **Use appropriate caution with this file.**
 - **The purpose of entering your ao3 login information** is to download archive-locked works or anything else that is not visible when you are not logged in. If you don't care about that, there is no need to enter your login information.
 - **Try to keep your ao3 browsing to a minimum** while the script is running. It won't break anything, but it may cause you to hit ao3's limit on how many hits to the site you are allowed within a certain time frame. This limit is per user, or per IP if you are not logged in. If this happens, the script will pause for 5 minutes to let the limit reset, and you may see a "Retry later" message when you try to open an ao3 page during that time. Don't be alarmed by this, just wait it out.
 - **If you choose to '<!--CHECK-->get works from series links<!--AO3_PROMPT_SERIES-->'** then if the script encounters a work that is part of a series, it will also download the entire series that the work is a part of. This can *dramatically* extend the amount of time the script takes to run. If you don't want this, choose 'n' when you get this prompt. (Note that this will cause the program to ignore *all* series links, including e.g. series that you have bookmarked.)
@@ -72,7 +76,9 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
     - If you are using the option '<!--CHECK-->download latest version of incomplete fics<!--ACTION_DESCRIPTION_UPDATE-->' or '<!--CHECK-->download missing fics from series<!--ACTION_DESCRIPTION_UPDATE_SERIES-->', just make sure to add any fics you don't want to download again to your library (that is, the folder you entered when prompted '<!--CHECK-->input path to folder containing files you want to check for updates<!--UPDATE_PROMPT_INPUT-->') and clean up any old versions before re-starting the download.
     - Most methods of avoiding repeat downloads rely on a file called <!--CHECK-->log.jsonl<!--LOG_FILE_NAME--> which is generated by the script. Make sure not to move, delete, or modify <!--CHECK-->log.jsonl<!--LOG_FILE_NAME--> if you want these features to work. (Using the option to generate the log visualization file is fine.)
 - **When checking for incomplete fics,** the code makes certain assumptions about how fic files are formatted. I have tried to make this logic as flexible as possible, but there is still some possibility that not all incomplete fics will be properly identified by the updater, especially if the files are old (since ao3 may have made changes to how they format fics for download over time) or have been edited.
-- **IMPORTANT**: some of your input choices are saved in <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME-->. In some cases you will not be able to change these choices unless you clear your settings by deleting <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME--> (or editing it, if you are comfortable with json). In addition, please note that saved settings include passwords and keys and are saved in plain text. **Use appropriate caution with this file.**
+- **If you need to keep a different version of python on your system** for some other purpose, please note that these instructions may not work as expected if you have multiple versions of python installed. However, I can point you toward the following resources:
+    - Windows: the [py launcher](https://docs.python.org/3/using/windows.html#python-launcher-for-windows) may be helpful to you
+    - Mac and Linux: [pyenv](https://github.com/pyenv/pyenv) may be helpful to you
 
 ## Known Issues
 - With the exception of series links, if you enter a link to an ao3 page that contains links to works or series, but does not support multiple pages of results, the script will loop infinitely. Most notably, this applies to user dashboard pages. If this happens, you can close the window to get out of the loop.
@@ -90,7 +96,7 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
 - If deleting venv doesn't work, try deleting the entire repository and re-downloading from github (but remember to save your existing downloads if you have any!)
 - If re-downloading the repository doesn't work, try uninstalling and reinstalling python. 
     - Make sure you install version 3.9.0 or later.
-    - Make sure to choose the option "add to PATH" during the installation.
+    - Choose "Customize installation" when prompted, and check the "Add Python to environment variables" checkbox when it appears. (This option was previously called "add to PATH"). Everything else can be left as default.
 - If reinstalling python doesn't work, [see this stackoverflow answer](https://stackoverflow.com/a/58773979).
 - If you have tried all of the above and it still doesn't work, see below for how to send me a bug report.
 
