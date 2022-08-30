@@ -66,12 +66,12 @@ def get_work_urls(soup):
 def get_work_and_series_urls(soup):
     """Get all links to ao3 works or series on a page"""
 
-    # work urls can be identified by the prefix /works/ followed by only digits
-    workpattern = r'\/works\/\d+$'
+    # work urls end in /works/ followed by only digits
+    workpattern = r'.*\/works\/\d+$'
     workexpression = re.compile(workpattern)
 
     # series urls can be identified in the same manner
-    seriespattern = r'\/series\/\d+$'
+    seriespattern = r'.*\/series\/\d+$'
     seriesexpression = re.compile(seriespattern)
 
     urls = []
