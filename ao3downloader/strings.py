@@ -88,7 +88,7 @@ INFO_NO_LOG_FILE = 'no log file'
 INFO_NO_FOLDER = 'folder does not exist'
 INFO_EXCLUDING_WORKS = 'filtering out works that are already in the downloads folder'
 
-MESSAGE_TOO_MANY_REQUESTS = 'too many requests to server. resuming in 5 minutes. paused at: {}'
+MESSAGE_TOO_MANY_REQUESTS = 'ao3 has requested a {} second break\npaused at: {}\nresuming at: {}'
 MESSAGE_RESUMING = 'resuming execution'
 MESSAGE_INCOMPLETE_FIC = 'found incomplete fic'
 MESSAGE_FIC_FILE = 'found fic file'
