@@ -46,17 +46,13 @@ def get_series_info(soup):
 def get_work_urls(soup):
     """Get all links to ao3 works on a page"""
 
-    # work urls can be identified by the prefix /works/ followed by only digits
-    pattern = r'\/works\/\d+$'
-    expression = re.compile(pattern)
-
     work_urls = []
 
     # get links to all works on the page
     all_links = soup.find_all('a')
     for link in all_links:
         href = link.get('href')
-        if href and expression.match(href):
+        if href and is_work(href):
             url = strings.AO3_BASE_URL + href
             work_urls.append(url)
 
@@ -66,21 +62,13 @@ def get_work_urls(soup):
 def get_work_and_series_urls(soup):
     """Get all links to ao3 works or series on a page"""
 
-    # work urls end in /works/ followed by only digits
-    workpattern = r'.*\/works\/\d+$'
-    workexpression = re.compile(workpattern)
-
-    # series urls can be identified in the same manner
-    seriespattern = r'.*\/series\/\d+$'
-    seriesexpression = re.compile(seriespattern)
-
     urls = []
 
     # get links to all works on the page
     all_links = soup.find_all('a')
     for link in all_links:
         href = link.get('href')
-        if href and (workexpression.match(href) or seriesexpression.match(href)):
+        if href and (is_work(href) or is_series(href)):
             url = strings.AO3_BASE_URL + href
             urls.append(url)
 
@@ -137,6 +125,13 @@ def get_current_chapters(soup):
             currentchap += c
     currentchap = currentchap[::-1]
     return currentchap
+
+def is_work(link):
+    return re.compile(strings.AO3_WORK).match(link)
+
+
+def is_series(link):
+    return re.compile(strings.AO3_SERIES).match(link)
 
 
 def is_locked(soup):

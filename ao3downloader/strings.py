@@ -100,6 +100,9 @@ MESSAGE_SERIES_FILE = 'found work in series'
 
 AO3_BASE_URL = 'https://archiveofourown.org'
 
+AO3_WORK = r'.*\/works\/\d+$'
+AO3_SERIES = r'.*\/series\/\d+$'
+
 AO3_LOCKED = 'This work is only available to registered users of the Archive'
 AO3_DELETED = 'Error 404'
 AO3_EXPLICIT = 'This work could have adult content.'
