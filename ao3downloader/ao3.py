@@ -44,14 +44,21 @@ def update_series(link: str, filetypes: list[str], folder: str, logfile: str, se
         log_error(log, logfile, e)
 
 
-def get_work_links(link: str, session: requests.sessions.Session, pages: int, series: bool) -> list[str]:
+def get_work_links(link: str, logfile: str, session: requests.sessions.Session, pages: int, series: bool) -> list[str]:
+    
     links_list = []
     visited_series = []
-    get_work_links_recursive(links_list, link, session, pages, series, visited_series)
+
+    try:
+        get_work_links_recursive(links_list, link, logfile, session, pages, series, visited_series)
+    except Exception as e:
+        print(strings.ERROR_LINKS_LIST)
+        log_error({'message': strings.ERROR_LINKS_LIST}, logfile, e)
+
     return links_list
 
 
-def get_work_links_recursive(links_list: list[str], link: str, session: requests.sessions.Session, pages: int, series: bool, visited_series: list[str]) -> None:
+def get_work_links_recursive(links_list: list[str], link: str, logfile: str, session: requests.sessions.Session, pages: int, series: bool, visited_series: list[str]) -> None:
 
     if soup.is_work(link):
         if link not in links_list:
@@ -71,9 +78,12 @@ def get_work_links_recursive(links_list: list[str], link: str, session: requests
             urls = soup.get_work_and_series_urls(thesoup)
             if len(urls) == 0: break
             for url in urls:
-                get_work_links_recursive(links_list, url, session, pages, series, visited_series)
+                get_work_links_recursive(links_list, url, logfile, session, pages, series, visited_series)
             link = soup.get_next_page(link)
             if pages and soup.get_page_number(link) == pages + 1: break
+            fileio.write_log(logfile, {'starting': link})
+    else:
+        raise exceptions.InvalidLinkException(strings.ERROR_INVALID_LINK)
 
 
 def download_recursive(link: str, filetypes: list[str], folder: str, log: dict, logfile: str, session: requests.sessions.Session, subfolders: bool, pages: int, visited: list[str], series: bool, images: bool) -> None:

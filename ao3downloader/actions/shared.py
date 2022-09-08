@@ -1,5 +1,8 @@
+import datetime
+import json
 import os
 import requests
+import traceback
 
 import ao3downloader.exceptions as exceptions
 import ao3downloader.fileio as fileio
@@ -118,3 +121,25 @@ def get_unsuccessful_downloads(logs: list[dict]) -> list[str]:
         if link not in links: 
             links.append(link)
     return links
+
+
+def get_last_page_downloaded(logfile: str) -> str:
+    latest = None
+    try:
+        with open(logfile, 'r', encoding='utf-8') as f:
+            objects = map(lambda x: json.loads(x), f.readlines())
+            starts = filter(lambda x: 'starting' in x, objects)
+            bydate = sorted(starts, key=lambda x: datetime.datetime.strptime(x['timestamp'], '%m/%d/%Y, %H:%M:%S'), reverse=True)
+            if bydate: latest = bydate[0]
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        fileio.write_log(logfile, {'error': str(e), 'message': strings.ERROR_LOG_FILE, 'stacktrace': traceback.format_exc()})
+
+    link = None
+    if latest:
+        print(strings.AO3_PROMPT_LAST_PAGE)
+        if input() == strings.PROMPT_YES:
+            link = latest['starting']
+
+    return link

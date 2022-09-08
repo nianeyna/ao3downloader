@@ -9,8 +9,13 @@ import ao3downloader.strings as strings
 
 def action():
 
-    print(strings.AO3_PROMPT_LINK)
-    link = input()
+    logfile = shared.get_logfile()
+
+    link = shared.get_last_page_downloaded(logfile)
+
+    if not link: 
+        print(strings.AO3_PROMPT_LINK)
+        link = input()
 
     print(strings.AO3_PROMPT_SERIES)
     series = True if input() == strings.PROMPT_YES else False
@@ -29,7 +34,9 @@ def action():
 
     shared.ao3_login(session)
 
-    links = ao3.get_work_links(link, session, pages, series)
+    fileio.write_log(logfile, {'starting': link})
+    
+    links = ao3.get_work_links(link, logfile, session, pages, series)
 
     fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
     filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.txt'
