@@ -91,6 +91,18 @@ def get_update_types() -> list[str]:
             return filetypes
 
 
+def get_update_folder() -> str:
+    folder = fileio.get_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_UPDATE_FOLDER)
+    if folder:
+        print(strings.UPDATE_PROMPT_USE_SAVED_FOLDER)
+        if input() == strings.PROMPT_YES: return folder
+    folder = fileio.setting(
+        strings.UPDATE_PROMPT_INPUT, 
+        strings.SETTINGS_FILE_NAME, 
+        strings.SETTING_UPDATE_FOLDER)
+    return folder
+
+
 def get_files_of_type(folder: str, filetypes: list[str]) -> list[dict[str, str]]:
     results = []
     for subdir, dirs, files in os.walk(folder):
