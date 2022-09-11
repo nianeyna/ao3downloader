@@ -11,11 +11,7 @@ from tqdm import tqdm
 
 def action():
 
-    folder = fileio.setting(
-        strings.UPDATE_PROMPT_INPUT, 
-        strings.SETTINGS_FILE_NAME, 
-        strings.SETTING_UPDATE_FOLDER)
-
+    folder = shared.get_update_folder()
     update_filetypes = shared.get_update_types()
     download_filetypes = shared.get_download_types()
 

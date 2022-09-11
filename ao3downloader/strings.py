@@ -68,6 +68,7 @@ UPDATE_INFO_URLS_DONE = 'finished getting urls of incomplete fics'
 UPDATE_INFO_DOWNLOADING = 're-downloading incomplete works'
 UPDATE_ACCEPTABLE_FILE_TYPES = ['AZW3', 'EPUB', 'MOBI', 'PDF', 'HTML']
 UPDATE_PROMPT_USE_SAVED_FILE_TYPES = 'use saved list of file types to check for updates? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
+UPDATE_PROMPT_USE_SAVED_FOLDER = 'check same folder as last time? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 UPDATE_PROMPT_FILE_TYPE = 'please enter the file type of the files you would like to check for updates. choose from the following (case-sensitive):\n' + '\n'.join(UPDATE_ACCEPTABLE_FILE_TYPES)
 UPDATE_INFO_FILE_TYPE = 'added {} to list of file types to check for updates'
 UPDATE_INFO_FILTER = 'filtering out works that could not be downloaded on previous runs'
@@ -100,6 +101,9 @@ MESSAGE_SERIES_FILE = 'found work in series'
 
 AO3_BASE_URL = 'https://archiveofourown.org'
 
+AO3_WORK = r'.*\/works\/\d+$'
+AO3_SERIES = r'.*\/series\/\d+$'
+
 AO3_LOCKED = 'This work is only available to registered users of the Archive'
 AO3_DELETED = 'Error 404'
 AO3_EXPLICIT = 'This work could have adult content.'
@@ -124,5 +128,6 @@ ERROR_INCOMPLETE_FIC = 'Problem parsing file while checking for incomplete fics'
 ERROR_FIC_IN_SERIES = 'Problem parsing file while checking for fics in series'
 ERROR_REDOWNLOAD = 'Error processing file for re-download'
 ERROR_IMAGE = 'Problem getting image'
+ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be complete.'
 
 # endregion
