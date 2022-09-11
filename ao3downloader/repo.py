@@ -21,12 +21,6 @@ headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit'
 # login form for ao3
 ao3_login_url = 'https://archiveofourown.org/users/login'
 
-# sleep time between requests so we don't make ao3 sad
-sleep_time = 1
-
-# extra time between requests in case ao3 gets sad anyway
-pause_time = 300
-
 
 def get_soup(url, session):
     """Get BeautifulSoup object from a url."""
@@ -52,14 +46,17 @@ def my_get(url, session):
         response = session.get(url, headers=headers)
 
     if response.status_code == codes['too_many_requests']:
-        print(strings.MESSAGE_TOO_MANY_REQUESTS.format(datetime.datetime.now().strftime('%H:%M:%S')))
+        try:
+            pause_time = int(response.headers['retry-after'])
+        except:
+            pause_time = 300 # default to 5 minutes in case there was a problem getting retry-after
+        now = datetime.datetime.now()
+        later = now + datetime.timedelta(0, pause_time)
+        print(strings.MESSAGE_TOO_MANY_REQUESTS.format(pause_time, now.strftime('%H:%M:%S'), later.strftime('%H:%M:%S')))
         sleep(pause_time)
         print(strings.MESSAGE_RESUMING)
         return my_get(url, session)
-
-    if('archiveofourown.org' in url):
-        sleep(sleep_time)
-        
+ 
     return response
 
 
