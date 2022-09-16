@@ -1,25 +1,27 @@
 """Web requests go here."""
 
 import datetime
-
-import ao3downloader.strings as strings
+import xml.etree.ElementTree as ET
+from time import sleep
 
 from bs4 import BeautifulSoup
-from time import sleep
-from requests import codes
-from requests import get
+from requests import codes, get
 
-from ao3downloader.soup import get_token
-from ao3downloader.soup import is_failed_login
-
+from ao3downloader import parse_soup, parse_text, strings
 from ao3downloader.exceptions import LoginException
+
 
 # for reasons I don't fully understand, specifying the user agent makes requests faster
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit'
            '/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36 +nianeyna@gmail.com'}
 
-# login form for ao3
-ao3_login_url = 'https://archiveofourown.org/users/login'
+
+def get_xml(url, session):
+    """Get XML object from a url."""
+
+    content = my_get(url, session).content
+    xml = ET.XML(content)
+    return xml
 
 
 def get_soup(url, session):
@@ -63,23 +65,10 @@ def my_get(url, session):
 def login(username, password, session):
     """Login to ao3."""
 
-    soup = get_soup(ao3_login_url, session)
-    token = get_token(soup)
-    payload = get_payload(username, password, token)
-    response = session.post(ao3_login_url, data=payload)
+    soup = get_soup(strings.AO3_LOGIN_URL, session)
+    token = parse_soup.get_token(soup)
+    payload = parse_text.get_payload(username, password, token)
+    response = session.post(strings.AO3_LOGIN_URL, data=payload)
     soup = BeautifulSoup(response.text, 'html.parser')
-    if is_failed_login(soup):
+    if parse_soup.is_failed_login(soup):
         raise LoginException(strings.ERROR_FAILED_LOGIN)
-
-
-def get_payload(username, password, token):
-    """Get payload for ao3 login."""
-
-    payload = {
-        'user[login]': username,
-        'user[password]': password,
-        'user[remember_me]': '1',
-        'utf8': '&#x2713;',
-        'authenticity_token': token
-    }
-    return payload

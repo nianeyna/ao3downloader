@@ -4,9 +4,7 @@ import datetime
 import json
 import os
 
-
-# based on https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
-invalid_filename_characters = '<>:"/\|?*.' + ''.join(chr(i) for i in range(32))
+from ao3downloader import parse_text
 
 
 def write_log(filename: str, log: dict) -> None:
@@ -25,11 +23,6 @@ def save_bytes(folder: str, filename: str, content: bytes) -> None:
     file = os.path.join(folder, filename)
     with open(file, 'wb') as f:
         f.write(content)
-
-
-def get_valid_filename(filename: str) -> str:
-    valid_name = filename.translate({ord(i):None for i in invalid_filename_characters})
-    return valid_name[:50].strip()
 
 
 def save_setting(filename: str, setting: str, value) -> None:
@@ -82,7 +75,7 @@ def load_logfile(logfile: str) -> list[dict]:
 
 def file_exists(id: str, titles: dict[str, str], filetypes: list[str], folder: str) -> bool:
     if id not in titles: return False
-    filename = get_valid_filename(titles[id])
+    filename = parse_text.get_valid_filename(titles[id])
     files = list(map(lambda x: os.path.join(folder, filename + '.' + x.lower()), filetypes))
     for file in files:
         if not os.path.exists(file):

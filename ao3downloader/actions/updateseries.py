@@ -1,13 +1,10 @@
-import requests
 import traceback
 
-import ao3downloader.actions.shared as shared
-import ao3downloader.ao3 as ao3
-import ao3downloader.fileio as fileio
-import ao3downloader.strings as strings
-import ao3downloader.update as update
-
+import requests
+from ao3downloader import ao3, fileio, parse_text, strings, update
+from ao3downloader.actions import shared
 from tqdm import tqdm
+
 
 def action():
 
@@ -57,7 +54,7 @@ def action():
 
     logs = fileio.load_logfile(logfile)
     if logs:
-        unsuccessful = shared.get_unsuccessful_downloads(logs)
+        unsuccessful = parse_text.get_unsuccessful_downloads(logs)
         if any('/series/' in x for x in unsuccessful):
             print(strings.SERIES_INFO_FILTER)
             series = {k: v for k, v in series.items() if k not in unsuccessful}

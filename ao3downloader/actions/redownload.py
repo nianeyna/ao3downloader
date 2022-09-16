@@ -1,13 +1,10 @@
-import requests
 import traceback
 
-import ao3downloader.actions.shared as shared
-import ao3downloader.ao3 as ao3
-import ao3downloader.fileio as fileio
-import ao3downloader.strings as strings
-import ao3downloader.update as update
-
+import requests
+from ao3downloader import ao3, fileio, parse_text, strings, update
+from ao3downloader.actions import shared
 from tqdm import tqdm
+
 
 def action():
     
@@ -70,8 +67,8 @@ def action():
     logs = fileio.load_logfile(logfile)
     if logs:
         print(strings.INFO_EXCLUDING_WORKS)
-        titles = shared.get_title_dict(logs)
-        unsuccessful = shared.get_unsuccessful_downloads(logs)
+        titles = parse_text.get_title_dict(logs)
+        unsuccessful = parse_text.get_unsuccessful_downloads(logs)
         urls = list(filter(lambda x: 
             not fileio.file_exists(x, titles, newtypes, strings.DOWNLOAD_FOLDER_NAME)
             and x not in unsuccessful,

@@ -1,14 +1,9 @@
 import itertools
-import os
-import requests
 import traceback
 
-import ao3downloader.actions.shared as shared
-import ao3downloader.ao3 as ao3
-import ao3downloader.fileio as fileio
-import ao3downloader.strings as strings
-import ao3downloader.update as update
-
+import requests
+from ao3downloader import ao3, fileio, parse_text, strings, update
+from ao3downloader.actions import shared
 from tqdm import tqdm
 
 
@@ -55,7 +50,7 @@ def action():
 
     logs = fileio.load_logfile(logfile)
     if logs:
-        unsuccessful = shared.get_unsuccessful_downloads(logs)
+        unsuccessful = parse_text.get_unsuccessful_downloads(logs)
         if any('/works/' in x for x in unsuccessful):
             print(strings.UPDATE_INFO_FILTER)
             works_cleaned = list(filter(lambda x: x['link'] not in unsuccessful, works_cleaned))

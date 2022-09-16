@@ -1,13 +1,10 @@
 import datetime
 import json
 import os
-import requests
 import traceback
 
-import ao3downloader.exceptions as exceptions
-import ao3downloader.fileio as fileio
-import ao3downloader.repo as repo
-import ao3downloader.strings as strings
+import requests
+from ao3downloader import exceptions, fileio, repo, strings
 
 
 def get_logfile() -> str:
@@ -112,27 +109,6 @@ def get_files_of_type(folder: str, filetypes: list[str]) -> list[dict[str, str]]
                 path = os.path.join(subdir, file)
                 results.append({'path': path, 'filetype': filetype})
     return results
-
-
-def get_title_dict(logs: list[dict]) -> dict[str, str]:
-    dictionary = {}
-    titles = filter(lambda x: 'title' in x and 'link' in x, logs)
-    for obj in list(titles):
-        link = obj['link']
-        if link not in dictionary:
-            title = obj['title']
-            dictionary[link] = title
-    return dictionary
-
-
-def get_unsuccessful_downloads(logs: list[dict]) -> list[str]:
-    links = []
-    errors = filter(lambda x:'link' in x and 'success' in x and x['success'] == False, logs)
-    for error in errors:
-        link = error['link']
-        if link not in links: 
-            links.append(link)
-    return links
 
 
 def get_last_page_downloaded(logfile: str) -> str:

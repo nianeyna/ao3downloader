@@ -1,12 +1,8 @@
-import requests
-
-import ao3downloader.actions.shared as shared
-import ao3downloader.ao3 as ao3
-import ao3downloader.fileio as fileio
-import ao3downloader.pinboard as pinboard
-import ao3downloader.strings as strings
-
 from datetime import datetime
+
+import requests
+from ao3downloader import ao3, fileio, parse_text, parse_xml, repo, strings
+from ao3downloader.actions import shared
 from tqdm import tqdm
 
 
@@ -43,7 +39,11 @@ def action():
     shared.ao3_login(session)
     
     print(strings.PINBOARD_INFO_GETTING_BOOKMARKS)
-    bookmarks = pinboard.get_bookmarks(api_token, date, exclude_toread)
+
+    url = parse_text.get_pinboard_url(api_token, date)
+    bookmark_xml = repo.get_xml(url, session)
+    bookmarks = parse_xml.get_bookmark_list(bookmark_xml, exclude_toread)
+
     print(strings.PINBOARD_INFO_NUM_RETURNED.format(len(bookmarks)))
 
     folder = strings.DOWNLOAD_FOLDER_NAME
@@ -52,8 +52,8 @@ def action():
     logs = fileio.load_logfile(logfile)
     if logs:
         print(strings.INFO_EXCLUDING_WORKS)
-        titles = shared.get_title_dict(logs)
-        unsuccessful = shared.get_unsuccessful_downloads(logs)
+        titles = parse_text.get_title_dict(logs)
+        unsuccessful = parse_text.get_unsuccessful_downloads(logs)
         bookmarks = list(filter(lambda x: 
             not fileio.file_exists(x['href'], titles, filetypes, folder) 
             and x['href'] not in unsuccessful, 

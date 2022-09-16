@@ -1,5 +1,8 @@
 # region file ops
 
+# based on https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
+INVALID_FILENAME_CHARACTERS = '<>:"/\|?*.' + ''.join(chr(i) for i in range(32))
+
 DOWNLOAD_FOLDER_NAME = 'downloads'
 IMAGE_FOLDER_NAME = 'images'
 HTML_FOLDER_NAME = 'html'
@@ -88,6 +91,7 @@ REDOWNLOAD_INFO_DONE = 'done getting work urls. {} urls found'
 INFO_NO_LOG_FILE = 'no log file'
 INFO_NO_FOLDER = 'folder does not exist'
 INFO_EXCLUDING_WORKS = 'filtering out works that are already in the downloads folder'
+INFO_FINISHED_PAGE = 'finished getting page {}. starting page {}'
 
 MESSAGE_TOO_MANY_REQUESTS = 'ao3 has requested a {} second break\npaused at: {}\nresuming at: {}'
 MESSAGE_RESUMING = 'resuming execution'
@@ -100,6 +104,7 @@ MESSAGE_SERIES_FILE = 'found work in series'
 # region ao3 scraping
 
 AO3_BASE_URL = 'https://archiveofourown.org'
+AO3_LOGIN_URL = 'https://archiveofourown.org/users/login'
 
 AO3_WORK = r'.*\/works\/\d+$'
 AO3_SERIES = r'.*\/series\/\d+$'
@@ -112,6 +117,14 @@ AO3_PROCEED = 'Proceed'
 
 AO3_TITLE = '[Archive of Our Own]'
 AO3_CHAPTER_TITLE = 'Chapter 1 - '
+
+# endregion
+
+# region pinboard scraping
+
+POSTS_FROM_DATE_URL = 'https://api.pinboard.in/v1/posts/all?auth_token={}&fromdt={}'
+ALL_POSTS_URL = 'https://api.pinboard.in/v1/posts/all?auth_token={}'
+TIMESTAMP_URL = '{}-{}-{}T00:00:00Z'
 
 # endregion
 
