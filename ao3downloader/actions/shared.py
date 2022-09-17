@@ -3,7 +3,6 @@ import json
 import os
 import traceback
 
-import requests
 from ao3downloader import exceptions, fileio, repo, strings
 
 
@@ -24,7 +23,7 @@ def get_folder(prompt: str) -> str:
     return folder
 
 
-def ao3_login(session: requests.sessions.Session) -> None:
+def ao3_login(repo: repo.Repository) -> None:
 
     print(strings.AO3_PROMPT_LOGIN)
     login = False if input() == strings.PROMPT_NO else True
@@ -41,7 +40,7 @@ def ao3_login(session: requests.sessions.Session) -> None:
 
         print(strings.AO3_INFO_LOGIN)
         try:
-            repo.login(username, password, session)
+            repo.login(username, password)
         except exceptions.LoginException:
             fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_USERNAME, None)
             fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_PASSWORD, None)

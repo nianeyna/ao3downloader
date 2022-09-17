@@ -1,46 +1,46 @@
 import datetime
 import os
-import requests
 
-import ao3downloader.actions.shared as shared
-import ao3downloader.ao3 as ao3
-import ao3downloader.fileio as fileio
-import ao3downloader.strings as strings
+from ao3downloader import fileio, strings
+from ao3downloader.actions import shared
+from ao3downloader.ao3 import Ao3
+from ao3downloader.repo import Repository
+
 
 def action():
+    with Repository() as repo:
 
-    logfile = shared.get_logfile()
+        logfile = shared.get_logfile()
 
-    link = shared.get_last_page_downloaded(logfile)
+        link = shared.get_last_page_downloaded(logfile)
 
-    if not link: 
-        print(strings.AO3_PROMPT_LINK)
-        link = input()
+        if not link: 
+            print(strings.AO3_PROMPT_LINK)
+            link = input()
 
-    print(strings.AO3_PROMPT_SERIES)
-    series = True if input() == strings.PROMPT_YES else False
+        print(strings.AO3_PROMPT_SERIES)
+        series = True if input() == strings.PROMPT_YES else False
 
-    print(strings.AO3_PROMPT_PAGES)
-    pages = input()
+        print(strings.AO3_PROMPT_PAGES)
+        pages = input()
 
-    try:
-        pages = int(pages)
-        if pages <= 0:
+        try:
+            pages = int(pages)
+            if pages <= 0:
+                pages = None
+        except:
             pages = None
-    except:
-        pages = None
 
-    session = requests.sessions.Session()
+        shared.ao3_login(repo)
 
-    shared.ao3_login(session)
+        fileio.write_log(logfile, {'starting': link})
+        
+        ao3 = Ao3(repo, [], strings.DOWNLOAD_FOLDER_NAME, logfile, pages, series, False)
+        links = ao3.get_work_links(link)
 
-    fileio.write_log(logfile, {'starting': link})
-    
-    links = ao3.get_work_links(link, logfile, session, pages, series)
+        fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
+        filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.txt'
 
-    fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
-    filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.txt'
-
-    with open(os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename), 'w') as f:
-        for l in links:
-            f.write(l + '\n')
+        with open(os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename), 'w') as f:
+            for l in links:
+                f.write(l + '\n')
