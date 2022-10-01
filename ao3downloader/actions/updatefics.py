@@ -1,34 +1,28 @@
 import itertools
 import traceback
 
-from ao3downloader import fileio, parse_text, strings, update
+from ao3downloader import parse_text, strings, update
 from ao3downloader.actions import shared
 from ao3downloader.ao3 import Ao3
+from ao3downloader.fileio import FileOps
 from ao3downloader.repo import Repository
 from tqdm import tqdm
 
 
 def action():
     with Repository() as repo:
+        fileops = FileOps()
 
-        folder = shared.get_update_folder()
-        update_filetypes = shared.get_update_types()
-        download_filetypes = shared.get_download_types()
+        folder = shared.update_folder(fileops)
+        update_filetypes = shared.update_types(fileops)
+        download_filetypes = shared.download_types(fileops)
+        images = shared.images()
 
-        print(strings.AO3_PROMPT_IMAGES)
-        images = True if input() == strings.PROMPT_YES else False
-
-        shared.ao3_login(repo)    
-
-        print(strings.UPDATE_INFO_FILES)
+        shared.ao3_login(repo, fileops)    
 
         fics = shared.get_files_of_type(folder, update_filetypes)
-        
-        print(strings.UPDATE_INFO_NUM_RETURNED.format(len(fics)))
 
         print(strings.UPDATE_INFO_URLS)
-
-        logfile = shared.get_logfile()
 
         works = []
         for fic in tqdm(fics):
@@ -36,9 +30,9 @@ def action():
                 work = update.process_file(fic['path'], fic['filetype'])
                 if work:
                     works.append(work)
-                    fileio.write_log(logfile, {'message': strings.MESSAGE_INCOMPLETE_FIC, 'path': fic['path'], 'link': work['link']})
+                    fileops.write_log({'message': strings.MESSAGE_INCOMPLETE_FIC, 'path': fic['path'], 'link': work['link']})
             except Exception as e:
-                fileio.write_log(logfile, {'message': strings.ERROR_INCOMPLETE_FIC, 'path': fic['path'], 'error': str(e), 'stacktrace': traceback.format_exc()})    
+                fileops.write_log({'message': strings.ERROR_INCOMPLETE_FIC, 'path': fic['path'], 'error': str(e), 'stacktrace': traceback.format_exc()})    
 
         # remove duplicate work links. take lowest number of chapters.
         works_cleaned = []
@@ -49,7 +43,7 @@ def action():
 
         print(strings.UPDATE_INFO_URLS_DONE)
 
-        logs = fileio.load_logfile(logfile)
+        logs = fileops.load_logfile()
         if logs:
             unsuccessful = parse_text.get_unsuccessful_downloads(logs)
             if any('/works/' in x for x in unsuccessful):
@@ -58,9 +52,7 @@ def action():
 
         print(strings.UPDATE_INFO_DOWNLOADING)
 
-        fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
-
-        ao3 = Ao3(repo, download_filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, None, False, images)
+        ao3 = Ao3(repo, fileops, download_filetypes, None, False, images)
 
         for work in tqdm(works_cleaned):
             ao3.update(work['link'], work['chapters'])

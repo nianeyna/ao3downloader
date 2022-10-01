@@ -61,6 +61,7 @@ AO3_PROMPT_SERIES = 'do you want to get works from series links? ({}/{})'.format
 AO3_INFO_LOGIN = 'logging in'
 AO3_INFO_DOWNLOADING = 'downloading works'
 AO3_INFO_FILE_TYPE = 'added {} to list of download types'
+AO3_INFO_VISITED = 'generating list of work links that are already in the downloads folder (will be skipped)'
 
 UPDATE_PROMPT_INPUT = 'input path to folder containing files you want to check for updates (also checks subfolders)'
 UPDATE_INFO_FILES = 'getting list of files'

@@ -1,20 +1,85 @@
 import datetime
-import json
 import os
 import traceback
 
-from ao3downloader import exceptions, fileio, repo, strings
+from ao3downloader import exceptions, parse_text, strings
+from ao3downloader.fileio import FileOps
+from ao3downloader.repo import Repository
 
 
-def get_logfile() -> str:
-    if not os.path.exists(strings.LOG_FOLDER_NAME):
-        os.mkdir(strings.LOG_FOLDER_NAME)
-    return os.path.join(strings.LOG_FOLDER_NAME, strings.LOG_FILE_NAME)
+def series() -> bool:
+    print(strings.AO3_PROMPT_SERIES)
+    series = True if input() == strings.PROMPT_YES else False
+    return series
 
 
-def get_folder(prompt: str) -> str:
+def link(fileops: FileOps) -> str:
+    link = get_last_page_downloaded(fileops)
+    if not link: 
+        print(strings.AO3_PROMPT_LINK)
+        link = input()
+    return link
+
+
+def pages() -> int:
+    print(strings.AO3_PROMPT_PAGES)
+    pages = input()
+
+    try:
+        pages = int(pages)
+        if pages <= 0:
+            pages = None
+    except:
+        pages = None
+
+    return pages
+
+
+def images() -> bool:
+    print(strings.AO3_PROMPT_IMAGES)
+    images = True if input() == strings.PROMPT_YES else False
+    return images
+
+
+def visited(fileops: FileOps, filetypes: list[str]) -> list[str]:
+    visited = []
+    logs = fileops.load_logfile()
+    if logs:
+        print(strings.AO3_INFO_VISITED)
+        titles = parse_text.get_title_dict(logs)
+        visited = list({x for x in titles if 
+            fileops.file_exists(x, titles, filetypes)})
+    return visited
+
+
+def pinboard_date() -> datetime.datetime:
+    print(strings.PINBOARD_PROMPT_DATE)
+    getdate = True if input() == strings.PROMPT_YES else False
+    if getdate:
+        date_format = 'mm/dd/yyyy'
+        print(strings.PINBOARD_PROMPT_ENTER_DATE.format(date_format))
+        inputdate = input()
+        date = datetime.strptime(inputdate, '%m/%d/%Y')
+    else:
+        date = None
+    return date
+
+
+def pinboard_exclude() -> bool:
+    print(strings.PINBOARD_PROMPT_INCLUDE_UNREAD)
+    exclude_toread = False if input() == strings.PROMPT_YES else True
+    return exclude_toread
+
+
+def api_token(fileops: FileOps) -> str:
+    return fileops.setting(
+            strings.PINBOARD_PROMPT_API_TOKEN, 
+            strings.SETTING_API_TOKEN)
+
+
+def redownload_folder() -> str:
     while True:
-        print(prompt)
+        print(strings.REDOWNLOAD_PROMPT_FOLDER)
         folder = input()
         if os.path.exists(folder): 
             break
@@ -23,32 +88,62 @@ def get_folder(prompt: str) -> str:
     return folder
 
 
-def ao3_login(repo: repo.Repository) -> None:
+def redownload_oldtypes() -> list[str]:
+    oldtypes = []
+    while True:
+        filetype = ''
+        while filetype not in strings.UPDATE_ACCEPTABLE_FILE_TYPES:
+            print(strings.REDOWNLOAD_PROMPT_FILE_TYPE)
+            filetype = input()
+        oldtypes.append(filetype)
+        print(strings.REDOWNLOAD_INFO_FILE_TYPE.format(filetype))
+        print(strings.AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE)
+        if input() == strings.PROMPT_YES:
+            oldtypes = list(set(oldtypes))
+            break
+    return oldtypes
+
+
+def redownload_newtypes() -> list[str]:
+    newtypes = []
+    while True:
+        filetype = ''
+        while filetype not in strings.AO3_ACCEPTABLE_DOWNLOAD_TYPES:
+            print(strings.AO3_PROMPT_DOWNLOAD_TYPE)
+            filetype = input()
+        newtypes.append(filetype)
+        print(strings.AO3_INFO_FILE_TYPE.format(filetype))
+        print(strings.AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE)
+        if input() == strings.PROMPT_YES:
+            newtypes = list(set(newtypes))
+            break
+    return newtypes
+
+
+def ao3_login(repo: Repository, fileops: FileOps) -> None:
 
     print(strings.AO3_PROMPT_LOGIN)
     login = False if input() == strings.PROMPT_NO else True
 
     if login:
-        username = fileio.setting(
-            strings.AO3_PROMPT_USERNAME, 
-            strings.SETTINGS_FILE_NAME, 
+        username = fileops.setting(
+            strings.AO3_PROMPT_USERNAME,
             strings.SETTING_USERNAME)
-        password = fileio.setting(
-            strings.AO3_PROMPT_PASSWORD, 
-            strings.SETTINGS_FILE_NAME, 
+        password = fileops.setting(
+            strings.AO3_PROMPT_PASSWORD,
             strings.SETTING_PASSWORD)
 
         print(strings.AO3_INFO_LOGIN)
         try:
             repo.login(username, password)
         except exceptions.LoginException:
-            fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_USERNAME, None)
-            fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_PASSWORD, None)
+            fileops.save_setting(strings.SETTING_USERNAME, None)
+            fileops.save_setting(strings.SETTING_PASSWORD, None)
             raise
 
 
-def get_download_types() -> list[str]:
-    filetypes = fileio.get_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_FILETYPES)
+def download_types(fileops: FileOps) -> list[str]:
+    filetypes = fileops.get_setting(strings.SETTING_FILETYPES)
     if isinstance(filetypes, list):
         print(strings.AO3_PROMPT_USE_SAVED_DOWNLOAD_TYPES)
         if input() == strings.PROMPT_YES: return filetypes
@@ -63,12 +158,12 @@ def get_download_types() -> list[str]:
         print(strings.AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE)
         if input() == strings.PROMPT_YES:
             filetypes = list(set(filetypes))
-            fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_FILETYPES, filetypes)
+            fileops.save_setting(strings.SETTING_FILETYPES, filetypes)
             return filetypes
 
 
-def get_update_types() -> list[str]:
-    filetypes = fileio.get_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_UPDATE_FILETYPES)
+def update_types(fileops: FileOps) -> list[str]:
+    filetypes = fileops.get_setting(strings.SETTING_UPDATE_FILETYPES)
     if isinstance(filetypes, list):
         print(strings.UPDATE_PROMPT_USE_SAVED_FILE_TYPES)
         if input() == strings.PROMPT_YES: return filetypes
@@ -83,23 +178,23 @@ def get_update_types() -> list[str]:
         print(strings.AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE)
         if input() == strings.PROMPT_YES:
             filetypes = list(set(filetypes))
-            fileio.save_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_UPDATE_FILETYPES, filetypes)
+            fileops.save_setting(strings.SETTING_UPDATE_FILETYPES, filetypes)
             return filetypes
 
 
-def get_update_folder() -> str:
-    folder = fileio.get_setting(strings.SETTINGS_FILE_NAME, strings.SETTING_UPDATE_FOLDER)
+def update_folder(fileops: FileOps) -> str:
+    folder = fileops.get_setting(strings.SETTING_UPDATE_FOLDER)
     if folder:
         print(strings.UPDATE_PROMPT_USE_SAVED_FOLDER)
         if input() == strings.PROMPT_YES: return folder
-    folder = fileio.setting(
-        strings.UPDATE_PROMPT_INPUT, 
-        strings.SETTINGS_FILE_NAME, 
+    folder = fileops.setting(
+        strings.UPDATE_PROMPT_INPUT,
         strings.SETTING_UPDATE_FOLDER)
     return folder
 
 
 def get_files_of_type(folder: str, filetypes: list[str]) -> list[dict[str, str]]:
+    print(strings.UPDATE_INFO_FILES)
     results = []
     for subdir, dirs, files in os.walk(folder):
         for file in files:
@@ -107,21 +202,19 @@ def get_files_of_type(folder: str, filetypes: list[str]) -> list[dict[str, str]]
             if filetype in filetypes:
                 path = os.path.join(subdir, file)
                 results.append({'path': path, 'filetype': filetype})
+    print(strings.UPDATE_INFO_NUM_RETURNED.format(len(results)))
     return results
 
 
-def get_last_page_downloaded(logfile: str) -> str:
+def get_last_page_downloaded(fileops: FileOps) -> str:
     latest = None
     try:
-        with open(logfile, 'r', encoding='utf-8') as f:
-            objects = map(lambda x: json.loads(x), f.readlines())
-            starts = filter(lambda x: 'starting' in x, objects)
-            bydate = sorted(starts, key=lambda x: datetime.datetime.strptime(x['timestamp'], '%m/%d/%Y, %H:%M:%S'), reverse=True)
-            if bydate: latest = bydate[0]
-    except FileNotFoundError:
-        pass
+        logs = fileops.load_logfile()
+        starts = filter(lambda x: 'starting' in x, logs)
+        bydate = sorted(starts, key=lambda x: datetime.datetime.strptime(x['timestamp'], '%m/%d/%Y, %H:%M:%S'), reverse=True)
+        if bydate: latest = bydate[0]
     except Exception as e:
-        fileio.write_log(logfile, {'error': str(e), 'message': strings.ERROR_LOG_FILE, 'stacktrace': traceback.format_exc()})
+        fileops.write_log({'error': str(e), 'message': strings.ERROR_LOG_FILE, 'stacktrace': traceback.format_exc()})
 
     link = None
     if latest:

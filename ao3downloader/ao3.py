@@ -5,16 +5,16 @@ import traceback
 
 from bs4 import BeautifulSoup
 
-from ao3downloader import exceptions, fileio, parse_soup, parse_text, strings
+from ao3downloader import exceptions, parse_soup, parse_text, strings
+from ao3downloader.fileio import FileOps
 from ao3downloader.repo import Repository
 
 
 class Ao3:
-    def __init__(self, repo: Repository, filetypes: list[str], folder: str, logfile: str, pages: int, series: bool, images: bool) -> None:
+    def __init__(self, repo: Repository, fileops: FileOps, filetypes: list[str], pages: int, series: bool, images: bool) -> None:
         self.repo = repo
+        self.fileops = fileops
         self.filetypes = filetypes
-        self.folder = folder
-        self.logfile = logfile
         self.pages = pages
         self.series = series
         self.images = images
@@ -81,6 +81,7 @@ class Ao3:
                         links_list.append(work_url)
         elif strings.AO3_BASE_URL in link:
             while True:
+                self.fileops.write_log({'starting': link})
                 thesoup = self.repo.get_soup(link)
                 urls = parse_soup.get_work_and_series_urls(thesoup)
                 if len(urls) == 0: break
@@ -90,7 +91,6 @@ class Ao3:
                 pagenum = parse_text.get_page_number(link)
                 if self.pages and pagenum == self.pages + 1: break
                 print(strings.INFO_FINISHED_PAGE.format(str(pagenum - 1), str(pagenum)))
-                fileio.write_log(self.logfile, {'starting': link})
         else:
             raise exceptions.InvalidLinkException(strings.ERROR_INVALID_LINK)
 
@@ -109,6 +109,7 @@ class Ao3:
             self.download_work(link, log, None)
         elif strings.AO3_BASE_URL in link:
             while True:
+                self.fileops.write_log({'starting': link})
                 thesoup = self.repo.get_soup(link)
                 urls = parse_soup.get_work_and_series_urls(thesoup)
                 if len(urls) == 0: break
@@ -118,7 +119,6 @@ class Ao3:
                 pagenum = parse_text.get_page_number(link)
                 if self.pages and pagenum == self.pages + 1: break
                 print(strings.INFO_FINISHED_PAGE.format(str(pagenum - 1), str(pagenum)))
-                fileio.write_log(self.logfile, {'starting': link})
         else:
             raise exceptions.InvalidLinkException(strings.ERROR_INVALID_LINK)
 
@@ -152,7 +152,7 @@ class Ao3:
             self.log_error(log, e)
         else:
             log['success'] = True
-            fileio.write_log(self.logfile, log)
+            self.fileops.write_log(log)
 
 
     def try_download(self, work_url: str, chapters: str) -> str:
@@ -173,7 +173,7 @@ class Ao3:
             link = parse_soup.get_download_link(thesoup, filetype)
             response = self.repo.get_book(link)
             filetype = parse_text.get_file_type(filetype)
-            fileio.save_bytes(self.folder, filename + filetype, response)
+            self.fileops.save_bytes(filename + filetype, response)
 
         if self.images:
             counter = 0
@@ -185,12 +185,10 @@ class Ao3:
                     if '?' in ext: ext = ext[:ext.index('?')]
                     response = self.repo.get_book(img)
                     imagefile = filename + ' img' + str(counter).zfill(3) + ext
-                    imagefolder = os.path.join(self.folder, strings.IMAGE_FOLDER_NAME)
-                    fileio.make_dir(imagefolder)
-                    fileio.save_bytes(imagefolder, imagefile, response)
+                    self.fileops.save_bytes(os.path.join(strings.IMAGE_FOLDER_NAME, imagefile), response)
                     counter += 1
                 except Exception as e:
-                    fileio.write_log(self.logfile, {
+                    self.fileops.write_log({
                         'message': strings.ERROR_IMAGE, 'link': work_url, 'title': title, 
                         'img': img, 'error': str(e), 'stacktrace': traceback.format_exc()})
 
@@ -215,4 +213,4 @@ class Ao3:
         log['success'] = False
         if not isinstance(exception, exceptions.Ao3DownloaderException):
             log['stacktrace'] = ''.join(traceback.TracebackException.from_exception(exception).format())
-        fileio.write_log(self.logfile, log)
+        self.fileops.write_log(log)

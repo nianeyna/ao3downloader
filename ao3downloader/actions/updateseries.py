@@ -1,33 +1,27 @@
 import traceback
 
-from ao3downloader import fileio, parse_text, strings, update
+from ao3downloader import parse_text, strings, update
 from ao3downloader.actions import shared
 from ao3downloader.ao3 import Ao3
+from ao3downloader.fileio import FileOps
 from ao3downloader.repo import Repository
 from tqdm import tqdm
 
 
 def action():
     with Repository() as repo:
+        fileops = FileOps()
 
-        folder = shared.get_update_folder()
-        update_filetypes = shared.get_update_types()
-        download_filetypes = shared.get_download_types()
-
-        print(strings.AO3_PROMPT_IMAGES)
-        images = True if input() == strings.PROMPT_YES else False
+        folder = shared.update_folder(fileops)
+        update_filetypes = shared.update_types(fileops)
+        download_filetypes = shared.download_types(fileops)
+        images = shared.images()
 
         shared.ao3_login(repo)
 
-        print(strings.UPDATE_INFO_FILES)
-
         files = shared.get_files_of_type(folder, update_filetypes)
-        
-        print(strings.UPDATE_INFO_NUM_RETURNED.format(len(files)))
 
         print(strings.SERIES_INFO_FILES)
-
-        logfile = shared.get_logfile()
 
         works = []
         for file in tqdm(files):
@@ -35,9 +29,9 @@ def action():
                 work = update.process_file(file['path'], file['filetype'], True, True)
                 if work:
                     works.append(work)
-                    fileio.write_log(logfile, {'message': strings.MESSAGE_SERIES_FILE, 'path': file['path'], 'link': work['link'], 'series': work['series']})
+                    fileops.write_log({'message': strings.MESSAGE_SERIES_FILE, 'path': file['path'], 'link': work['link'], 'series': work['series']})
             except Exception as e:
-                fileio.write_log(logfile, {'message': strings.ERROR_FIC_IN_SERIES, 'path': file['path'], 'error': str(e), 'stacktrace': traceback.format_exc()})    
+                fileops.write_log({'message': strings.ERROR_FIC_IN_SERIES, 'path': file['path'], 'error': str(e), 'stacktrace': traceback.format_exc()})    
 
         print(strings.SERIES_INFO_URLS)
 
@@ -50,7 +44,7 @@ def action():
                 if link not in series[s]:
                     series[s].append(link)
 
-        logs = fileio.load_logfile(logfile)
+        logs = fileops.load_logfile()
         if logs:
             unsuccessful = parse_text.get_unsuccessful_downloads(logs)
             if any('/series/' in x for x in unsuccessful):
@@ -61,9 +55,7 @@ def action():
 
         print(strings.SERIES_INFO_DOWNLOADING)
 
-        fileio.make_dir(strings.DOWNLOAD_FOLDER_NAME)
-
-        ao3 = Ao3(repo, download_filetypes, strings.DOWNLOAD_FOLDER_NAME, logfile, None, True, images)
+        ao3 = Ao3(repo, fileops, download_filetypes, None, True, images)
 
         for key, value in tqdm(series.items()):
             ao3.update_series(key, value)
