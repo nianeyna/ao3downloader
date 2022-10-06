@@ -10,6 +10,7 @@ from ao3downloader import parse_text, strings
 class FileOps:
     def __init__(self):
         if not os.path.exists(strings.LOG_FOLDER_NAME): os.mkdir(strings.LOG_FOLDER_NAME)
+        if not os.path.exists(strings.DOWNLOAD_FOLDER_NAME): os.mkdir(strings.DOWNLOAD_FOLDER_NAME)
         self.logfile = os.path.join(strings.LOG_FOLDER_NAME, strings.LOG_FILE_NAME)
         self.settingsfile = strings.SETTINGS_FILE_NAME
         self.downloadfolder = strings.DOWNLOAD_FOLDER_NAME
