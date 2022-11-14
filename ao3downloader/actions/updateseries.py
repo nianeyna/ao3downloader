@@ -17,7 +17,7 @@ def action():
         download_filetypes = shared.download_types(fileops)
         images = shared.images()
 
-        shared.ao3_login(repo)
+        shared.ao3_login(repo, fileops)
 
         files = shared.get_files_of_type(folder, update_filetypes)
 
