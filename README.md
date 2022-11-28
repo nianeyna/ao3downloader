@@ -13,7 +13,7 @@ This is a program intended to help you download fanfiction from the [Archive of 
 
 ## Announcements
 
-The script now works with python version 3.10!
+Sometimes python version updates break the script, so be careful which version of python you use. See [Troubleshooting](#troubleshooting) if you don't know how to check your python version. The most recent version of python confirmed to work with ao3downloader is: [Python 3.10.8](https://www.python.org/downloads/release/python-3108/)
 
 As of March 8, 2022 I have changed how file names are generated to allow for the inclusion of non-alphanumeric characters (cnovel fans rejoice). If you have a Process going on which relies on file names for the same fic being the same, please take note of this if/when you download the new version of the code.
 
@@ -23,8 +23,8 @@ As of September 16, 2022 I have very regretfully removed the series subfolders o
 
 ## Instructions
 
-1. install [python](https://www.python.org/downloads/). make sure to install version 3.9.0 or later. as of the time of writing, the latest version (currently 3.10.5) will work.
-2. download the repository as a zip file. the "repository" means the folder containing the code. 
+1. install [python](https://www.python.org/downloads/). make sure to install version 3.9.0 or later. see [announcements](#announcements) for the most recent version of python that is confirmed to work with the script - when in doubt, install that version.
+2. download the repository as a zip file. the "repository" means the folder containing the code.
     - if you are reading this on [github](https://github.com/nianeyna/ao3downloader), you can download the repository by clicking on the "Code" button in github and selecting "Download ZIP"
     - if you are reading this on [my website](https://nianeyna.dev/ao3downloader/), you can download the repository by clicking the button at the top of the page that says "Click to Download"
 3. unzip the zip file you just downloaded. this will create a folder. open it. if you see a file called "ao3downloader.py" then you're in the right place.
