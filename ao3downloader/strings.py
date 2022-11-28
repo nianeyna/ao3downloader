@@ -106,8 +106,8 @@ MESSAGE_SERIES_FILE = 'found work in series'
 AO3_BASE_URL = 'https://archiveofourown.org'
 AO3_LOGIN_URL = 'https://archiveofourown.org/users/login'
 
-AO3_WORK = r'.*\/works\/\d+$'
-AO3_SERIES = r'.*\/series\/\d+$'
+AO3_WORK = r'(\/.*)*\/works\/\d+$'
+AO3_SERIES = r'(\/.*)*\/series\/\d+$'
 
 AO3_LOCKED = 'This work is only available to registered users of the Archive'
 AO3_DELETED = 'Error 404'
