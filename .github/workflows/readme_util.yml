@@ -9,7 +9,7 @@ jobs:
       - name: setup python
         uses: actions/setup-python@v3
         with: 
-          python-version: '3.9.9'
+          python-version: '3.9'
       - name: run script
         id: script
         run:  echo "::set-output name=bad-values::$(python readme_util.py)"
