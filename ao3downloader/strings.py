@@ -38,6 +38,7 @@ ACTION_DESCRIPTION_VISUALIZATION = 'convert logfile into interactable html'
 ACTION_DESCRIPTION_REDOWNLOAD = 're-download fics saved in one format in a different format'
 ACTION_DESCRIPTION_UPDATE_SERIES = 'download missing fics from series'
 ACTION_DESCRIPTION_LINKS_ONLY = 'get all work links from an ao3 listing (saves links only)'
+ACTION_DESCRIPTION_MARKED_FOR_LATER = 'download marked for later list and mark all as read (requires login)'
 
 PINBOARD_PROMPT_API_TOKEN = 'please enter api token'
 PINBOARD_PROMPT_INCLUDE_UNREAD = 'do you want to include unread bookmarks? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
@@ -114,6 +115,7 @@ AO3_DELETED = 'Error 404'
 AO3_EXPLICIT = 'This work could have adult content.'
 AO3_FAILED_LOGIN = 'The password or user name you entered doesn\'t match our records.'
 AO3_PROCEED = 'Proceed'
+AO3_MARK_READ = 'Mark as Read'
 
 AO3_TITLE = '[Archive of Our Own]'
 AO3_CHAPTER_TITLE = 'Chapter 1 - '

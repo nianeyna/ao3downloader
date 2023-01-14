@@ -7,6 +7,7 @@ from ao3downloader.actions import redownload
 from ao3downloader.actions import logvisualization
 from ao3downloader.actions import updateseries
 from ao3downloader.actions import getlinks
+from ao3downloader.actions import markedforlater
 
 
 def ao3_download_action():
@@ -27,6 +28,10 @@ def update_series_action():
 
 def re_download_action():
     redownload.action()
+
+
+def marked_for_later_action():
+    markedforlater.action()
 
 
 def pinboard_download_action():
@@ -66,6 +71,7 @@ log_visualization_action.description = strings.ACTION_DESCRIPTION_VISUALIZATION
 re_download_action.description = strings.ACTION_DESCRIPTION_REDOWNLOAD
 update_series_action.description = strings.ACTION_DESCRIPTION_UPDATE_SERIES
 links_only_action.description = strings.ACTION_DESCRIPTION_LINKS_ONLY
+marked_for_later_action.description = strings.ACTION_DESCRIPTION_MARKED_FOR_LATER
 
 QUIT_ACTION = 'q'
 MENU_ACTION = 'd'
@@ -77,6 +83,7 @@ actions = {
     'u': update_epubs_action,
     's': update_series_action,
     'r': re_download_action,
+    'm': marked_for_later_action,
     'p': pinboard_download_action,
     'v': log_visualization_action
     }

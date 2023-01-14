@@ -150,6 +150,22 @@ def get_download_link(soup: BeautifulSoup, download_type: str) -> str:
     return strings.AO3_BASE_URL + link
 
 
+def get_mark_as_read_link(soup: BeautifulSoup) -> str:
+    """Get link to mark work as read, if it exists."""
+
+    try:
+        link = (soup.find('li', class_='mark')
+                    .find('a', text=strings.AO3_MARK_READ)
+                    .get('href'))
+    except:
+        return None
+    
+    if not link:
+        return None
+
+    return strings.AO3_BASE_URL + link
+
+
 def get_title(soup: BeautifulSoup) -> str:
     """Get title of ao3 work, stripping out extraneous information."""
 

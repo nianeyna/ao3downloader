@@ -11,13 +11,14 @@ from ao3downloader.repo import Repository
 
 
 class Ao3:
-    def __init__(self, repo: Repository, fileops: FileOps, filetypes: list[str], pages: int, series: bool, images: bool) -> None:
+    def __init__(self, repo: Repository, fileops: FileOps, filetypes: list[str], pages: int, series: bool, images: bool, mark: bool=False) -> None:
         self.repo = repo
         self.fileops = fileops
         self.filetypes = filetypes
         self.pages = pages
         self.series = series
         self.images = images
+        self.mark = mark
 
 
     def download(self, link: str, visited: list[str]=None) -> None:
@@ -115,10 +116,11 @@ class Ao3:
                 if len(urls) == 0: break
                 for url in urls:
                     self.download_recursive(url, log, visited)
-                link = parse_text.get_next_page(link)
-                pagenum = parse_text.get_page_number(link)
-                if self.pages and pagenum == self.pages + 1: break
-                print(strings.INFO_FINISHED_PAGE.format(str(pagenum - 1), str(pagenum)))
+                if not self.mark:
+                    link = parse_text.get_next_page(link)
+                    pagenum = parse_text.get_page_number(link)
+                    if self.pages and pagenum == self.pages + 1: break
+                    print(strings.INFO_FINISHED_PAGE.format(str(pagenum - 1), str(pagenum)))
         else:
             raise exceptions.InvalidLinkException(strings.ERROR_INVALID_LINK)
 
@@ -191,6 +193,10 @@ class Ao3:
                     self.fileops.write_log({
                         'message': strings.ERROR_IMAGE, 'link': work_url, 'title': title, 
                         'img': img, 'error': str(e), 'stacktrace': traceback.format_exc()})
+
+        if self.mark:
+            marklink = parse_soup.get_mark_as_read_link(thesoup)
+            if marklink: self.repo.my_get(marklink)
 
         return title
 
