@@ -120,10 +120,18 @@ def redownload_newtypes() -> list[str]:
     return newtypes
 
 
-def ao3_login(repo: Repository, fileops: FileOps) -> None:
+def marked_for_later_link(fileops: FileOps) -> str:
+    username = fileops.get_setting(strings.SETTING_USERNAME)
+    return f'{strings.AO3_BASE_URL}/users/{username}/readings?show=to-read'
 
-    print(strings.AO3_PROMPT_LOGIN)
-    login = False if input() == strings.PROMPT_NO else True
+
+def ao3_login(repo: Repository, fileops: FileOps, force: bool=False) -> None:
+
+    if force:
+        login = True
+    else:
+        print(strings.AO3_PROMPT_LOGIN)
+        login = False if input() == strings.PROMPT_NO else True
 
     if login:
         username = fileops.setting(
