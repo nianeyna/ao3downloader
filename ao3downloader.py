@@ -8,6 +8,7 @@ from ao3downloader.actions import logvisualization
 from ao3downloader.actions import updateseries
 from ao3downloader.actions import getlinks
 from ao3downloader.actions import markedforlater
+from ao3downloader.actions import enterlinks
 
 
 def ao3_download_action():
@@ -16,6 +17,10 @@ def ao3_download_action():
 
 def links_only_action():
     getlinks.action()
+
+
+def file_input_action():
+    enterlinks.action()
 
 
 def update_epubs_action():
@@ -72,6 +77,7 @@ re_download_action.description = strings.ACTION_DESCRIPTION_REDOWNLOAD
 update_series_action.description = strings.ACTION_DESCRIPTION_UPDATE_SERIES
 links_only_action.description = strings.ACTION_DESCRIPTION_LINKS_ONLY
 marked_for_later_action.description = strings.ACTION_DESCRIPTION_MARKED_FOR_LATER
+file_input_action.description = strings.ACTION_DESCRIPTION_FILE_INPUT
 
 QUIT_ACTION = 'q'
 MENU_ACTION = 'd'
@@ -80,6 +86,7 @@ actions = {
     MENU_ACTION: display_menu,
     'a': ao3_download_action,
     'l': links_only_action,
+    'f': file_input_action,
     'u': update_epubs_action,
     's': update_series_action,
     'r': re_download_action,

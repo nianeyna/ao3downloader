@@ -39,6 +39,7 @@ ACTION_DESCRIPTION_REDOWNLOAD = 're-download fics saved in one format in a diffe
 ACTION_DESCRIPTION_UPDATE_SERIES = 'download missing fics from series'
 ACTION_DESCRIPTION_LINKS_ONLY = 'get all work links from an ao3 listing (saves links only)'
 ACTION_DESCRIPTION_MARKED_FOR_LATER = 'download marked for later list and mark all as read (requires login)'
+ACTION_DESCRIPTION_FILE_INPUT = 'download links from file'
 
 PINBOARD_PROMPT_API_TOKEN = 'please enter api token'
 PINBOARD_PROMPT_INCLUDE_UNREAD = 'do you want to include unread bookmarks? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
@@ -60,6 +61,7 @@ AO3_PROMPT_PAGES = 'please enter page number to stop on. enter 0 to download all
 AO3_PROMPT_IMAGES = 'do you want to download embedded images? (will be saved separately) ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_SERIES = 'do you want to get works from series links? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_METADATA = 'do you want to include work metadata? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
+AO3_PROMPT_FILE_INPUT = 'please enter complete file path (including file extension) to file containing links to download (must be a text file with one link on each line)'
 AO3_INFO_LOGIN = 'logging in'
 AO3_INFO_DOWNLOADING = 'downloading works'
 AO3_INFO_FILE_TYPE = 'added {} to list of download types'
