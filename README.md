@@ -85,6 +85,7 @@ As of September 16, 2022 I have very regretfully removed the series subfolders o
 
 ## Known Issues
 - With the exception of series links, if you enter a link to an ao3 page that contains links to works or series, but does not support multiple pages of results, the script will loop infinitely. Most notably, this applies to user dashboard pages. If this happens, you can close the window to get out of the loop.
+- When downloading missing fics from series, if you are logged in, and the downloader finds a link to a series that is inaccessible because you do not have permission to access the series page, the downloader will download all of the works linked on your user dashboard page, instead. Yes... really.
 - Works that contain certain archive messages in either the work text or the tags may cause unexpected behavior. These problem phrases are:
     - <!--CHECK-->Error 404<!--AO3_DELETED-->
     - <!--CHECK-->This work could have adult content.<!--AO3_EXPLICIT-->
