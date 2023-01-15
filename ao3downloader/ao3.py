@@ -52,13 +52,13 @@ class Ao3:
             self.log_error(log, e)
 
 
-    def get_work_links(self, link: str) -> list[str]:
+    def get_work_links(self, link: str, metadata: bool) -> dict[str, dict]:
         
-        links_list = []
+        links_list = {}
         visited_series = []
 
         try:
-            self.get_work_links_recursive(links_list, link, visited_series)
+            self.get_work_links_recursive(links_list, link, visited_series, metadata)
         except Exception as e:
             print(strings.ERROR_LINKS_LIST)
             self.log_error({'message': strings.ERROR_LINKS_LIST}, e)
@@ -66,11 +66,15 @@ class Ao3:
         return links_list
 
 
-    def get_work_links_recursive(self, links_list: list[str], link: str, visited_series: list[str]) -> None:
+    def get_work_links_recursive(self, links_list: dict[str, dict], link: str, visited_series: list[str], metadata: bool, soup: BeautifulSoup=None) -> None:
 
         if parse_text.is_work(link, internal=False):
             if link not in links_list:
-                links_list.append(link)
+                if metadata:
+                    metatdata = parse_soup.get_work_metadata(soup, link)
+                    links_list[link] = metatdata
+                else:
+                    links_list[link] = None
         elif parse_text.is_series(link, internal=False):
             if self.series and link not in visited_series:
                 visited_series.append(link)
@@ -78,8 +82,7 @@ class Ao3:
                 series_soup = self.proceed(series_soup)
                 work_urls = parse_soup.get_work_urls(series_soup)
                 for work_url in work_urls:
-                    if work_url not in links_list:
-                        links_list.append(work_url)
+                    self.get_work_links_recursive(links_list, work_url, visited_series, metadata, series_soup)
         elif strings.AO3_BASE_URL in link:
             while True:
                 self.fileops.write_log({'starting': link})
@@ -87,7 +90,7 @@ class Ao3:
                 urls = parse_soup.get_work_and_series_urls(thesoup)
                 if len(urls) == 0: break
                 for url in urls:
-                    self.get_work_links_recursive(links_list, url, visited_series)
+                    self.get_work_links_recursive(links_list, url, visited_series, metadata, thesoup)
                 link = parse_text.get_next_page(link)
                 pagenum = parse_text.get_page_number(link)
                 if self.pages and pagenum == self.pages + 1: break

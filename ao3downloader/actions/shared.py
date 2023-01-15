@@ -41,6 +41,11 @@ def images() -> bool:
     return images
 
 
+def metadata() -> bool:
+    print(strings.AO3_PROMPT_METADATA)
+    return True if input() == strings.PROMPT_YES else False
+
+
 def visited(fileops: FileOps, filetypes: list[str]) -> list[str]:
     visited = []
     logs = fileops.load_logfile()

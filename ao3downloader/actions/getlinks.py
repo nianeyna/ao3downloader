@@ -1,3 +1,4 @@
+import csv
 import datetime
 import os
 
@@ -15,14 +16,31 @@ def action():
         link = shared.link(fileops)
         series = shared.series()
         pages = shared.pages()
+        metatdata = shared.metadata()
 
         shared.ao3_login(repo, fileops)
 
         ao3 = Ao3(repo, fileops, None, pages, series, False)
-        links = ao3.get_work_links(link)
+        links = ao3.get_work_links(link, metatdata)
 
-        filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.txt'
+        if metatdata:
+            flattened = [flatten_dict(k, v) for k, v in links.items()]
+            filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.csv'
+            with open(os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename), 'w', newline='', encoding='utf-8') as f:
+                keys = []
+                sample = flattened[0]
+                for key in sample: keys.append(key)
+                writer = csv.DictWriter(f, fieldnames=keys)
+                writer.writeheader()
+                for item in flattened:
+                    writer.writerow(item)
+        else:
+            filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.txt'
+            with open(os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename), 'w') as f:
+                for l in links:
+                    f.write(l + '\n')
 
-        with open(os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename), 'w') as f:
-            for l in links:
-                f.write(l + '\n')
+
+def flatten_dict(k: str, v: dict) -> dict:
+    v['link'] = k
+    return v
