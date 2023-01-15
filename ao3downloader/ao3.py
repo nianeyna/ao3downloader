@@ -68,10 +68,10 @@ class Ao3:
 
     def get_work_links_recursive(self, links_list: list[str], link: str, visited_series: list[str]) -> None:
 
-        if parse_text.is_work(link):
+        if parse_text.is_work(link, internal=False):
             if link not in links_list:
                 links_list.append(link)
-        elif parse_text.is_series(link):
+        elif parse_text.is_series(link, internal=False):
             if self.series and link not in visited_series:
                 visited_series.append(link)
                 series_soup = self.repo.get_soup(link)
@@ -101,11 +101,11 @@ class Ao3:
         if link in visited: return
         visited.append(link)
 
-        if parse_text.is_series(link):
+        if parse_text.is_series(link, internal=False):
             if self.series:
                 log = {}
                 self.download_series(link, log, visited)
-        elif parse_text.is_work(link):
+        elif parse_text.is_work(link, internal=False):
             log = {}
             self.download_work(link, log, None)
         elif strings.AO3_BASE_URL in link:

@@ -24,12 +24,12 @@ def get_file_type(filetype: str) -> str:
     return '.' + filetype.lower()
 
 
-def is_work(link: str) -> bool:
-    return re.compile(strings.AO3_WORK).match(link)
+def is_work(link: str, internal: bool=True) -> bool:
+    return (link.startswith('/') or not internal) and re.compile(strings.AO3_WORK).match(link)
 
 
-def is_series(link: str) -> bool:
-    return re.compile(strings.AO3_SERIES).match(link)
+def is_series(link: str, internal: bool=True) -> bool:
+    return (link.startswith('/') or not internal) and re.compile(strings.AO3_SERIES).match(link)
 
 
 def get_next_page(link: str) -> str:
