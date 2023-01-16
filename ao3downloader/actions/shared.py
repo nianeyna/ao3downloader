@@ -46,6 +46,11 @@ def metadata() -> bool:
     return True if input() == strings.PROMPT_YES else False
 
 
+def ignorelist_check_deleted() -> bool:
+    print(strings.IGNORELIST_PROMPT_CHECK_DELETED)
+    return True if input() == strings.PROMPT_YES else False
+
+
 def visited(fileops: FileOps, filetypes: list[str]) -> list[str]:
     visited = []
     logs = fileops.load_logfile()
