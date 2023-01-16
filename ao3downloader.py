@@ -9,6 +9,7 @@ from ao3downloader.actions import updateseries
 from ao3downloader.actions import getlinks
 from ao3downloader.actions import markedforlater
 from ao3downloader.actions import enterlinks
+from ao3downloader.actions import ignorelist
 
 
 def ao3_download_action():
@@ -47,6 +48,10 @@ def log_visualization_action():
     logvisualization.action()
 
 
+def ignorelist_action():
+    ignorelist.action()
+
+
 def display_menu():
     print(strings.PROMPT_OPTIONS)
     for key, value in actions.items():
@@ -78,6 +83,7 @@ update_series_action.description = strings.ACTION_DESCRIPTION_UPDATE_SERIES
 links_only_action.description = strings.ACTION_DESCRIPTION_LINKS_ONLY
 marked_for_later_action.description = strings.ACTION_DESCRIPTION_MARKED_FOR_LATER
 file_input_action.description = strings.ACTION_DESCRIPTION_FILE_INPUT
+ignorelist_action.description = strings.ACTION_DESCRIPTION_CONFIGURE_IGNORELIST
 
 QUIT_ACTION = 'q'
 MENU_ACTION = 'd'
@@ -92,7 +98,8 @@ actions = {
     'r': re_download_action,
     'm': marked_for_later_action,
     'p': pinboard_download_action,
-    'v': log_visualization_action
+    'v': log_visualization_action,
+    'i': ignorelist_action
     }
 
 display_menu()
