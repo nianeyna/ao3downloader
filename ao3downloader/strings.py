@@ -11,6 +11,7 @@ LOG_FILE_NAME = 'log.jsonl'
 SETTINGS_FILE_NAME = 'settings.json'
 TEMPLATE_FILE_NAME = 'template.html'
 VISUALIZATION_FILE_NAME = 'logvisualization.html'
+IGNORELIST_FILE_NAME = 'ignorelist.txt'
 
 SETTING_USERNAME = 'username'
 SETTING_PASSWORD = 'password'
@@ -40,6 +41,7 @@ ACTION_DESCRIPTION_UPDATE_SERIES = 'download missing fics from series'
 ACTION_DESCRIPTION_LINKS_ONLY = 'get all work links from an ao3 listing (saves links only)'
 ACTION_DESCRIPTION_MARKED_FOR_LATER = 'download marked for later list and mark all as read (requires login)'
 ACTION_DESCRIPTION_FILE_INPUT = 'download links from file'
+ACTION_DESCRIPTION_CONFIGURE_IGNORELIST = 'configure ignore list (list of links to never try to download)'
 
 PINBOARD_PROMPT_API_TOKEN = 'please enter api token'
 PINBOARD_PROMPT_INCLUDE_UNREAD = 'do you want to include unread bookmarks? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
@@ -91,6 +93,9 @@ REDOWNLOAD_PROMPT_FILE_TYPE = 'please enter file type you want to convert from. 
 REDOWNLOAD_INFO_FILE_TYPE = 'added {} to list of file types to convert from'
 REDOWNLOAD_INFO_URLS = 'getting work urls'
 REDOWNLOAD_INFO_DONE = 'done getting work urls. {} urls found'
+
+IGNORELIST_INFO_INITIALIZED = f'{IGNORELIST_FILE_NAME} has been added to the main script folder. you can use this file to perma-skip downloading works or series that you know you don\'t want to download. to use this file open it in a text editor (the default text editor for Windows is called Notepad. on Mac, you can use TextEdit) and add the links you want to ignore, one on each line. these should be links to ao3 works or series. other links will be ignored. each link MUST begin with https://archiveofourown.org and be placed at the start of a new line. you may also *optionally* add a comment after each link. comments must begin with a SEMICOLON followed by a SPACE: `; ` and must not contain any newline characters (the entire comment must be on the same line as the link). otherwise, you can write anything you want in the comment. comments are for your personal reference only and are not used by the script.'
+IGNORELIST_PROMPT_CHECK_DELETED = 'do you want to check the log file for deleted links and add them to the ignore list automatically?'
 
 INFO_NO_LOG_FILE = 'no log file'
 INFO_NO_FOLDER = 'folder does not exist'

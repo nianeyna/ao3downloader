@@ -29,6 +29,7 @@ class FileOps:
         with open(file, 'wb') as f:
             f.write(content)
 
+
     def save_setting(self, setting: str, value) -> None:
         js = self.get_settings_json()
         if value is None:

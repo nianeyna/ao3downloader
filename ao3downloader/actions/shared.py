@@ -46,6 +46,11 @@ def metadata() -> bool:
     return True if input() == strings.PROMPT_YES else False
 
 
+def ignorelist_check_deleted() -> bool:
+    print(strings.IGNORELIST_PROMPT_CHECK_DELETED)
+    return True if input() == strings.PROMPT_YES else False
+
+
 def visited(fileops: FileOps, filetypes: list[str]) -> list[str]:
     visited = []
     logs = fileops.load_logfile()
@@ -54,6 +59,9 @@ def visited(fileops: FileOps, filetypes: list[str]) -> list[str]:
         titles = parse_text.get_title_dict(logs)
         visited = list({x for x in titles if 
             fileops.file_exists(x, titles, filetypes)})
+    if os.path.exists(strings.IGNORELIST_FILE_NAME):
+        with open(strings.IGNORELIST_FILE_NAME, 'r', encoding='utf-8') as f: 
+                visited.extend([x[:x.find('; ')] for x in f.readlines()])
     return visited
 
 
