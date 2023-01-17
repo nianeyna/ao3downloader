@@ -87,7 +87,7 @@ def get_series_info(soup: BeautifulSoup) -> dict:
     series_info = {'work_urls': work_urls}
 
     # add series title to dictionary
-    series_info['title'] = get_title(soup)
+    series_info['title'] = soup.select('.series-show h2')[0].get_text().strip()
 
     return series_info
 
@@ -166,14 +166,22 @@ def get_mark_as_read_link(soup: BeautifulSoup) -> str:
     return strings.AO3_BASE_URL + link
 
 
+def get_title(soup: BeautifulSoup, link: str) -> str:
+    """Get work title, author, and id as a string"""
+
+    worknum = parse_text.get_work_number(link)
+    title = soup.select('.preface .title')[0].get_text().strip()
+    author = soup.select('.preface .byline')[0].get_text().strip()
+
+    return f'{worknum} {title} - {author}'
+
+
 def get_work_metadata(soup: BeautifulSoup, link: str) -> dict:
-    worklink = link[link.find('/works/'):]
-    worknum = worklink[7:]
-    workid = f'work-{worknum}'
-    blurb = soup.find('li', class_=workid)
+    worknum = parse_text.get_work_number(link)
+    blurb = soup.find('li', class_=f'work-{worknum}')
     tags = blurb.find('ul', class_='tags')
     metadata = {}
-    metadata['title'] = blurb.find('a', href=worklink).get_text()
+    metadata['title'] = blurb.find('a', href=f'/works/{worknum}').get_text()
     try:
         metadata['author'] = blurb.find('a', rel='author').get_text()
     except:
@@ -190,14 +198,6 @@ def get_work_metadata(soup: BeautifulSoup, link: str) -> dict:
     metadata['categories'] = blurb.find('span', class_='category').get_text()
     metadata['complete'] = True if blurb.find('span', class_='iswip').get_text() == 'Complete Work' else False
     return metadata
-
-
-def get_title(soup: BeautifulSoup) -> str:
-    """Get title of ao3 work, stripping out extraneous information."""
-
-    return (soup.title.get_text().strip()
-            .replace(strings.AO3_TITLE, '')
-            .replace(strings.AO3_CHAPTER_TITLE, ''))
 
 
 def get_current_chapters(soup: BeautifulSoup) -> str:

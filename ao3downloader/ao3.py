@@ -171,7 +171,7 @@ class Ao3:
             if currentchapters <= chapters:
                 return False
         
-        title = parse_soup.get_title(thesoup)
+        title = parse_soup.get_title(thesoup, work_url)
         filename = parse_text.get_valid_filename(title)
 
         for filetype in self.filetypes:

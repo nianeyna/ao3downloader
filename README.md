@@ -21,6 +21,8 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
 
 As of September 16, 2022 I have very regretfully removed the series subfolders option, due to the fact that it was causing a huge amount of unnecessary repeated downloads even for people who weren't using it.
 
+As of January 17, 2023 I have changed how file names are generated (again). All file names will now be prefixed with the work id. This is to fix the problem where fics with the same title and author would sometimes overwrite each other in the downloads folder. I have also removed the fandom from the file name, because it was usually gettting cut off by the path length restriction, anyway.
+
 ## Instructions
 
 1. install [python](https://www.python.org/downloads/). make sure to install version 3.9.0 or later. see [announcements](#announcements) for the most recent version of python that is confirmed to work with the script - when in doubt, install that version.

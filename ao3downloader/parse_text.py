@@ -24,6 +24,10 @@ def get_file_type(filetype: str) -> str:
     return '.' + filetype.lower()
 
 
+def get_work_number(link: str) -> str:
+    return link[link.find('/works/'):][7:]
+
+
 def is_work(link: str, internal: bool=True) -> bool:
     return (link.startswith('/') or not internal) and re.compile(strings.AO3_WORK).match(link)
 
