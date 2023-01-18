@@ -150,9 +150,8 @@ class Ao3:
 
         try:
             log['link'] = link
-            title = self.try_download(link, chapters)
-            if title == False: return
-            log['title'] = title
+            downloaded = self.try_download(link, log, chapters)
+            if downloaded == False: return
         except Exception as e:
             self.log_error(log, e)
         else:
@@ -160,7 +159,7 @@ class Ao3:
             self.fileops.write_log(log)
 
 
-    def try_download(self, work_url: str, chapters: str) -> str:
+    def try_download(self, work_url: str, log: dict, chapters: str) -> bool:
         """Main download logic"""
 
         thesoup = self.repo.get_soup(work_url)
@@ -173,6 +172,8 @@ class Ao3:
         
         title = parse_soup.get_title(thesoup, work_url)
         filename = parse_text.get_valid_filename(title)
+        log['title'] = title
+        log['workskin'] = parse_soup.has_custom_skin(thesoup)
 
         for filetype in self.filetypes:
             link = parse_soup.get_download_link(thesoup, filetype)
@@ -201,7 +202,7 @@ class Ao3:
             marklink = parse_soup.get_mark_as_read_link(thesoup)
             if marklink: self.repo.my_get(marklink)
 
-        return title
+        return True
 
 
     def proceed(self, thesoup: BeautifulSoup) -> BeautifulSoup:

@@ -166,6 +166,12 @@ def get_mark_as_read_link(soup: BeautifulSoup) -> str:
     return strings.AO3_BASE_URL + link
 
 
+def has_custom_skin(soup: BeautifulSoup) -> bool:
+    """Check if a work has custom creator styles"""
+
+    return soup.find('ul', class_='work navigation actions').find('li', class_='style') is not None
+
+
 def get_title(soup: BeautifulSoup, link: str) -> str:
     """Get work title, author, and id as a string"""
 
