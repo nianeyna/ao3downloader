@@ -26,4 +26,4 @@ def action():
 
         ao3 = Ao3(repo, fileops, filetypes, 0, True, images)
         for link in tqdm(links):
-            ao3.download(link, visited)
+            ao3.download(link.strip(), visited)
