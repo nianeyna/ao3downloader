@@ -207,7 +207,12 @@ def update_folder(fileops: FileOps) -> str:
     folder = fileops.get_setting(strings.SETTING_UPDATE_FOLDER)
     if folder:
         print(strings.UPDATE_PROMPT_USE_SAVED_FOLDER)
-        if input() == strings.PROMPT_YES: return folder
+        if input() == strings.PROMPT_YES: 
+            return folder
+        else:
+            fileops.save_setting(
+                strings.SETTING_UPDATE_FOLDER, 
+                None)
     folder = fileops.setting(
         strings.UPDATE_PROMPT_INPUT,
         strings.SETTING_UPDATE_FOLDER)
