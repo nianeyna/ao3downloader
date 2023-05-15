@@ -167,7 +167,7 @@ class Ao3:
 
         if chapters is not None: # TODO this is a super awkward place for this logic to be and I don't like it.
             currentchapters = parse_soup.get_current_chapters(thesoup)
-            if currentchapters <= chapters:
+            if int(currentchapters) <= int(chapters):
                 return False
         
         title = parse_soup.get_title(thesoup, work_url)
