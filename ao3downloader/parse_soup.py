@@ -1,4 +1,5 @@
 import re
+import traceback
 
 from bs4 import BeautifulSoup
 
@@ -183,26 +184,32 @@ def get_title(soup: BeautifulSoup, link: str) -> str:
 
 
 def get_work_metadata(soup: BeautifulSoup, link: str) -> dict:
-    worknum = parse_text.get_work_number(link)
-    blurb = soup.find('li', class_=f'work-{worknum}')
-    tags = blurb.find('ul', class_='tags')
     metadata = {}
-    metadata['title'] = blurb.find('a', href=f'/works/{worknum}').get_text()
     try:
-        metadata['author'] = blurb.find('a', rel='author').get_text()
-    except:
-        metadata['author'] = 'Anonymous'
-    metadata['fandoms'] = list(x.get_text() for x in blurb.find('h5', class_='fandoms').find_all('a'))
-    metadata['summary'] = blurb.find('blockquote', class_='summary').decode_contents()
-    metadata['warnings'] = list(x.find('a').get_text() for x in tags.find_all('li', class_='warnings'))
-    metadata['characters'] = list(x.find('a').get_text() for x in tags.find_all('li', class_='characters'))
-    metadata['relationships'] = list(x.find('a').get_text() for x in tags.find_all('li', class_='relationships'))
-    metadata['tags'] = list(x.find('a').get_text() for x in tags.find_all('li', class_='freeforms'))
-    metadata['words'] = blurb.find('dd', class_='words').get_text()
-    metadata['rating'] = blurb.find('span', class_='rating').get_text()
-    metadata['chapters'] = blurb.find('dd', class_='chapters').get_text()
-    metadata['categories'] = blurb.find('span', class_='category').get_text()
-    metadata['complete'] = True if blurb.find('span', class_='iswip').get_text() == 'Complete Work' else False
+        worknum = parse_text.get_work_number(link)
+        blurb = soup.find('li', class_=f'work-{worknum}')
+        tags = blurb.find('ul', class_='tags')
+        metadata['title'] = blurb.find('a', href=f'/works/{worknum}').get_text()
+        try:
+            metadata['author'] = blurb.find('a', rel='author').get_text()
+        except:
+            metadata['author'] = 'Anonymous'
+        try:
+            metadata['summary'] = blurb.find('blockquote', class_='summary').decode_contents()
+        except:
+            metadata['summary'] = '' # some works don't have a summary
+        metadata['fandoms'] = list(x.get_text() for x in blurb.find('h5', class_='fandoms').find_all('a'))
+        metadata['warnings'] = list(x.find('a').get_text() for x in tags.find_all('li', class_='warnings'))
+        metadata['characters'] = list(x.find('a').get_text() for x in tags.find_all('li', class_='characters'))
+        metadata['relationships'] = list(x.find('a').get_text() for x in tags.find_all('li', class_='relationships'))
+        metadata['tags'] = list(x.find('a').get_text() for x in tags.find_all('li', class_='freeforms'))
+        metadata['words'] = blurb.find('dd', class_='words').get_text()
+        metadata['rating'] = blurb.find('span', class_='rating').get_text()
+        metadata['chapters'] = blurb.find('dd', class_='chapters').get_text()
+        metadata['categories'] = blurb.find('span', class_='category').get_text()
+        metadata['complete'] = True if blurb.find('span', class_='iswip').get_text() == 'Complete Work' else False
+    except Exception as e: # don't crash the entire download if there is an unhandled exception
+        metadata['error'] = ''.join(traceback.TracebackException.from_exception(e).format())
     return metadata
 
 
