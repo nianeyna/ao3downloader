@@ -14,7 +14,7 @@ def check_value(text: str, pos: int) -> str:
     end = re.search('-->', text[pos:])
     variable = text[pos:pos+end.start()]
     try:
-        realval = getattr(strings, variable)
+        realval = str(getattr(strings, variable)).replace('{', '').replace('}', '')
     except AttributeError:
         return f'Bad variable name. Variable: {variable} Value: {value}'
     if value not in realval: 

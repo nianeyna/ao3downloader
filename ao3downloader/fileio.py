@@ -17,7 +17,7 @@ class FileOps:
 
 
     def write_log(self, log: dict) -> None:
-        log['timestamp'] = datetime.datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
+        log['timestamp'] = datetime.datetime.now().strftime(strings.TIMESTAMP_FORMAT)
         with open(self.logfile, 'a', encoding='utf-8') as f:
             json.dump(log, f, ensure_ascii=False)
             f.write('\n')

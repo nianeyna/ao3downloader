@@ -2,6 +2,7 @@
 
 # based on https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
 INVALID_FILENAME_CHARACTERS = '<>:"/\|?*.' + ''.join(chr(i) for i in range(32))
+TIMESTAMP_FORMAT = '%m/%d/%Y, %H:%M:%S'
 
 DOWNLOAD_FOLDER_NAME = 'downloads'
 IMAGE_FOLDER_NAME = 'images'
@@ -10,7 +11,7 @@ LOG_FOLDER_NAME = 'logs'
 LOG_FILE_NAME = 'log.jsonl'
 SETTINGS_FILE_NAME = 'settings.json'
 TEMPLATE_FILE_NAME = 'template.html'
-VISUALIZATION_FILE_NAME = 'logvisualization.html'
+VISUALIZATION_FILE_NAME = 'logvisualization{}.html'
 IGNORELIST_FILE_NAME = 'ignorelist.txt'
 
 SETTING_USERNAME = 'username'
@@ -101,6 +102,7 @@ INFO_NO_LOG_FILE = 'no log file'
 INFO_NO_FOLDER = 'folder does not exist'
 INFO_EXCLUDING_WORKS = 'filtering out works that are already in the downloads folder'
 INFO_FINISHED_PAGE = 'finished getting page {}. starting page {}'
+INFO_PARSING_LOGS = 'parsing data from log entries with timestamps starting at {} and ending at {}'
 
 MESSAGE_TOO_MANY_REQUESTS = 'ao3 has requested a {} second break\npaused at: {}\nresuming at: {}'
 MESSAGE_RESUMING = 'resuming execution'
