@@ -98,7 +98,7 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
 
 
 def get_epub_preface(path: str) -> ET.Element:
-    book = epub.read_epub(path)
+    book = epub.read_epub(path, {'ignore_ncx': True})
     preface = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))[0]
     content = preface.get_content().decode('utf-8')
     return ET.fromstring(content)
