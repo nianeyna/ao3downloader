@@ -1,3 +1,7 @@
+## Update about the current DDoS attack on AO3 (July 11, 2023)
+
+Unfortunately, the protections put in place to protect AO3 from the current attack have broken this script, and you will probably not be able to use it until the situation is resolved. I do NOT expect the script to be broken forever, but I don't know when it will be back. I know this is not good news to those of you who are now eager to back up your faves, but hang in there! I have no plans to abandon this project whatsoever, and I fully expect to be back up and running in time.
+
 ## What is this?
 This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard.
 
