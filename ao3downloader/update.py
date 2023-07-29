@@ -83,7 +83,7 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
     # otherwise continue checking for incomplete fics
     if stats is None: return None # if we can't find the series metadata, return
 
-    # if the series metadata does not contain the character "/", return
+    # if the metadata does not contain the character "/", return
     # we assume that the "/" character represents chapter count
     index = stats.find('/')
     if index == -1: return None
