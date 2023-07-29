@@ -103,7 +103,6 @@ def get_payload(username: str, password: str, token: str) -> dict[str, str]:
         'user[login]': username,
         'user[password]': password,
         'user[remember_me]': '1',
-        'utf8': '&#x2713;',
         'authenticity_token': token
     }
     return payload
