@@ -124,7 +124,7 @@ AO3_LOCKED = 'This work is only available to registered users of the Archive'
 AO3_DELETED = 'Error 404'
 AO3_EXPLICIT = 'This work could have adult content.'
 AO3_FAILED_LOGIN = 'The password or user name you entered doesn\'t match our records.'
-AO3_PROCEED = 'Proceed'
+AO3_PROCEED = 'Yes, Continue'
 AO3_MARK_READ = 'Mark as Read'
 
 AO3_TITLE = '[Archive of Our Own]'
