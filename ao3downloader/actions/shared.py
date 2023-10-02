@@ -147,12 +147,15 @@ def ao3_login(repo: Repository, fileops: FileOps, force: bool=False) -> None:
         login = False if input() == strings.PROMPT_NO else True
 
     if login:
+        savepassword = fileops.get_ini_value_boolean(strings.INI_PASSWORD_SAVE, True)
+
         username = fileops.setting(
             strings.AO3_PROMPT_USERNAME,
             strings.SETTING_USERNAME)
         password = fileops.setting(
             strings.AO3_PROMPT_PASSWORD,
-            strings.SETTING_PASSWORD)
+            strings.SETTING_PASSWORD,
+            savepassword)
 
         print(strings.AO3_INFO_LOGIN)
         try:

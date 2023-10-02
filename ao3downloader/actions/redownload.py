@@ -9,8 +9,8 @@ from tqdm import tqdm
 
 
 def action():
-    with Repository() as repo:
-        fileops = FileOps()
+    fileops = FileOps()
+    with Repository(fileops) as repo:
         
         folder = shared.redownload_folder()
         oldtypes = shared.redownload_oldtypes()

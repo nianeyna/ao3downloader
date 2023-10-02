@@ -13,6 +13,11 @@ SETTINGS_FILE_NAME = 'settings.json'
 TEMPLATE_FILE_NAME = 'template.html'
 VISUALIZATION_FILE_NAME = 'logvisualization{}.html'
 IGNORELIST_FILE_NAME = 'ignorelist.txt'
+INI_FILE_NAME = 'settings.ini'
+INI_SECTION_NAME = 'settings'
+
+INI_WAIT_TIME = 'ExtraWaitTime'
+INI_PASSWORD_SAVE = 'SavePassword'
 
 SETTING_USERNAME = 'username'
 SETTING_PASSWORD = 'password'

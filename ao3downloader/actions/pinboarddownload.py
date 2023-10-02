@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 
 def action():
-    with Repository() as repo:
-        fileops = FileOps()
+    fileops = FileOps()
+    with Repository(fileops) as repo:
 
         filetypes = shared.download_types(fileops)
         date = shared.pinboard_date()

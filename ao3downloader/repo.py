@@ -9,17 +9,17 @@ from bs4 import BeautifulSoup
 from requests import codes
 
 from ao3downloader import exceptions, parse_soup, parse_text, strings
+from ao3downloader.fileio import FileOps
 
 
 class Repository:
 
-    # for reasons I don't fully understand, specifying the user agent makes requests faster
-    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit'
-            '/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36 +nianeyna@gmail.com'}
+    headers = {'user-agent': 'ao3downloader +nianeyna@gmail.com'}
 
 
-    def __init__(self) -> None:
+    def __init__(self, fileops: FileOps) -> None:
         self.session = requests.Session()
+        self.extra_wait = int(fileops.get_ini_value(strings.INI_WAIT_TIME, '0'))
 
 
     def __enter__(self):
@@ -63,6 +63,7 @@ class Repository:
                 pause_time = int(response.headers['retry-after'])
             except:
                 pause_time = 300 # default to 5 minutes in case there was a problem getting retry-after
+            if pause_time < 0: pause_time = 300 # also do 5 minutes if retry-after was found but is invalid
             now = datetime.datetime.now()
             later = now + datetime.timedelta(0, pause_time)
             print(strings.MESSAGE_TOO_MANY_REQUESTS.format(pause_time, now.strftime('%H:%M:%S'), later.strftime('%H:%M:%S')))
@@ -70,6 +71,8 @@ class Repository:
             print(strings.MESSAGE_RESUMING)
             return self.my_get(url)
     
+        if self.extra_wait > 0: sleep(self.extra_wait)
+
         return response
 
 
@@ -79,7 +82,7 @@ class Repository:
         soup = self.get_soup(strings.AO3_LOGIN_URL)
         token = parse_soup.get_token(soup)
         payload = parse_text.get_payload(username, password, token)
-        response = self.session.post(strings.AO3_LOGIN_URL, data=payload)
+        response = self.session.post(strings.AO3_LOGIN_URL, data=payload, headers=self.headers)
         soup = BeautifulSoup(response.text, 'html.parser')
         if parse_soup.is_failed_login(soup):
             raise exceptions.LoginException(strings.ERROR_FAILED_LOGIN)
