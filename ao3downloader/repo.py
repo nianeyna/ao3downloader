@@ -56,7 +56,7 @@ class Repository:
     def my_get(self, url: str) -> requests.Response:
         """Get response from a url."""
 
-        response = self.session.get(url, headers=self.headers)
+        response = self.session.get(url, headers=self.headers, timeout=(30, 30))
 
         if response.status_code == codes['too_many_requests']:
             try:
