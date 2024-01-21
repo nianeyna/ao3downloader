@@ -95,6 +95,8 @@ As of January 17, 2023 I have changed how file names are generated (again). All 
 
 - With the exception of series links, if you enter a link to an ao3 page that contains links to works or series, but does not support multiple pages of results, the script will loop infinitely. Most notably, this applies to user dashboard pages. If this happens, you can close the window to get out of the loop.
 - When downloading missing fics from series, if you are logged in, and the downloader finds a link to a series that is inaccessible because you do not have permission to access the series page, the downloader will download all of the works linked on your user dashboard page, instead. Yes... really.
+- Links containing more than 4095 characters may cause issues on Mac and Linux. To work around this (on Mac and Linux only!) enter `stty -icanon` into your terminal before running ao3downloader. When you are finished running ao3downloader, enter `stty icanon` to restore the default behavior. H/t github user verotheelf for this workaround.
+- Links containing more than 8191 characters will cause problems on Windows. There is no workaround, other than using a different link. Thankfully, it is unlikely you will run into this problem, as 8191 characters is quite a lot.
 
 ## Troubleshooting
 
