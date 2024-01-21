@@ -1,5 +1,6 @@
 """File operations go here."""
 
+import configparser
 import datetime
 import json
 import os
@@ -12,6 +13,7 @@ class FileOps:
         if not os.path.exists(strings.LOG_FOLDER_NAME): os.mkdir(strings.LOG_FOLDER_NAME)
         if not os.path.exists(strings.DOWNLOAD_FOLDER_NAME): os.mkdir(strings.DOWNLOAD_FOLDER_NAME)
         self.logfile = os.path.join(strings.LOG_FOLDER_NAME, strings.LOG_FILE_NAME)
+        self.inifile = strings.INI_FILE_NAME
         self.settingsfile = strings.SETTINGS_FILE_NAME
         self.downloadfolder = strings.DOWNLOAD_FOLDER_NAME
 
@@ -58,12 +60,13 @@ class FileOps:
                 return {}
 
 
-    def setting(self, prompt: str, setting: str):
+    def setting(self, prompt: str, setting: str, save: bool = True):
         value = self.get_setting(setting)
         if value == '':
             print(prompt)
             value = input()
-            self.save_setting(setting, value)
+            if save:
+                self.save_setting(setting, value)
         return value
 
 
@@ -86,3 +89,15 @@ class FileOps:
             if not os.path.exists(file):
                 return False
         return True
+
+
+    def get_ini_value(self, key: str, fallback: str = None) -> str:
+        config = configparser.ConfigParser()
+        config.read(self.inifile)
+        return config.get(strings.INI_SECTION_NAME, key, fallback=fallback)
+
+
+    def get_ini_value_boolean(self, key: str, fallback: bool) -> bool:
+        config = configparser.ConfigParser()
+        config.read(self.inifile)
+        return config.getboolean(strings.INI_SECTION_NAME, key, fallback=fallback)
