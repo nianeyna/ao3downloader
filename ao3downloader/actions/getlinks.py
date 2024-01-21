@@ -33,7 +33,10 @@ def action():
                 writer = csv.DictWriter(f, fieldnames=keys)
                 writer.writeheader()
                 for item in flattened:
-                    writer.writerow(item)
+                    try:
+                        writer.writerow(item)
+                    except ValueError:
+                        fileops.write_log(item)
         else:
             filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.txt'
             with open(os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename), 'w') as f:

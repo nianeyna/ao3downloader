@@ -9,7 +9,7 @@ def get_bookmark_list(bookmark_xml: ET.Element, exclude_toread: bool) -> list[di
         attributes = child.attrib
         # only include valid ao3 links
         link = attributes['href']
-        if 'archiveofourown.org' in link and (parse_text.is_work(link, internal=False) or parse_text.is_series(link, internal=False)):
+        if 'archiveofourown.org' in link and (parse_text.is_work(link) or parse_text.is_series(link)):
             # if exclude_toread is true, only include read bookmarks
             if exclude_toread:
                 if not 'toread' in attributes:

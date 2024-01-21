@@ -68,15 +68,15 @@ class Ao3:
 
     def get_work_links_recursive(self, links_list: dict[str, dict], link: str, visited_series: list[str], metadata: bool, soup: BeautifulSoup=None) -> None:
 
-        if parse_text.is_work(link, internal=False):
+        if parse_text.is_work(link):
             if link not in links_list:
                 if metadata:
                     metatdata = parse_soup.get_work_metadata(soup, link)
                     links_list[link] = metatdata
                 else:
                     links_list[link] = None
-        elif parse_text.is_series(link, internal=False):
-            if self.series and link not in visited_series:
+        elif parse_text.is_series(link):
+            if link not in visited_series:
                 visited_series.append(link)
                 series_soup = self.repo.get_soup(link)
                 series_soup = self.proceed(series_soup)
@@ -87,7 +87,7 @@ class Ao3:
             while True:
                 self.fileops.write_log({'starting': link})
                 thesoup = self.repo.get_soup(link)
-                urls = parse_soup.get_work_and_series_urls(thesoup)
+                urls = parse_soup.get_work_and_series_urls(thesoup, self.series)
                 if len(urls) == 0: break
                 for url in urls:
                     self.get_work_links_recursive(links_list, url, visited_series, metadata, thesoup)
@@ -104,18 +104,17 @@ class Ao3:
         if link in visited: return
         visited.append(link)
 
-        if parse_text.is_series(link, internal=False):
-            if self.series:
-                log = {}
-                self.download_series(link, log, visited)
-        elif parse_text.is_work(link, internal=False):
+        if parse_text.is_work(link):
             log = {}
             self.download_work(link, log, None)
+        elif parse_text.is_series(link):
+            log = {}
+            self.download_series(link, log, visited)        
         elif strings.AO3_BASE_URL in link:
             while True:
                 self.fileops.write_log({'starting': link})
                 thesoup = self.repo.get_soup(link)
-                urls = parse_soup.get_work_and_series_urls(thesoup)
+                urls = parse_soup.get_work_and_series_urls(thesoup, self.series)
                 if len(urls) == 0: break
                 for url in urls:
                     self.download_recursive(url, log, visited)

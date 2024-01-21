@@ -1,5 +1,4 @@
 import datetime
-import re
 
 from ao3downloader import strings
 
@@ -25,15 +24,27 @@ def get_file_type(filetype: str) -> str:
 
 
 def get_work_number(link: str) -> str:
-    return link[link.find('/works/'):][7:]
+    return get_digits_after('/works/', link)
 
 
-def is_work(link: str, internal: bool=True) -> bool:
-    return (link.startswith('/') or not internal) and re.compile(strings.AO3_WORK).match(link)
+def get_series_number(link: str) -> str:
+    return get_digits_after('/series/', link)
 
 
-def is_series(link: str, internal: bool=True) -> bool:
-    return (link.startswith('/') or not internal) and re.compile(strings.AO3_SERIES).match(link)
+def is_work(link: str) -> bool:
+    return get_work_number(link) != None
+
+
+def is_series(link: str) -> bool:
+    return get_series_number(link) != None
+
+
+def get_digits_after(test: str, url: str) -> str:
+    index = str.find(url, test)
+    if index == -1: return None
+    digits = get_num_from_link(url, index + len(test))
+    if not digits or len(digits) == 0: return None
+    return digits
 
 
 def get_next_page(link: str) -> str:
@@ -62,7 +73,7 @@ def get_page_number(link: str) -> int:
 
 
 def get_num_from_link(link: str, start: int) -> str:
-    end = start + 1
+    end = start
     while end < len(link) and str.isdigit(link[start:end+1]):
         end = end + 1
     return link[start:end]

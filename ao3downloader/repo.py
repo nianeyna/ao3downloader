@@ -56,14 +56,14 @@ class Repository:
     def my_get(self, url: str) -> requests.Response:
         """Get response from a url."""
 
-        response = self.session.get(url, headers=self.headers)
+        response = self.session.get(url, headers=self.headers, timeout=(30, 30))
 
         if response.status_code == codes['too_many_requests']:
             try:
                 pause_time = int(response.headers['retry-after'])
             except:
                 pause_time = 300 # default to 5 minutes in case there was a problem getting retry-after
-            if pause_time < 0: pause_time = 300 # also do 5 minutes if retry-after was found but is invalid
+            if pause_time <= 0: pause_time = 300 # default to 5 minutes if retry-after is an invalid value
             now = datetime.datetime.now()
             later = now + datetime.timedelta(0, pause_time)
             print(strings.MESSAGE_TOO_MANY_REQUESTS.format(pause_time, now.strftime('%H:%M:%S'), later.strftime('%H:%M:%S')))

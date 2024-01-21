@@ -1,7 +1,8 @@
 import re
 import traceback
+from typing import Any
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, ResultSet
 
 from ao3downloader import parse_text, strings
 from ao3downloader.exceptions import DownloadException, ProceedException
@@ -96,33 +97,57 @@ def get_series_info(soup: BeautifulSoup) -> dict:
 def get_work_urls(soup: BeautifulSoup) -> list[str]:
     """Get all links to ao3 works on a page"""
 
-    work_urls = []
-
-    # get links to all works on the page
-    all_links = soup.find_all('a')
-    for link in all_links:
-        href = link.get('href')
-        if href and parse_text.is_work(href):
-            url = strings.AO3_BASE_URL + href
-            work_urls.append(url)
-
-    return work_urls
+    return list(dict.fromkeys(list(
+        map(lambda w: get_full_work_url(w.get('href')), 
+            filter(lambda a : a.get('href') and parse_text.is_work(a.get('href')), 
+                   soup.find_all('a'))))))
 
 
-def get_work_and_series_urls(soup: BeautifulSoup) -> list[str]:
+def get_full_work_url(url: str) -> str:
+    """Get full ao3 work url from partial url"""
+
+    work_number = parse_text.get_work_number(url)
+    return strings.AO3_BASE_URL + url.split(work_number)[0] + work_number
+
+
+def get_series_urls(soup: BeautifulSoup, get_all: bool) -> list[str]:
+    """Get all links to ao3 series on a page"""
+
+    bookmarks = None if get_all else soup.find_all('li', class_='bookmark')
+
+    return list(dict.fromkeys(list(
+        map(lambda w: get_full_series_url(w.get('href')), 
+            filter(lambda a : is_series(a, get_all, bookmarks),
+                   soup.find_all('a'))))))
+
+
+def is_series(element: Any, get_all: bool, bookmarks: ResultSet[Any]) -> bool:
+
+    series_number = parse_text.get_series_number(element.get('href'))
+
+    # it's not a series at all, so return false
+    if not series_number: return False
+
+    # it is a series and we want all of them, so return true
+    if get_all: return True
+
+    # check the bookmarks list to see if this is a series, and return true if it is
+    return len(list(filter(lambda x: f'series-{series_number}' in x.get('class'), bookmarks))) > 0
+
+
+def get_full_series_url(url: str) -> str:
+    """Get full ao3 series url from partial url"""
+
+    series_number = parse_text.get_series_number(url)
+    return strings.AO3_BASE_URL + url.split(series_number)[0] + series_number
+
+
+def get_work_and_series_urls(soup: BeautifulSoup, get_all: bool=False) -> list[str]:
     """Get all links to ao3 works or series on a page"""
 
-    urls = []
-
-    # get links to all works on the page
-    all_links = soup.find_all('a')
-    for link in all_links:
-        href = link.get('href')
-        if href and (parse_text.is_work(href) or parse_text.is_series(href)):
-            url = strings.AO3_BASE_URL + href
-            urls.append(url)
-
-    return urls
+    work_urls = get_work_urls(soup)
+    series_urls = get_series_urls(soup, get_all)
+    return work_urls + series_urls
 
 
 def get_proceed_link(soup: BeautifulSoup) -> str:
@@ -225,15 +250,15 @@ def get_current_chapters(soup: BeautifulSoup) -> str:
 
 
 def is_locked(soup: BeautifulSoup) -> bool:
-    return string_exists(soup, strings.AO3_LOCKED)
+    return soup.find('div', id='main', class_='sessions-new') is not None
 
 
 def is_deleted(soup: BeautifulSoup) -> bool:
-    return string_exists(soup, strings.AO3_DELETED)
+    return soup.find('div', id='main', class_='error-404') is not None
 
 
 def is_explicit(soup: BeautifulSoup) -> bool:
-    return string_exists(soup, strings.AO3_EXPLICIT)
+    return soup.find('p', class_='caution') is not None
 
 
 def is_failed_login(soup: BeautifulSoup) -> bool:
