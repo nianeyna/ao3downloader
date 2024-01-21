@@ -63,6 +63,7 @@ class Repository:
                 pause_time = int(response.headers['retry-after'])
             except:
                 pause_time = 300 # default to 5 minutes in case there was a problem getting retry-after
+            if pause_time <= 0: pause_time = 300 # default to 5 minutes if retry-after is an invalid value
             now = datetime.datetime.now()
             later = now + datetime.timedelta(0, pause_time)
             print(strings.MESSAGE_TOO_MANY_REQUESTS.format(pause_time, now.strftime('%H:%M:%S'), later.strftime('%H:%M:%S')))

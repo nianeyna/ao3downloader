@@ -1,7 +1,3 @@
-## Update about the current DDoS attack on AO3 (July 16, 2023)
-
-The script seems to be working again based on my testing. It's slower than usual due to the rate limit adjustments (you'll see the "ao3 has requested a break" message more often, and the breaks will be longer). Other than that though, things look pretty stable for now. Happy downloading!
-
 ## What is this?
 
 This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard.
@@ -32,7 +28,7 @@ As of January 17, 2023 I have changed how file names are generated (again). All 
 
 ## Instructions
 
-1. install [python](https://www.python.org/downloads/). make sure to install version 3.9.0 or later. see [announcements](#announcements) for the most recent version of python that is confirmed to work with the script - when in doubt, install that version.
+1. install python [from this link](https://www.python.org/downloads/release/python-3114/). **do not install the latest version of python**, or a version of python lower than 3.9.0.
 2. download the repository as a zip file. the "repository" means the folder containing the code.
    - if you are reading this on [github](https://github.com/nianeyna/ao3downloader), you can download the repository by clicking on the "Code" button in github and selecting "Download ZIP"
    - if you are reading this on [my website](https://nianeyna.dev/ao3downloader/), you can download the repository by clicking the button at the top of the page that says "Click to Download"
@@ -76,7 +72,7 @@ As of January 17, 2023 I have changed how file names are generated (again). All 
 - **IMPORTANT**: some of your input choices are saved in a file called <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME--> (in the same folder as ao3downloader.py). In some cases you will not be able to change these choices unless you clear your settings by deleting <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME--> (or editing it, if you are comfortable with json). In addition, please note that saved settings include passwords and keys and are saved in plain text. **Use appropriate caution with this file.**
 - **The purpose of entering your ao3 login information** is to download archive-locked works or anything else that is not visible when you are not logged in. If you don't care about that, there is no need to enter your login information.
 - **Ao3 limits the number of requests** a single user can make to the site in a given time period. When this limit is reached, the script will pause for the amount of time (usually a few minutes) that Ao3 requests. When this happens, the start time, end time, and length of the pause in seconds will be printed to the console. If you try to access Ao3 from your browser during this period, you will see a "Retry later" message. Don't be alarmed by this - it's normal, and you aren't in trouble. Simply wait for the specified amount of time and then refresh the page. Other than during these required pauses, you can use Ao3 as normal while the script is running.
-- **If you choose to '<!--CHECK-->get works from series links<!--AO3_PROMPT_SERIES-->'** then if the script encounters a work that is part of a series, it will also download the entire series that the work is a part of. This can _dramatically_ extend the amount of time the script takes to run. If you don't want this, choose 'n' when you get this prompt. (Note that this will cause the program to ignore _all_ series links, including e.g. series that you have bookmarked.)
+- **If you choose to '<!--CHECK-->get works from all encountered series links<!--AO3_PROMPT_SERIES-->'** then if the script encounters a work that is part of a series, it will also download the entire series that the work is a part of. This can _dramatically_ extend the amount of time the script takes to run. If you don't want this, choose 'n' when you get this prompt. (Series that you have bookmarked directly will always be fully downloaded, regardless of what you choose here.)
 - **If you choose to '<!--CHECK-->download embedded images<!--AO3_PROMPT_IMAGES-->'** the script will look for image links on all works it downloads and attempt to save those images to an '<!--CHECK-->images<!--IMAGE_FOLDER_NAME-->' subfolder. Images will be titled with the name of the fic + 'imgxxx' to distinguish them.
   - Note that this feature does not encode any association between the downloaded images and the fic file aside from the file name.
   - Most file formats will include embedded image files anyway, regardless of whether you choose this option. I have confirmed this for PDF, EPUB, MOBI, and AZW3 file formats. (If you saw me contradict this in an earlier version of this readme... no you didn't)
@@ -99,10 +95,6 @@ As of January 17, 2023 I have changed how file names are generated (again). All 
 
 - With the exception of series links, if you enter a link to an ao3 page that contains links to works or series, but does not support multiple pages of results, the script will loop infinitely. Most notably, this applies to user dashboard pages. If this happens, you can close the window to get out of the loop.
 - When downloading missing fics from series, if you are logged in, and the downloader finds a link to a series that is inaccessible because you do not have permission to access the series page, the downloader will download all of the works linked on your user dashboard page, instead. Yes... really.
-- Works that contain certain archive messages in either the work text or the tags may cause unexpected behavior. These problem phrases are:
-  - <!--CHECK-->Error 404<!--AO3_DELETED-->
-  - <!--CHECK-->This work could have adult content.<!--AO3_EXPLICIT-->
-  - <!--CHECK-->This work is only available to registered users of the Archive<!--AO3_LOCKED-->
 
 ## Troubleshooting
 

@@ -62,7 +62,7 @@ AO3_PROMPT_LINK = 'please enter link to ao3'
 AO3_PROMPT_LAST_PAGE = 'do you want to start downloading from the page you stopped on last time? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_PAGES = 'please enter page number to stop on. enter 0 to download all pages.'
 AO3_PROMPT_IMAGES = 'do you want to download embedded images? (will be saved separately) ({}/{})'.format(PROMPT_YES, PROMPT_NO)
-AO3_PROMPT_SERIES = 'do you want to get works from series links? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
+AO3_PROMPT_SERIES = 'do you want to get works from all encountered series links? (bookmarked series will always be downloaded, regardles of this option) ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_METADATA = 'do you want to include work metadata? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_FILE_INPUT = 'please enter complete file path (including file extension) to file containing links to download (must be a text file with one link on each line)'
 AO3_INFO_LOGIN = 'logging in'
@@ -117,12 +117,6 @@ MESSAGE_SERIES_FILE = 'found work in series'
 AO3_BASE_URL = 'https://archiveofourown.org'
 AO3_LOGIN_URL = 'https://archiveofourown.org/users/login'
 
-AO3_WORK = r'.*\/works\/\d+$'
-AO3_SERIES = r'.*\/series\/\d+$'
-
-AO3_LOCKED = 'This work is only available to registered users of the Archive'
-AO3_DELETED = 'Error 404'
-AO3_EXPLICIT = 'This work could have adult content.'
 AO3_FAILED_LOGIN = 'The password or user name you entered doesn\'t match our records.'
 AO3_PROCEED = 'Yes, Continue'
 AO3_MARK_READ = 'Mark as Read'
