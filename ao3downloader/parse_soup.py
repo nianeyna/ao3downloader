@@ -107,7 +107,7 @@ def get_full_work_url(url: str) -> str:
     """Get full ao3 work url from partial url"""
 
     work_number = parse_text.get_work_number(url)
-    return strings.AO3_BASE_URL + url.split(work_number)[0] + work_number
+    return strings.AO3_BASE_URL + "/works/" + work_number
 
 
 def get_series_urls(soup: BeautifulSoup, get_all: bool) -> list[str]:
