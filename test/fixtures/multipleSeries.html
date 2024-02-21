@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <script type="text/javascript">window.NREUM || (NREUM = {}); NREUM.info = { "beacon": "bam.nr-data.net", "errorBeacon": "bam.nr-data.net", "licenseKey": "f2edcff25e", "applicationID": "190034", "transactionName": "dgwMEkpfWVsHERpFWUcIEUlLWFpA", "queueTime": 0, "applicationTime": 133, "agent": "" }</script>
+  <script type="text/javascript">(window.NREUM || (NREUM = {})).init = { privacy: { cookies_enabled: true }, ajax: { deny_list: [] } }; (window.NREUM || (NREUM = {})).loader_config = { xpid: "VQcCWV9RGwIJVFFRAw==", licenseKey: "f2edcff25e", applicationID: "190034" };;/*! For license information please see nr-loader-full-1.251.1.min.js.LICENSE.txt */
+    (() => { var e, t, r = { 234: (e, t, r) => { "use strict"; r.d(t, { P_: () => m, Mt: () => b, C5: () => s, DL: () => w, OP: () => D, lF: () => j, Yu: () => _, Dg: () => v, CX: () => c, GE: () => x, sU: () => O }); var n = r(8632), i = r(9567); const o = { beacon: n.ce.beacon, errorBeacon: n.ce.errorBeacon, licenseKey: void 0, applicationID: void 0, sa: void 0, queueTime: void 0, applicationTime: void 0, ttGuid: void 0, user: void 0, account: void 0, product: void 0, extra: void 0, jsAttributes: {}, userAttributes: void 0, atts: void 0, transactionName: void 0, tNamePlain: void 0 }, a = {}; function s(e) { if (!e) throw new Error("All info objects require an agent identifier!"); if (!a[e]) throw new Error("Info for ".concat(e, " was never set")); return a[e] } function c(e, t) { if (!e) throw new Error("All info objects require an agent identifier!"); a[e] = (0, i.D)(t, o); const r = (0, n.ek)(e); r && (r.info = a[e]) } const d = e => { if (!e || "string" != typeof e) return !1; try { document.createDocumentFragment().querySelector(e) } catch { return !1 } return !0 }; var u = r(7056), l = r(50); const f = "[data-nr-mask]", h = () => { const e = { mask_selector: "*", block_selector: "[data-nr-block]", mask_input_options: { color: !1, date: !1, "datetime-local": !1, email: !1, month: !1, number: !1, range: !1, search: !1, tel: !1, text: !1, time: !1, url: !1, week: !1, textarea: !1, select: !1, password: !0 } }; return { feature_flags: [], proxy: { assets: void 0, beacon: void 0 }, privacy: { cookies_enabled: !0 }, ajax: { deny_list: void 0, block_internal: !0, enabled: !0, harvestTimeSeconds: 10, autoStart: !0 }, distributed_tracing: { enabled: void 0, exclude_newrelic_header: void 0, cors_use_newrelic_header: void 0, cors_use_tracecontext_headers: void 0, allowed_origins: void 0 }, session: { domain: void 0, expiresMs: u.oD, inactiveMs: u.Hb }, ssl: void 0, obfuscate: void 0, jserrors: { enabled: !0, harvestTimeSeconds: 10, autoStart: !0 }, metrics: { enabled: !0, autoStart: !0 }, page_action: { enabled: !0, harvestTimeSeconds: 30, autoStart: !0 }, page_view_event: { enabled: !0, autoStart: !0 }, page_view_timing: { enabled: !0, harvestTimeSeconds: 30, long_task: !1, autoStart: !0 }, session_trace: { enabled: !0, harvestTimeSeconds: 10, autoStart: !0 }, harvest: { tooManyRequestsDelay: 60 }, session_replay: { autoStart: !0, enabled: !1, harvestTimeSeconds: 60, sampling_rate: 50, error_sampling_rate: 50, collect_fonts: !1, inline_images: !1, inline_stylesheet: !0, mask_all_inputs: !0, get mask_text_selector() { return e.mask_selector }, set mask_text_selector(t) { d(t) ? e.mask_selector = "".concat(t, ",").concat(f) : "" === t || null === t ? e.mask_selector = f : (0, l.Z)("An invalid session_replay.mask_selector was provided. '*' will be used.", t) }, get block_class() { return "nr-block" }, get ignore_class() { return "nr-ignore" }, get mask_text_class() { return "nr-mask" }, get block_selector() { return e.block_selector }, set block_selector(t) { d(t) ? e.block_selector += ",".concat(t) : "" !== t && (0, l.Z)("An invalid session_replay.block_selector was provided and will not be used", t) }, get mask_input_options() { return e.mask_input_options }, set mask_input_options(t) { t && "object" == typeof t ? e.mask_input_options = { ...t, password: !0 } : (0, l.Z)("An invalid session_replay.mask_input_option was provided and will not be used", t) } }, spa: { enabled: !0, harvestTimeSeconds: 10, autoStart: !0 } } }, p = {}, g = "All configuration objects require an agent identifier!"; function m(e) { if (!e) throw new Error(g); if (!p[e]) throw new Error("Configuration for ".concat(e, " was never set")); return p[e] } function v(e, t) { if (!e) throw new Error(g); p[e] = (0, i.D)(t, h()); const r = (0, n.ek)(e); r && (r.init = p[e]) } function b(e, t) { if (!e) throw new Error(g); var r = m(e); if (r) { for (var n = t.split("."), i = 0; i < n.length - 1; i++)if ("object" != typeof (r = r[n[i]])) return; r = r[n[n.length - 1]] } return r } const y = { accountID: void 0, trustKey: void 0, agentID: void 0, licenseKey: void 0, applicationID: void 0, xpid: void 0 }, A = {}; function w(e) { if (!e) throw new Error("All loader-config objects require an agent identifier!"); if (!A[e]) throw new Error("LoaderConfig for ".concat(e, " was never set")); return A[e] } function x(e, t) { if (!e) throw new Error("All loader-config objects require an agent identifier!"); A[e] = (0, i.D)(t, y); const r = (0, n.ek)(e); r && (r.loader_config = A[e]) } const _ = (0, n.mF)().o; var E = r(385), S = r(6818); const T = { buildEnv: S.Re, customTransaction: void 0, disabled: !1, distMethod: S.gF, isolatedBacklog: !1, loaderType: void 0, maxBytes: 3e4, offset: Math.floor(E._A?.performance?.timeOrigin || E._A?.performance?.timing?.navigationStart || Date.now()), onerror: void 0, origin: "" + E._A.location, ptid: void 0, releaseIds: {}, session: void 0, xhrWrappable: "function" == typeof E._A.XMLHttpRequest?.prototype?.addEventListener, version: S.q4, denyList: void 0 }, R = {}; function D(e) { if (!e) throw new Error("All runtime objects require an agent identifier!"); if (!R[e]) throw new Error("Runtime for ".concat(e, " was never set")); return R[e] } function O(e, t) { if (!e) throw new Error("All runtime objects require an agent identifier!"); R[e] = (0, i.D)(t, T); const r = (0, n.ek)(e); r && (r.runtime = R[e]) } function j(e) { return function (e) { try { const t = s(e); return !!t.licenseKey && !!t.errorBeacon && !!t.applicationID } catch (e) { return !1 } }(e) } }, 9567: (e, t, r) => { "use strict"; r.d(t, { D: () => i }); var n = r(50); function i(e, t) { try { if (!e || "object" != typeof e) return (0, n.Z)("Setting a Configurable requires an object as input"); if (!t || "object" != typeof t) return (0, n.Z)("Setting a Configurable requires a model to set its initial properties"); const r = Object.create(Object.getPrototypeOf(t), Object.getOwnPropertyDescriptors(t)), o = 0 === Object.keys(r).length ? e : r; for (let a in o) if (void 0 !== e[a]) try { Array.isArray(e[a]) && Array.isArray(t[a]) ? r[a] = Array.from(new Set([...e[a], ...t[a]])) : "object" == typeof e[a] && "object" == typeof t[a] ? r[a] = i(e[a], t[a]) : r[a] = e[a] } catch (e) { (0, n.Z)("An error occurred while setting a property of a Configurable", e) } return r } catch (e) { (0, n.Z)("An error occured while setting a Configurable", e) } } }, 6818: (e, t, r) => { "use strict"; r.d(t, { Re: () => i, gF: () => o, lF: () => a, q4: () => n }); const n = "1.251.1", i = "PROD", o = "CDN", a = "2.0.0-alpha.11" }, 385: (e, t, r) => { "use strict"; r.d(t, { FN: () => s, IF: () => u, Nk: () => f, Tt: () => c, _A: () => o, cv: () => h, iS: () => a, il: () => n, ux: () => d, v6: () => i, w1: () => l }); const n = "undefined" != typeof window && !!window.document, i = "undefined" != typeof WorkerGlobalScope && ("undefined" != typeof self && self instanceof WorkerGlobalScope && self.navigator instanceof WorkerNavigator || "undefined" != typeof globalThis && globalThis instanceof WorkerGlobalScope && globalThis.navigator instanceof WorkerNavigator), o = n ? window : "undefined" != typeof WorkerGlobalScope && ("undefined" != typeof self && self instanceof WorkerGlobalScope && self || "undefined" != typeof globalThis && globalThis instanceof WorkerGlobalScope && globalThis), a = Boolean("hidden" === o?.document?.visibilityState), s = "" + o?.location, c = /iPad|iPhone|iPod/.test(o.navigator?.userAgent), d = c && "undefined" == typeof SharedWorker, u = (() => { const e = o.navigator?.userAgent?.match(/Firefox[/\s](\d+\.\d+)/); return Array.isArray(e) && e.length >= 2 ? +e[1] : 0 })(), l = Boolean(n && window.document.documentMode), f = !!o.navigator?.sendBeacon, h = Math.floor(o?.performance?.timeOrigin || o?.performance?.timing?.navigationStart || Date.now()) }, 1117: (e, t, r) => { "use strict"; r.d(t, { w: () => o }); var n = r(50); const i = { agentIdentifier: "", ee: void 0 }; class o { constructor(e) { try { if ("object" != typeof e) return (0, n.Z)("shared context requires an object as input"); this.sharedContext = {}, Object.assign(this.sharedContext, i), Object.entries(e).forEach((e => { let [t, r] = e; Object.keys(i).includes(t) && (this.sharedContext[t] = r) })) } catch (e) { (0, n.Z)("An error occured while setting SharedContext", e) } } } }, 8e3: (e, t, r) => { "use strict"; r.d(t, { L: () => u, R: () => c }); var n = r(8325), i = r(1284), o = r(4322), a = r(3325); const s = {}; function c(e, t) { const r = { staged: !1, priority: a.p[t] || 0 }; d(e), s[e].get(t) || s[e].set(t, r) } function d(e) { e && (s[e] || (s[e] = new Map)) } function u() { let e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "", t = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "feature"; if (d(e), !e || !s[e].get(t)) return a(t); s[e].get(t).staged = !0; const r = [...s[e]]; function a(t) { const r = e ? n.ee.get(e) : n.ee, a = o.X.handlers; if (r.backlog && a) { var s = r.backlog[t], c = a[t]; if (c) { for (var d = 0; s && d < s.length; ++d)l(s[d], c); (0, i.D)(c, (function (e, t) { (0, i.D)(t, (function (t, r) { r[0].on(e, r[1]) })) })) } delete a[t], r.backlog[t] = null, r.emit("drain-" + t, []) } } r.every((e => { let [t, r] = e; return r.staged })) && (r.sort(((e, t) => e[1].priority - t[1].priority)), r.forEach((t => { let [r] = t; s[e].delete(r), a(r) }))) } function l(e, t) { var r = e[1]; (0, i.D)(t[r], (function (t, r) { var n = e[0]; if (r[0] === n) { var i = r[1], o = e[3], a = e[2]; i.apply(o, a) } })) } }, 8325: (e, t, r) => { "use strict"; r.d(t, { A: () => c, ee: () => d }); var n = r(8632), i = r(2210), o = r(234); class a { constructor(e) { this.contextId = e } } var s = r(3117); const c = "nr@context:".concat(s.a), d = function e(t, r) { var n = {}, s = {}, u = {}, f = !1; try { f = 16 === r.length && (0, o.OP)(r).isolatedBacklog } catch (e) { } var h = { on: g, addEventListener: g, removeEventListener: function (e, t) { var r = n[e]; if (!r) return; for (var i = 0; i < r.length; i++)r[i] === t && r.splice(i, 1) }, emit: function (e, r, n, i, o) { !1 !== o && (o = !0); if (d.aborted && !i) return; t && o && t.emit(e, r, n); for (var a = p(n), c = m(e), u = c.length, l = 0; l < u; l++)c[l].apply(a, r); var f = b()[s[e]]; f && f.push([h, e, r, a]); return a }, get: v, listeners: m, context: p, buffer: function (e, t) { const r = b(); if (t = t || "feature", h.aborted) return; Object.entries(e || {}).forEach((e => { let [n, i] = e; s[i] = t, t in r || (r[t] = []) })) }, abort: l, aborted: !1, isBuffering: function (e) { return !!b()[s[e]] }, debugId: r, backlog: f ? {} : t && "object" == typeof t.backlog ? t.backlog : {} }; return h; function p(e) { return e && e instanceof a ? e : e ? (0, i.X)(e, c, (() => new a(c))) : new a(c) } function g(e, t) { n[e] = m(e).concat(t) } function m(e) { return n[e] || [] } function v(t) { return u[t] = u[t] || e(h, t) } function b() { return h.backlog } }(void 0, "globalEE"), u = (0, n.fP)(); function l() { d.aborted = !0, d.backlog = {} } u.ee || (u.ee = d) }, 5546: (e, t, r) => { "use strict"; r.d(t, { E: () => n, p: () => i }); var n = r(8325).ee.get("handle"); function i(e, t, r, i, o) { o ? (o.buffer([e], i), o.emit(e, t, r)) : (n.buffer([e], i), n.emit(e, t, r)) } }, 4322: (e, t, r) => { "use strict"; r.d(t, { X: () => o }); var n = r(5546); o.on = a; var i = o.handlers = {}; function o(e, t, r, o) { a(o || n.E, i, e, t, r) } function a(e, t, r, i, o) { o || (o = "feature"), e || (e = n.E); var a = t[o] = t[o] || {}; (a[r] = a[r] || []).push([e, i]) } }, 3239: (e, t, r) => { "use strict"; r.d(t, { bP: () => s, iz: () => c, m$: () => a }); var n = r(385); let i = !1, o = !1; try { const e = { get passive() { return i = !0, !1 }, get signal() { return o = !0, !1 } }; n._A.addEventListener("test", null, e), n._A.removeEventListener("test", null, e) } catch (e) { } function a(e, t) { return i || o ? { capture: !!e, passive: i, signal: t } : !!e } function s(e, t) { let r = arguments.length > 2 && void 0 !== arguments[2] && arguments[2], n = arguments.length > 3 ? arguments[3] : void 0; window.addEventListener(e, t, a(r, n)) } function c(e, t) { let r = arguments.length > 2 && void 0 !== arguments[2] && arguments[2], n = arguments.length > 3 ? arguments[3] : void 0; document.addEventListener(e, t, a(r, n)) } }, 3117: (e, t, r) => { "use strict"; r.d(t, { a: () => n }); const n = (0, r(4402).Rl)() }, 4402: (e, t, r) => { "use strict"; r.d(t, { Ht: () => d, M: () => c, Rl: () => a, ky: () => s }); var n = r(385); const i = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"; function o(e, t) { return e ? 15 & e[t] : 16 * Math.random() | 0 } function a() { const e = n._A?.crypto || n._A?.msCrypto; let t, r = 0; return e && e.getRandomValues && (t = e.getRandomValues(new Uint8Array(30))), i.split("").map((e => "x" === e ? o(t, r++).toString(16) : "y" === e ? (3 & o() | 8).toString(16) : e)).join("") } function s(e) { const t = n._A?.crypto || n._A?.msCrypto; let r, i = 0; t && t.getRandomValues && (r = t.getRandomValues(new Uint8Array(e))); const a = []; for (var s = 0; s < e; s++)a.push(o(r, i++).toString(16)); return a.join("") } function c() { return s(16) } function d() { return s(32) } }, 7056: (e, t, r) => { "use strict"; r.d(t, { Bq: () => n, Hb: () => o, IK: () => c, oD: () => i, uT: () => s, wO: () => a }); const n = "NRBA", i = 144e5, o = 18e5, a = { PAUSE: "session-pause", RESET: "session-reset", RESUME: "session-resume", UPDATE: "session-update" }, s = { SAME_TAB: "same-tab", CROSS_TAB: "cross-tab" }, c = { OFF: 0, FULL: 1, ERROR: 2 } }, 7894: (e, t, r) => { "use strict"; function n() { return Math.round(performance.now()) } r.d(t, { z: () => n }) }, 7243: (e, t, r) => { "use strict"; r.d(t, { e: () => i }); var n = r(385); function i(e) { if (0 === (e || "").indexOf("data:")) return { protocol: "data" }; try { const t = new URL(e, location.href), r = { port: t.port, hostname: t.hostname, pathname: t.pathname, search: t.search, protocol: t.protocol.slice(0, t.protocol.indexOf(":")), sameOrigin: t.protocol === n._A?.location?.protocol && t.host === n._A?.location?.host }; return r.port && "" !== r.port || ("http:" === t.protocol && (r.port = "80"), "https:" === t.protocol && (r.port = "443")), r.pathname && "" !== r.pathname ? r.pathname.startsWith("/") || (r.pathname = "/".concat(r.pathname)) : r.pathname = "/", r } catch (e) { return {} } } }, 50: (e, t, r) => { "use strict"; function n(e, t) { "function" == typeof console.warn && (console.warn("New Relic: ".concat(e)), t && console.warn(t)) } r.d(t, { Z: () => n }) }, 2825: (e, t, r) => { "use strict"; r.d(t, { N: () => u, T: () => l }); var n = r(8325), i = r(5546), o = r(3325), a = r(385); const s = "newrelic"; const c = { stn: [o.D.sessionTrace], err: [o.D.jserrors, o.D.metrics], ins: [o.D.pageAction], spa: [o.D.spa], sr: [o.D.sessionReplay, o.D.sessionTrace] }, d = new Set; function u(e, t) { const r = n.ee.get(t); e && "object" == typeof e && (d.has(t) || (Object.entries(e).forEach((e => { let [t, n] = e; c[t] ? c[t].forEach((e => { n ? (0, i.p)("feat-" + t, [], void 0, e, r) : (0, i.p)("block-" + t, [], void 0, e, r), (0, i.p)("rumresp-" + t, [Boolean(n)], void 0, e, r) })) : n && (0, i.p)("feat-" + t, [], void 0, void 0, r), l[t] = Boolean(n) })), Object.keys(c).forEach((e => { void 0 === l[e] && (c[e]?.forEach((t => (0, i.p)("rumresp-" + e, [!1], void 0, t, r))), l[e] = !1) })), d.add(t), function () { let e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}; try { a._A.dispatchEvent(new CustomEvent(s, { detail: e })) } catch (e) { } }({ loaded: !0 }))) } const l = {} }, 2210: (e, t, r) => { "use strict"; r.d(t, { X: () => i }); var n = Object.prototype.hasOwnProperty; function i(e, t, r) { if (n.call(e, t)) return e[t]; var i = r(); if (Object.defineProperty && Object.keys) try { return Object.defineProperty(e, t, { value: i, writable: !0, enumerable: !1 }), i } catch (e) { } return e[t] = i, i } }, 1284: (e, t, r) => { "use strict"; r.d(t, { D: () => n }); const n = (e, t) => Object.entries(e || {}).map((e => { let [r, n] = e; return t(r, n) })) }, 4351: (e, t, r) => { "use strict"; r.d(t, { P: () => o }); var n = r(8325); const i = () => { const e = new WeakSet; return (t, r) => { if ("object" == typeof r && null !== r) { if (e.has(r)) return; e.add(r) } return r } }; function o(e) { try { return JSON.stringify(e, i()) } catch (e) { try { n.ee.emit("internal-error", [e]) } catch (e) { } } } }, 3960: (e, t, r) => { "use strict"; r.d(t, { KB: () => a, b2: () => o }); var n = r(3239); function i() { return "undefined" == typeof document || "complete" === document.readyState } function o(e, t) { if (i()) return e(); (0, n.bP)("load", e, t) } function a(e) { if (i()) return e(); (0, n.iz)("DOMContentLoaded", e) } }, 8632: (e, t, r) => { "use strict"; r.d(t, { EZ: () => u, ce: () => o, ek: () => d, fP: () => a, gG: () => l, h5: () => c, mF: () => s }); var n = r(7894), i = r(385); const o = { beacon: "bam.nr-data.net", errorBeacon: "bam.nr-data.net" }; function a() { return i._A.NREUM || (i._A.NREUM = {}), void 0 === i._A.newrelic && (i._A.newrelic = i._A.NREUM), i._A.NREUM } function s() { let e = a(); return e.o || (e.o = { ST: i._A.setTimeout, SI: i._A.setImmediate, CT: i._A.clearTimeout, XHR: i._A.XMLHttpRequest, REQ: i._A.Request, EV: i._A.Event, PR: i._A.Promise, MO: i._A.MutationObserver, FETCH: i._A.fetch }), e } function c(e, t) { let r = a(); r.initializedAgents ??= {}, t.initializedAt = { ms: (0, n.z)(), date: new Date }, r.initializedAgents[e] = t } function d(e) { let t = a(); return t.initializedAgents?.[e] } function u(e, t) { a()[e] = t } function l() { return function () { let e = a(); const t = e.info || {}; e.info = { beacon: o.beacon, errorBeacon: o.errorBeacon, ...t } }(), function () { let e = a(); const t = e.init || {}; e.init = { ...t } }(), s(), function () { let e = a(); const t = e.loader_config || {}; e.loader_config = { ...t } }(), a() } }, 7956: (e, t, r) => { "use strict"; r.d(t, { N: () => i }); var n = r(3239); function i(e) { let t = arguments.length > 1 && void 0 !== arguments[1] && arguments[1], r = arguments.length > 2 ? arguments[2] : void 0, i = arguments.length > 3 ? arguments[3] : void 0; (0, n.iz)("visibilitychange", (function () { if (t) return void ("hidden" === document.visibilityState && e()); e(document.visibilityState) }), r, i) } }, 1214: (e, t, r) => { "use strict"; r.d(t, { em: () => b, u5: () => R, QU: () => j, Kf: () => k }); var n = r(8325), i = r(3117); const o = "nr@original:".concat(i.a); var a = Object.prototype.hasOwnProperty, s = !1; function c(e, t) { return e || (e = n.ee), r.inPlace = function (e, t, n, i, o) { n || (n = ""); const a = "-" === n.charAt(0); for (let s = 0; s < t.length; s++) { const c = t[s], d = e[c]; u(d) || (e[c] = r(d, a ? c + n : n, i, c, o)) } }, r.flag = o, r; function r(t, r, n, s, c) { return u(t) ? t : (r || (r = ""), nrWrapper[o] = t, function (e, t, r) { if (Object.defineProperty && Object.keys) try { return Object.keys(e).forEach((function (r) { Object.defineProperty(t, r, { get: function () { return e[r] }, set: function (t) { return e[r] = t, t } }) })), t } catch (e) { d([e], r) } for (var n in e) a.call(e, n) && (t[n] = e[n]) }(t, nrWrapper, e), nrWrapper); function nrWrapper() { var o, a, u, l; try { a = this, o = [...arguments], u = "function" == typeof n ? n(o, a) : n || {} } catch (t) { d([t, "", [o, a, s], u], e) } i(r + "start", [o, a, s], u, c); try { return l = t.apply(a, o) } catch (e) { throw i(r + "err", [o, a, e], u, c), e } finally { i(r + "end", [o, a, l], u, c) } } } function i(r, n, i, o) { if (!s || t) { var a = s; s = !0; try { e.emit(r, n, i, t, o) } catch (t) { d([t, r, n, i], e) } s = a } } } function d(e, t) { t || (t = n.ee); try { t.emit("internal-error", e) } catch (e) { } } function u(e) { return !(e && "function" == typeof e && e.apply && !e[o]) } var l = r(2210), f = r(385); const h = {}, p = f._A.XMLHttpRequest, g = "addEventListener", m = "removeEventListener", v = "nr@wrapped:".concat(n.A); function b(e) { var t = function (e) { return (e || n.ee).get("events") }(e); if (h[t.debugId]++) return t; h[t.debugId] = 1; var r = c(t, !0); function i(e) { r.inPlace(e, [g, m], "-", o) } function o(e, t) { return e[1] } return "getPrototypeOf" in Object && (f.il && y(document, i), y(f._A, i), y(p.prototype, i)), t.on(g + "-start", (function (e, t) { var n = e[1]; if (null !== n && ("function" == typeof n || "object" == typeof n)) { var i = (0, l.X)(n, v, (function () { var e = { object: function () { if ("function" != typeof n.handleEvent) return; return n.handleEvent.apply(n, arguments) }, function: n }[typeof n]; return e ? r(e, "fn-", null, e.name || "anonymous") : n })); this.wrapped = e[1] = i } })), t.on(m + "-start", (function (e) { e[1] = this.wrapped || e[1] })), t } function y(e, t) { let r = e; for (; "object" == typeof r && !Object.prototype.hasOwnProperty.call(r, g);)r = Object.getPrototypeOf(r); for (var n = arguments.length, i = new Array(n > 2 ? n - 2 : 0), o = 2; o < n; o++)i[o - 2] = arguments[o]; r && t(r, ...i) } var A = "fetch-", w = A + "body-", x = ["arrayBuffer", "blob", "json", "text", "formData"], _ = f._A.Request, E = f._A.Response, S = "prototype"; const T = {}; function R(e) { const t = function (e) { return (e || n.ee).get("fetch") }(e); if (!(_ && E && f._A.fetch)) return t; if (T[t.debugId]++) return t; function r(e, r, i) { var o = e[r]; "function" == typeof o && (e[r] = function () { var e, r = [...arguments], a = {}; t.emit(i + "before-start", [r], a), a[n.A] && a[n.A].dt && (e = a[n.A].dt); var s = o.apply(this, r); return t.emit(i + "start", [r, e], s), s.then((function (e) { return t.emit(i + "end", [null, e], s), e }), (function (e) { throw t.emit(i + "end", [e], s), e })) }) } return T[t.debugId] = 1, x.forEach((e => { r(_[S], e, w), r(E[S], e, w) })), r(f._A, "fetch", A), t.on(A + "end", (function (e, r) { var n = this; if (r) { var i = r.headers.get("content-length"); null !== i && (n.rxSize = i), t.emit(A + "done", [null, r], n) } else t.emit(A + "done", [e], n) })), t } const D = {}, O = ["pushState", "replaceState"]; function j(e) { const t = function (e) { return (e || n.ee).get("history") }(e); return !f.il || D[t.debugId]++ || (D[t.debugId] = 1, c(t).inPlace(window.history, O, "-")), t } var I = r(3239); var P = r(50); const C = {}, N = ["open", "send"]; function k(e) { var t = e || n.ee; const r = function (e) { return (e || n.ee).get("xhr") }(t); if (C[r.debugId]++) return r; C[r.debugId] = 1, b(t); var i = c(r), o = f._A.XMLHttpRequest, a = f._A.MutationObserver, s = f._A.Promise, d = f._A.setInterval, u = "readystatechange", l = ["onload", "onerror", "onabort", "onloadstart", "onloadend", "onprogress", "ontimeout"], h = [], p = f._A.XMLHttpRequest = function (e) { const t = new o(e), n = r.context(t); try { r.emit("new-xhr", [t], n), t.addEventListener(u, (a = n, function () { var e = this; e.readyState > 3 && !a.resolved && (a.resolved = !0, r.emit("xhr-resolved", [], e)), i.inPlace(e, l, "fn-", w) }), (0, I.m$)(!1)) } catch (e) { (0, P.Z)("An error occurred while intercepting XHR", e); try { r.emit("internal-error", [e]) } catch (e) { } } var a; return t }; function g(e, t) { i.inPlace(t, ["onreadystatechange"], "fn-", w) } if (function (e, t) { for (var r in e) t[r] = e[r] }(o, p), p.prototype = o.prototype, i.inPlace(p.prototype, N, "-xhr-", w), r.on("send-xhr-start", (function (e, t) { g(e, t), function (e) { h.push(e), a && (m ? m.then(A) : d ? d(A) : (v = -v, y.data = v)) }(t) })), r.on("open-xhr-start", g), a) { var m = s && s.resolve(); if (!d && !s) { var v = 1, y = document.createTextNode(v); new a(A).observe(y, { characterData: !0 }) } } else t.on("fn-end", (function (e) { e[0] && e[0].type === u || A() })); function A() { for (var e = 0; e < h.length; e++)g(0, h[e]); h.length && (h = []) } function w(e, t) { return t } return r } }, 7825: (e, t, r) => { "use strict"; r.d(t, { t: () => n }); const n = r(3325).D.ajax }, 6660: (e, t, r) => { "use strict"; r.d(t, { t: () => n }); const n = r(3325).D.jserrors }, 3081: (e, t, r) => { "use strict"; r.d(t, { gF: () => o, mY: () => i, t9: () => n, vz: () => s, xS: () => a }); const n = r(3325).D.metrics, i = "sm", o = "cm", a = "storeSupportabilityMetrics", s = "storeEventMetrics" }, 4649: (e, t, r) => { "use strict"; r.d(t, { t: () => n }); const n = r(3325).D.pageAction }, 7633: (e, t, r) => { "use strict"; r.d(t, { t: () => n }); const n = r(3325).D.pageViewEvent }, 9251: (e, t, r) => { "use strict"; r.d(t, { t: () => n }); const n = r(3325).D.pageViewTiming }, 7144: (e, t, r) => { "use strict"; r.d(t, { J0: () => l, Mi: () => u, Vb: () => o, Ye: () => s, fm: () => c, i9: () => a, t9: () => i, u0: () => d }); var n = r(7056); const i = r(3325).D.sessionReplay, o = .12, a = { DomContentLoaded: 0, Load: 1, FullSnapshot: 2, IncrementalSnapshot: 3, Meta: 4, Custom: 5 }, s = 1e6, c = 64e3, d = { [n.IK.ERROR]: 15e3, [n.IK.FULL]: 3e5, [n.IK.OFF]: 0 }, u = { RESET: { message: "Session was reset", sm: "Reset" }, IMPORT: { message: "Recorder failed to import", sm: "Import" }, TOO_MANY: { message: "429: Too Many Requests", sm: "Too-Many" }, TOO_BIG: { message: "Payload was too large", sm: "Too-Big" }, CROSS_TAB: { message: "Session Entity was set to OFF on another tab", sm: "Cross-Tab" }, ENTITLEMENTS: { message: "Session Replay is not allowed and will not be started", sm: "Entitlement" } }, l = 5e3 }, 3614: (e, t, r) => { "use strict"; r.d(t, { BST_RESOURCE: () => i, END: () => s, FEATURE_NAME: () => n, FN_END: () => d, FN_START: () => c, PUSH_STATE: () => u, RESOURCE: () => o, START: () => a }); const n = r(3325).D.sessionTrace, i = "bstResource", o = "resource", a = "-start", s = "-end", c = "fn" + a, d = "fn" + s, u = "pushState" }, 5938: (e, t, r) => { "use strict"; r.d(t, { W: () => i }); var n = r(8325); class i { constructor(e, t, r) { this.agentIdentifier = e, this.aggregator = t, this.ee = n.ee.get(e), this.featureName = r, this.blocked = !1 } } }, 7530: (e, t, r) => { "use strict"; r.d(t, { j: () => b }); var n = r(3325), i = r(234), o = r(5546), a = r(8325), s = r(7894), c = r(8e3), d = r(3960), u = r(385), l = r(50), f = r(3081), h = r(8632); function p() { const e = (0, h.gG)();["setErrorHandler", "finished", "addToTrace", "addRelease", "addPageAction", "setCurrentRouteName", "setPageViewName", "setCustomAttribute", "interaction", "noticeError", "setUserId", "setApplicationVersion", "start", "recordReplay", "pauseReplay"].forEach((t => { e[t] = function () { for (var r = arguments.length, n = new Array(r), i = 0; i < r; i++)n[i] = arguments[i]; return function (t) { for (var r = arguments.length, n = new Array(r > 1 ? r - 1 : 0), i = 1; i < r; i++)n[i - 1] = arguments[i]; let o = []; return Object.values(e.initializedAgents).forEach((e => { e.exposed && e.api[t] && o.push(e.api[t](...n)) })), o.length > 1 ? o : o[0] }(t, ...n) } })) } var g = r(2825); const m = e => { const t = e.startsWith("http"); e += "/", r.p = t ? e : "https://" + e }; let v = !1; function b(e) { let t = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {}, b = arguments.length > 2 ? arguments[2] : void 0, y = arguments.length > 3 ? arguments[3] : void 0, { init: A, info: w, loader_config: x, runtime: _ = { loaderType: b }, exposed: E = !0 } = t; const S = (0, h.gG)(); w || (A = S.init, w = S.info, x = S.loader_config), (0, i.Dg)(e.agentIdentifier, A || {}), (0, i.GE)(e.agentIdentifier, x || {}), w.jsAttributes ??= {}, u.v6 && (w.jsAttributes.isWorker = !0), (0, i.CX)(e.agentIdentifier, w); const T = (0, i.P_)(e.agentIdentifier), R = [w.beacon, w.errorBeacon]; v || (T.proxy.assets && (m(T.proxy.assets), R.push(T.proxy.assets)), T.proxy.beacon && R.push(T.proxy.beacon), p(), (0, h.EZ)("activatedFeatures", g.T)), _.denyList = [...T.ajax.deny_list || [], ...T.ajax.block_internal ? R : []], (0, i.sU)(e.agentIdentifier, _), void 0 === e.api && (e.api = function (e, t) { t || (0, c.R)(e, "api"); const h = {}; var p = a.ee.get(e), g = p.get("tracer"), m = "api-", v = m + "ixn-"; function b(t, r, n, o) { const a = (0, i.C5)(e); return null === r ? delete a.jsAttributes[t] : (0, i.CX)(e, { ...a, jsAttributes: { ...a.jsAttributes, [t]: r } }), w(m, n, !0, o || null === r ? "session" : void 0)(t, r) } function y() { } ["setErrorHandler", "finished", "addToTrace", "addRelease"].forEach((e => { h[e] = w(m, e, !0, "api") })), h.addPageAction = w(m, "addPageAction", !0, n.D.pageAction), h.setCurrentRouteName = w(m, "routeName", !0, n.D.spa), h.setPageViewName = function (t, r) { if ("string" == typeof t) return "/" !== t.charAt(0) && (t = "/" + t), (0, i.OP)(e).customTransaction = (r || "http://custom.transaction") + t, w(m, "setPageViewName", !0)() }, h.setCustomAttribute = function (e, t) { let r = arguments.length > 2 && void 0 !== arguments[2] && arguments[2]; if ("string" == typeof e) { if (["string", "number", "boolean"].includes(typeof t) || null === t) return b(e, t, "setCustomAttribute", r); (0, l.Z)("Failed to execute setCustomAttribute.\nNon-null value must be a string, number or boolean type, but a type of <".concat(typeof t, "> was provided.")) } else (0, l.Z)("Failed to execute setCustomAttribute.\nName must be a string type, but a type of <".concat(typeof e, "> was provided.")) }, h.setUserId = function (e) { if ("string" == typeof e || null === e) return b("enduser.id", e, "setUserId", !0); (0, l.Z)("Failed to execute setUserId.\nNon-null value must be a string type, but a type of <".concat(typeof e, "> was provided.")) }, h.setApplicationVersion = function (e) { if ("string" == typeof e || null === e) return b("application.version", e, "setApplicationVersion", !1); (0, l.Z)("Failed to execute setApplicationVersion. Expected <String | null>, but got <".concat(typeof e, ">.")) }, h.start = e => { try { const t = e ? "defined" : "undefined"; (0, o.p)(f.xS, ["API/start/".concat(t, "/called")], void 0, n.D.metrics, p); const r = Object.values(n.D); if (void 0 === e) e = r; else { if ((e = Array.isArray(e) && e.length ? e : [e]).some((e => !r.includes(e)))) return (0, l.Z)("Invalid feature name supplied. Acceptable feature names are: ".concat(r)); e.includes(n.D.pageViewEvent) || e.push(n.D.pageViewEvent) } e.forEach((e => { p.emit("".concat(e, "-opt-in")) })) } catch (e) { (0, l.Z)("An unexpected issue occurred", e) } }, h.recordReplay = function () { (0, o.p)(f.xS, ["API/recordReplay/called"], void 0, n.D.metrics, p), (0, o.p)("recordReplay", [], void 0, n.D.sessionReplay, p) }, h.pauseReplay = function () { (0, o.p)(f.xS, ["API/pauseReplay/called"], void 0, n.D.metrics, p), (0, o.p)("pauseReplay", [], void 0, n.D.sessionReplay, p) }, h.interaction = function () { return (new y).get() }; var A = y.prototype = { createTracer: function (e, t) { var r = {}, i = this, a = "function" == typeof t; return (0, o.p)(f.xS, ["API/createTracer/called"], void 0, n.D.metrics, p), (0, o.p)(v + "tracer", [(0, s.z)(), e, r], i, n.D.spa, p), function () { if (g.emit((a ? "" : "no-") + "fn-start", [(0, s.z)(), i, a], r), a) try { return t.apply(this, arguments) } catch (e) { throw g.emit("fn-err", [arguments, this, e], r), e } finally { g.emit("fn-end", [(0, s.z)()], r) } } } }; function w(e, t, r, i) { return function () { return (0, o.p)(f.xS, ["API/" + t + "/called"], void 0, n.D.metrics, p), i && (0, o.p)(e + t, [(0, s.z)(), ...arguments], r ? null : this, i, p), r ? void 0 : this } } function x() { r.e(63).then(r.bind(r, 7438)).then((t => { let { setAPI: r } = t; r(e), (0, c.L)(e, "api") })).catch((() => (0, l.Z)("Downloading runtime APIs failed..."))) } return ["actionText", "setName", "setAttribute", "save", "ignore", "onEnd", "getContext", "end", "get"].forEach((e => { A[e] = w(v, e, void 0, n.D.spa) })), h.noticeError = function (e, t) { "string" == typeof e && (e = new Error(e)), (0, o.p)(f.xS, ["API/noticeError/called"], void 0, n.D.metrics, p), (0, o.p)("err", [e, (0, s.z)(), !1, t], void 0, n.D.jserrors, p) }, u.il ? (0, d.b2)((() => x()), !0) : x(), h }(e.agentIdentifier, y)), void 0 === e.exposed && (e.exposed = E), v = !0 } }, 1926: (e, t, r) => { r.nc = (() => { try { return document?.currentScript?.nonce } catch (e) { } return "" })() }, 3325: (e, t, r) => { "use strict"; r.d(t, { D: () => n, p: () => i }); const n = { ajax: "ajax", jserrors: "jserrors", metrics: "metrics", pageAction: "page_action", pageViewEvent: "page_view_event", pageViewTiming: "page_view_timing", sessionReplay: "session_replay", sessionTrace: "session_trace", spa: "spa" }, i = { [n.pageViewEvent]: 1, [n.pageViewTiming]: 2, [n.metrics]: 3, [n.jserrors]: 4, [n.ajax]: 5, [n.sessionTrace]: 6, [n.pageAction]: 7, [n.spa]: 8, [n.sessionReplay]: 9 } } }, n = {}; function i(e) { var t = n[e]; if (void 0 !== t) return t.exports; var o = n[e] = { exports: {} }; return r[e](o, o.exports, i), o.exports } i.m = r, i.d = (e, t) => { for (var r in t) i.o(t, r) && !i.o(e, r) && Object.defineProperty(e, r, { enumerable: !0, get: t[r] }) }, i.f = {}, i.e = e => Promise.all(Object.keys(i.f).reduce(((t, r) => (i.f[r](e, t), t)), [])), i.u = e => ({ 63: "nr-full", 110: "nr-full-compressor", 379: "nr-full-recorder" }[e] + "-1.251.1.min.js"), i.o = (e, t) => Object.prototype.hasOwnProperty.call(e, t), e = {}, t = "NRBA-1.251.1.PROD:", i.l = (r, n, o, a) => { if (e[r]) e[r].push(n); else { var s, c; if (void 0 !== o) for (var d = document.getElementsByTagName("script"), u = 0; u < d.length; u++) { var l = d[u]; if (l.getAttribute("src") == r || l.getAttribute("data-webpack") == t + o) { s = l; break } } if (!s) { c = !0; var f = { 63: "sha512-RYA+b++nKlEZKeMEydjhnnADMKlfjKQTmGzejZPgAV9Yo+McKt+LWJ+i8r8f5eIAuJME0KCT6nCqGsEKii2pdw==", 379: "sha512-QxvWQvEFWcLPJgBlbdBOZd3wugtQ0B7MEvWHMAbFkxUj0pKI7uRstlw/YW6T6C+hWchMRzKvU0PymDdq4doEAA==", 110: "sha512-ckXyayN+7Mded+a54tp4ZTdKkpgAZmeby4SxPF7NLDGmXGRYV19GWxJ+t3MQhrdE2wxPNv8IdswRIRH0J6STXw==" }; (s = document.createElement("script")).charset = "utf-8", s.timeout = 120, i.nc && s.setAttribute("nonce", i.nc), s.setAttribute("data-webpack", t + o), s.src = r, 0 !== s.src.indexOf(window.location.origin + "/") && (s.crossOrigin = "anonymous"), f[a] && (s.integrity = f[a]) } e[r] = [n]; var h = (t, n) => { s.onerror = s.onload = null, clearTimeout(p); var i = e[r]; if (delete e[r], s.parentNode && s.parentNode.removeChild(s), i && i.forEach((e => e(n))), t) return t(n) }, p = setTimeout(h.bind(null, void 0, { type: "timeout", target: s }), 12e4); s.onerror = h.bind(null, s.onerror), s.onload = h.bind(null, s.onload), c && document.head.appendChild(s) } }, i.r = e => { "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(e, Symbol.toStringTag, { value: "Module" }), Object.defineProperty(e, "__esModule", { value: !0 }) }, i.p = "https://js-agent.newrelic.com/", (() => { var e = { 29: 0, 789: 0 }; i.f.j = (t, r) => { var n = i.o(e, t) ? e[t] : void 0; if (0 !== n) if (n) r.push(n[2]); else { var o = new Promise(((r, i) => n = e[t] = [r, i])); r.push(n[2] = o); var a = i.p + i.u(t), s = new Error; i.l(a, (r => { if (i.o(e, t) && (0 !== (n = e[t]) && (e[t] = void 0), n)) { var o = r && ("load" === r.type ? "missing" : r.type), a = r && r.target && r.target.src; s.message = "Loading chunk " + t + " failed.\n(" + o + ": " + a + ")", s.name = "ChunkLoadError", s.type = o, s.request = a, n[1](s) } }), "chunk-" + t, t) } }; var t = (t, r) => { var n, o, [a, s, c] = r, d = 0; if (a.some((t => 0 !== e[t]))) { for (n in s) i.o(s, n) && (i.m[n] = s[n]); if (c) c(i) } for (t && t(r); d < a.length; d++)o = a[d], i.o(e, o) && e[o] && e[o][0](), e[o] = 0 }, r = self["webpackChunk:NRBA-1.251.1.PROD"] = self["webpackChunk:NRBA-1.251.1.PROD"] || []; r.forEach(t.bind(null, 0)), r.push = t.bind(null, r.push.bind(r)) })(), (() => { "use strict"; i(1926); var e = i(50); class t { #e(t) { for (var r = arguments.length, n = new Array(r > 1 ? r - 1 : 0), i = 1; i < r; i++)n[i - 1] = arguments[i]; if ("function" == typeof this.api?.[t]) return this.api[t](...n); (0, e.Z)("Call to agent api ".concat(t, " failed. The API is not currently initialized.")) } addPageAction(e, t) { return this.#e("addPageAction", e, t) } setPageViewName(e, t) { return this.#e("setPageViewName", e, t) } setCustomAttribute(e, t, r) { return this.#e("setCustomAttribute", e, t, r) } noticeError(e, t) { return this.#e("noticeError", e, t) } setUserId(e) { return this.#e("setUserId", e) } setApplicationVersion(e) { return this.#e("setApplicationVersion", e) } setErrorHandler(e) { return this.#e("setErrorHandler", e) } finished(e) { return this.#e("finished", e) } addRelease(e, t) { return this.#e("addRelease", e, t) } start(e) { return this.#e("start", e) } recordReplay() { return this.#e("recordReplay") } pauseReplay() { return this.#e("pauseReplay") } addToTrace(e) { return this.#e("addToTrace", e) } setCurrentRouteName(e) { return this.#e("setCurrentRouteName", e) } interaction() { return this.#e("interaction") } } var r = i(3325), n = i(234); const o = Object.values(r.D); function a(e) { const t = {}; return o.forEach((r => { t[r] = function (e, t) { return !1 !== (0, n.Mt)(t, "".concat(e, ".enabled")) }(r, e) })), t } var s = i(7530); var c = i(8e3), d = i(5938), u = i(3960), l = i(385); class f extends d.W { constructor(e, t, r) { let i = !(arguments.length > 3 && void 0 !== arguments[3]) || arguments[3]; super(e, t, r), this.auto = i, this.abortHandler = void 0, this.featAggregate = void 0, this.onAggregateImported = void 0, !1 === (0, n.Mt)(this.agentIdentifier, "".concat(this.featureName, ".autoStart")) && (this.auto = !1), this.auto && (0, c.R)(e, r) } importAggregator() { let t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}; if (this.featAggregate) return; if (!this.auto) return void this.ee.on("".concat(this.featureName, "-opt-in"), (() => { (0, c.R)(this.agentIdentifier, this.featureName), this.auto = !0, this.importAggregator() })); const r = l.il && !0 === (0, n.Mt)(this.agentIdentifier, "privacy.cookies_enabled"); let o; this.onAggregateImported = new Promise((e => { o = e })); const a = async () => { let n; try { if (r) { const { setupAgentSession: e } = await i.e(63).then(i.bind(i, 1656)); n = e(this.agentIdentifier) } } catch (t) { (0, e.Z)("A problem occurred when starting up session manager. This page will not start or extend any session.", t) } try { if (!this.shouldImportAgg(this.featureName, n)) return (0, c.L)(this.agentIdentifier, this.featureName), void o(!1); const { lazyFeatureLoader: e } = await i.e(63).then(i.bind(i, 8582)), { Aggregate: r } = await e(this.featureName, "aggregate"); this.featAggregate = new r(this.agentIdentifier, this.aggregator, t), o(!0) } catch (t) { (0, e.Z)("Downloading and initializing ".concat(this.featureName, " failed..."), t), this.abortHandler?.(), (0, c.L)(this.agentIdentifier, this.featureName), o(!1) } }; l.il ? (0, u.b2)((() => a()), !0) : a() } shouldImportAgg(e, t) { return e !== r.D.sessionReplay || !!n.Yu.MO && (!1 !== (0, n.Mt)(this.agentIdentifier, "session_trace.enabled") && (!!t?.isNew || !!t?.state.sessionReplayMode)) } } var h = i(7633); class p extends f { static featureName = h.t; constructor(e, t) { let r = !(arguments.length > 2 && void 0 !== arguments[2]) || arguments[2]; super(e, t, h.t, r), this.importAggregator() } } var g = i(1117), m = i(1284); class v extends g.w { constructor(e) { super(e), this.aggregatedData = {} } store(e, t, r, n, i) { var o = this.getBucket(e, t, r, i); return o.metrics = function (e, t) { t || (t = { count: 0 }); return t.count += 1, (0, m.D)(e, (function (e, r) { t[e] = b(r, t[e]) })), t }(n, o.metrics), o } merge(e, t, r, n, i) { var o = this.getBucket(e, t, n, i); if (o.metrics) { var a = o.metrics; a.count += r.count, (0, m.D)(r, (function (e, t) { if ("count" !== e) { var n = a[e], i = r[e]; i && !i.c ? a[e] = b(i.t, n) : a[e] = function (e, t) { if (!t) return e; t.c || (t = y(t.t)); return t.min = Math.min(e.min, t.min), t.max = Math.max(e.max, t.max), t.t += e.t, t.sos += e.sos, t.c += e.c, t }(i, a[e]) } })) } else o.metrics = r } storeMetric(e, t, r, n) { var i = this.getBucket(e, t, r); return i.stats = b(n, i.stats), i } getBucket(e, t, r, n) { this.aggregatedData[e] || (this.aggregatedData[e] = {}); var i = this.aggregatedData[e][t]; return i || (i = this.aggregatedData[e][t] = { params: r || {} }, n && (i.custom = n)), i } get(e, t) { return t ? this.aggregatedData[e] && this.aggregatedData[e][t] : this.aggregatedData[e] } take(e) { for (var t = {}, r = "", n = !1, i = 0; i < e.length; i++)t[r = e[i]] = A(this.aggregatedData[r]), t[r].length && (n = !0), delete this.aggregatedData[r]; return n ? t : null } } function b(e, t) { return null == e ? function (e) { e ? e.c++ : e = { c: 1 }; return e }(t) : t ? (t.c || (t = y(t.t)), t.c += 1, t.t += e, t.sos += e * e, e > t.max && (t.max = e), e < t.min && (t.min = e), t) : { t: e } } function y(e) { return { t: e, min: e, max: e, sos: e * e, c: 1 } } function A(e) { return "object" != typeof e ? [] : (0, m.D)(e, w) } function w(e, t) { return t } var x = i(8632), _ = i(4402), E = i(4351); var S = i(5546), T = i(7956), R = i(3239), D = i(7894), O = i(9251); class j extends f { static featureName = O.t; constructor(e, t) { let r = !(arguments.length > 2 && void 0 !== arguments[2]) || arguments[2]; super(e, t, O.t, r), l.il && ((0, T.N)((() => (0, S.p)("docHidden", [(0, D.z)()], void 0, O.t, this.ee)), !0), (0, R.bP)("pagehide", (() => (0, S.p)("winPagehide", [(0, D.z)()], void 0, O.t, this.ee))), this.importAggregator()) } } var I = i(3081); class P extends f { static featureName = I.t9; constructor(e, t) { let r = !(arguments.length > 2 && void 0 !== arguments[2]) || arguments[2]; super(e, t, I.t9, r), this.importAggregator() } } var C = i(6660); class N { constructor(e, t, r, n) { this.name = "UncaughtError", this.message = e, this.sourceURL = t, this.line = r, this.column = n } } class k extends f { static featureName = C.t; #t = new Set; constructor(e, t) { let n = !(arguments.length > 2 && void 0 !== arguments[2]) || arguments[2]; super(e, t, C.t, n); try { this.removeOnAbort = new AbortController } catch (e) { } this.ee.on("fn-err", ((e, t, n) => { this.abortHandler && !this.#t.has(n) && (this.#t.add(n), (0, S.p)("err", [this.#r(n), (0, D.z)()], void 0, r.D.jserrors, this.ee)) })), this.ee.on("internal-error", (e => { this.abortHandler && (0, S.p)("ierr", [this.#r(e), (0, D.z)(), !0], void 0, r.D.jserrors, this.ee) })), l._A.addEventListener("unhandledrejection", (e => { this.abortHandler && (0, S.p)("err", [this.#n(e), (0, D.z)(), !1, { unhandledPromiseRejection: 1 }], void 0, r.D.jserrors, this.ee) }), (0, R.m$)(!1, this.removeOnAbort?.signal)), l._A.addEventListener("error", (e => { this.abortHandler && (this.#t.has(e.error) ? this.#t.delete(e.error) : (0, S.p)("err", [this.#i(e), (0, D.z)()], void 0, r.D.jserrors, this.ee)) }), (0, R.m$)(!1, this.removeOnAbort?.signal)), this.abortHandler = this.#o, this.importAggregator() } #o() { this.removeOnAbort?.abort(), this.#t.clear(), this.abortHandler = void 0 } #r(e) { return e instanceof Error ? e : void 0 !== e?.message ? new N(e.message, e.filename || e.sourceURL, e.lineno || e.line, e.colno || e.col) : new N("string" == typeof e ? e : (0, E.P)(e)) } #n(e) { let t = "Unhandled Promise Rejection: "; if (e?.reason instanceof Error) try { return e.reason.message = t + e.reason.message, e.reason } catch (t) { return e.reason } if (void 0 === e.reason) return new N(t); const r = this.#r(e.reason); return r.message = t + r.message, r } #i(e) { return e.error instanceof Error ? e.error : new N(e.message, e.filename, e.lineno, e.colno) } } var H = i(2210); let M = 1; const z = "nr@id"; function L(e) { const t = typeof e; return !e || "object" !== t && "function" !== t ? -1 : e === l._A ? 0 : (0, H.X)(e, z, (function () { return M++ })) } function F(e) { if ("string" == typeof e && e.length) return e.length; if ("object" == typeof e) { if ("undefined" != typeof ArrayBuffer && e instanceof ArrayBuffer && e.byteLength) return e.byteLength; if ("undefined" != typeof Blob && e instanceof Blob && e.size) return e.size; if (!("undefined" != typeof FormData && e instanceof FormData)) try { return (0, E.P)(e).length } catch (e) { return } } } var B = i(1214), U = i(7243); class q { constructor(e) { this.agentIdentifier = e } generateTracePayload(e) { if (!this.shouldGenerateTrace(e)) return null; var t = (0, n.DL)(this.agentIdentifier); if (!t) return null; var r = (t.accountID || "").toString() || null, i = (t.agentID || "").toString() || null, o = (t.trustKey || "").toString() || null; if (!r || !i) return null; var a = (0, _.M)(), s = (0, _.Ht)(), c = Date.now(), d = { spanId: a, traceId: s, timestamp: c }; return (e.sameOrigin || this.isAllowedOrigin(e) && this.useTraceContextHeadersForCors()) && (d.traceContextParentHeader = this.generateTraceContextParentHeader(a, s), d.traceContextStateHeader = this.generateTraceContextStateHeader(a, c, r, i, o)), (e.sameOrigin && !this.excludeNewrelicHeader() || !e.sameOrigin && this.isAllowedOrigin(e) && this.useNewrelicHeaderForCors()) && (d.newrelicHeader = this.generateTraceHeader(a, s, c, r, i, o)), d } generateTraceContextParentHeader(e, t) { return "00-" + t + "-" + e + "-01" } generateTraceContextStateHeader(e, t, r, n, i) { return i + "@nr=0-1-" + r + "-" + n + "-" + e + "----" + t } generateTraceHeader(e, t, r, n, i, o) { if (!("function" == typeof l._A?.btoa)) return null; var a = { v: [0, 1], d: { ty: "Browser", ac: n, ap: i, id: e, tr: t, ti: r } }; return o && n !== o && (a.d.tk = o), btoa((0, E.P)(a)) } shouldGenerateTrace(e) { return this.isDtEnabled() && this.isAllowedOrigin(e) } isAllowedOrigin(e) { var t = !1, r = {}; if ((0, n.Mt)(this.agentIdentifier, "distributed_tracing") && (r = (0, n.P_)(this.agentIdentifier).distributed_tracing), e.sameOrigin) t = !0; else if (r.allowed_origins instanceof Array) for (var i = 0; i < r.allowed_origins.length; i++) { var o = (0, U.e)(r.allowed_origins[i]); if (e.hostname === o.hostname && e.protocol === o.protocol && e.port === o.port) { t = !0; break } } return t } isDtEnabled() { var e = (0, n.Mt)(this.agentIdentifier, "distributed_tracing"); return !!e && !!e.enabled } excludeNewrelicHeader() { var e = (0, n.Mt)(this.agentIdentifier, "distributed_tracing"); return !!e && !!e.exclude_newrelic_header } useNewrelicHeaderForCors() { var e = (0, n.Mt)(this.agentIdentifier, "distributed_tracing"); return !!e && !1 !== e.cors_use_newrelic_header } useTraceContextHeadersForCors() { var e = (0, n.Mt)(this.agentIdentifier, "distributed_tracing"); return !!e && !!e.cors_use_tracecontext_headers } } var V = i(7825), Z = ["load", "error", "abort", "timeout"], G = Z.length, W = n.Yu.REQ, X = n.Yu.XHR; class K extends f { static featureName = V.t; constructor(e, t) { let i = !(arguments.length > 2 && void 0 !== arguments[2]) || arguments[2]; if (super(e, t, V.t, i), (0, n.OP)(e).xhrWrappable) { this.dt = new q(e), this.handler = (e, t, r, n) => (0, S.p)(e, t, r, n, this.ee); try { const e = { xmlhttprequest: "xhr", fetch: "fetch", beacon: "beacon" }; l._A?.performance?.getEntriesByType("resource").forEach((t => { if (t.initiatorType in e && 0 !== t.responseStatus) { const n = { status: t.responseStatus }, i = { rxSize: t.transferSize, duration: Math.floor(t.duration), cbTime: 0 }; Y(n, t.name), this.handler("xhr", [n, i, t.startTime, t.responseEnd, e[t.initiatorType]], void 0, r.D.ajax) } })) } catch (e) { } (0, B.u5)(this.ee), (0, B.Kf)(this.ee), function (e, t, i, o) { function a(e) { var t = this; t.totalCbs = 0, t.called = 0, t.cbTime = 0, t.end = x, t.ended = !1, t.xhrGuids = {}, t.lastSize = null, t.loadCaptureCalled = !1, t.params = this.params || {}, t.metrics = this.metrics || {}, e.addEventListener("load", (function (r) { _(t, e) }), (0, R.m$)(!1)), l.IF || e.addEventListener("progress", (function (e) { t.lastSize = e.loaded }), (0, R.m$)(!1)) } function s(e) { this.params = { method: e[0] }, Y(this, e[1]), this.metrics = {} } function c(t, r) { var i = (0, n.DL)(e); i.xpid && this.sameOrigin && r.setRequestHeader("X-NewRelic-ID", i.xpid); var a = o.generateTracePayload(this.parsedOrigin); if (a) { var s = !1; a.newrelicHeader && (r.setRequestHeader("newrelic", a.newrelicHeader), s = !0), a.traceContextParentHeader && (r.setRequestHeader("traceparent", a.traceContextParentHeader), a.traceContextStateHeader && r.setRequestHeader("tracestate", a.traceContextStateHeader), s = !0), s && (this.dt = a) } } function d(e, r) { var n = this.metrics, i = e[0], o = this; if (n && i) { var a = F(i); a && (n.txSize = a) } this.startTime = (0, D.z)(), this.body = i, this.listener = function (e) { try { "abort" !== e.type || o.loadCaptureCalled || (o.params.aborted = !0), ("load" !== e.type || o.called === o.totalCbs && (o.onloadCalled || "function" != typeof r.onload) && "function" == typeof o.end) && o.end(r) } catch (e) { try { t.emit("internal-error", [e]) } catch (e) { } } }; for (var s = 0; s < G; s++)r.addEventListener(Z[s], this.listener, (0, R.m$)(!1)) } function u(e, t, r) { this.cbTime += e, t ? this.onloadCalled = !0 : this.called += 1, this.called !== this.totalCbs || !this.onloadCalled && "function" == typeof r.onload || "function" != typeof this.end || this.end(r) } function f(e, t) { var r = "" + L(e) + !!t; this.xhrGuids && !this.xhrGuids[r] && (this.xhrGuids[r] = !0, this.totalCbs += 1) } function h(e, t) { var r = "" + L(e) + !!t; this.xhrGuids && this.xhrGuids[r] && (delete this.xhrGuids[r], this.totalCbs -= 1) } function p() { this.endTime = (0, D.z)() } function g(e, r) { r instanceof X && "load" === e[0] && t.emit("xhr-load-added", [e[1], e[2]], r) } function m(e, r) { r instanceof X && "load" === e[0] && t.emit("xhr-load-removed", [e[1], e[2]], r) } function v(e, t, r) { t instanceof X && ("onload" === r && (this.onload = !0), ("load" === (e[0] && e[0].type) || this.onload) && (this.xhrCbStart = (0, D.z)())) } function b(e, r) { this.xhrCbStart && t.emit("xhr-cb-time", [(0, D.z)() - this.xhrCbStart, this.onload, r], r) } function y(e) { var t, r = e[1] || {}; if ("string" == typeof e[0] ? 0 === (t = e[0]).length && l.il && (t = "" + l._A.location.href) : e[0] && e[0].url ? t = e[0].url : l._A?.URL && e[0] && e[0] instanceof URL ? t = e[0].href : "function" == typeof e[0].toString && (t = e[0].toString()), "string" == typeof t && 0 !== t.length) { t && (this.parsedOrigin = (0, U.e)(t), this.sameOrigin = this.parsedOrigin.sameOrigin); var n = o.generateTracePayload(this.parsedOrigin); if (n && (n.newrelicHeader || n.traceContextParentHeader)) if (e[0] && e[0].headers) s(e[0].headers, n) && (this.dt = n); else { var i = {}; for (var a in r) i[a] = r[a]; i.headers = new Headers(r.headers || {}), s(i.headers, n) && (this.dt = n), e.length > 1 ? e[1] = i : e.push(i) } } function s(e, t) { var r = !1; return t.newrelicHeader && (e.set("newrelic", t.newrelicHeader), r = !0), t.traceContextParentHeader && (e.set("traceparent", t.traceContextParentHeader), t.traceContextStateHeader && e.set("tracestate", t.traceContextStateHeader), r = !0), r } } function A(e, t) { this.params = {}, this.metrics = {}, this.startTime = (0, D.z)(), this.dt = t, e.length >= 1 && (this.target = e[0]), e.length >= 2 && (this.opts = e[1]); var r, n = this.opts || {}, i = this.target; "string" == typeof i ? r = i : "object" == typeof i && i instanceof W ? r = i.url : l._A?.URL && "object" == typeof i && i instanceof URL && (r = i.href), Y(this, r); var o = ("" + (i && i instanceof W && i.method || n.method || "GET")).toUpperCase(); this.params.method = o, this.body = n.body, this.txSize = F(n.body) || 0 } function w(e, t) { var n; this.endTime = (0, D.z)(), this.params || (this.params = {}), this.params.status = t ? t.status : 0, "string" == typeof this.rxSize && this.rxSize.length > 0 && (n = +this.rxSize); var o = { txSize: this.txSize, rxSize: n, duration: (0, D.z)() - this.startTime }; i("xhr", [this.params, o, this.startTime, this.endTime, "fetch"], this, r.D.ajax) } function x(e) { var t = this.params, n = this.metrics; if (!this.ended) { this.ended = !0; for (var o = 0; o < G; o++)e.removeEventListener(Z[o], this.listener, !1); t.aborted || (n.duration = (0, D.z)() - this.startTime, this.loadCaptureCalled || 4 !== e.readyState ? null == t.status && (t.status = 0) : _(this, e), n.cbTime = this.cbTime, i("xhr", [t, n, this.startTime, this.endTime, "xhr"], this, r.D.ajax)) } } function _(e, t) { e.params.status = t.status; var r = function (e, t) { var r = e.responseType; return "json" === r && null !== t ? t : "arraybuffer" === r || "blob" === r || "json" === r ? F(e.response) : "text" === r || "" === r || void 0 === r ? F(e.responseText) : void 0 }(t, e.lastSize); if (r && (e.metrics.rxSize = r), e.sameOrigin) { var n = t.getResponseHeader("X-NewRelic-App-Data"); n && (e.params.cat = n.split(", ").pop()) } e.loadCaptureCalled = !0 } t.on("new-xhr", a), t.on("open-xhr-start", s), t.on("open-xhr-end", c), t.on("send-xhr-start", d), t.on("xhr-cb-time", u), t.on("xhr-load-added", f), t.on("xhr-load-removed", h), t.on("xhr-resolved", p), t.on("addEventListener-end", g), t.on("removeEventListener-end", m), t.on("fn-end", b), t.on("fetch-before-start", y), t.on("fetch-start", A), t.on("fn-start", v), t.on("fetch-done", w) }(e, this.ee, this.handler, this.dt), this.importAggregator() } } } function Y(e, t) { var r = (0, U.e)(t), n = e.params || e; n.hostname = r.hostname, n.port = r.port, n.protocol = r.protocol, n.host = r.hostname + ":" + r.port, n.pathname = r.pathname, e.parsedOrigin = r, e.sameOrigin = r.sameOrigin } var Q = i(3614); const { BST_RESOURCE: J, RESOURCE: ee, START: te, END: re, FEATURE_NAME: ne, FN_END: ie, FN_START: oe, PUSH_STATE: ae } = Q; var se = i(7056), ce = i(7144); class de extends f { static featureName = ce.t9; constructor(e, t) { let r = !(arguments.length > 2 && void 0 !== arguments[2]) || arguments[2]; super(e, t, ce.t9, r); try { const e = JSON.parse(localStorage.getItem("NRBA_SESSION")); e.sessionReplayMode !== se.IK.OFF ? this.#a(e.sessionReplayMode) : this.importAggregator({}) } catch (e) { this.importAggregator({}) } } async#a(e) { const { Recorder: t } = await Promise.all([i.e(63), i.e(379)]).then(i.bind(i, 4136)); this.recorder = new t({ mode: e, agentIdentifier: this.agentIdentifier }), this.recorder.startRecording(), this.importAggregator({ recorder: this.recorder }) } } var ue = i(4649); class le extends f { static featureName = ue.t; constructor(e, t) { let r = !(arguments.length > 2 && void 0 !== arguments[2]) || arguments[2]; super(e, t, ue.t, r), this.importAggregator() } } new class extends t { constructor(t) { let r = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : (0, _.ky)(16); super(), l._A ? (this.agentIdentifier = r, this.sharedAggregator = new v({ agentIdentifier: this.agentIdentifier }), this.features = {}, (0, x.h5)(r, this), this.desiredFeatures = new Set(t.features || []), this.desiredFeatures.add(p), (0, s.j)(this, t, t.loaderType || "agent"), this.run()) : (0, e.Z)("Failed to initial the agent. Could not determine the runtime environment.") } get config() { return { info: (0, n.C5)(this.agentIdentifier), init: (0, n.P_)(this.agentIdentifier), loader_config: (0, n.DL)(this.agentIdentifier), runtime: (0, n.OP)(this.agentIdentifier) } } run() { try { const t = a(this.agentIdentifier), n = [...this.desiredFeatures]; n.sort(((e, t) => r.p[e.featureName] - r.p[t.featureName])), n.forEach((n => { if (t[n.featureName] || n.featureName === r.D.pageViewEvent) { const i = function (e) { switch (e) { case r.D.ajax: return [r.D.jserrors]; case r.D.sessionTrace: return [r.D.ajax, r.D.pageViewEvent]; case r.D.sessionReplay: return [r.D.sessionTrace]; case r.D.pageViewTiming: return [r.D.pageViewEvent]; default: return [] } }(n.featureName); i.every((e => t[e])) || (0, e.Z)("".concat(n.featureName, " is enabled but one or more dependent features has been disabled (").concat((0, E.P)(i), "). This may cause unintended consequences or missing data...")), this.features[n.featureName] = new n(this.agentIdentifier, this.sharedAggregator) } })) } catch (t) { (0, e.Z)("Failed to initialize all enabled instrument classes (agent aborted) -", t); for (const e in this.features) this.features[e].abortHandler?.(); const r = (0, x.fP)(); return delete r.initializedAgents[this.agentIdentifier]?.api, delete r.initializedAgents[this.agentIdentifier]?.features, delete this.sharedAggregator, r.ee?.abort(), delete r.ee?.get(this.agentIdentifier), !1 } } }({ features: [p, j, class extends f { static featureName = ne; constructor(e, t) { if (super(e, t, ne, !(arguments.length > 2 && void 0 !== arguments[2]) || arguments[2]), !l.il) return; const n = this.ee; let i; (0, B.QU)(n), this.eventsEE = (0, B.em)(n), this.eventsEE.on(oe, (function (e, t) { this.bstStart = (0, D.z)() })), this.eventsEE.on(ie, (function (e, t) { (0, S.p)("bst", [e[0], t, this.bstStart, (0, D.z)()], void 0, r.D.sessionTrace, n) })), n.on(ae + te, (function (e) { this.time = (0, D.z)(), this.startPath = location.pathname + location.hash })), n.on(ae + re, (function (e) { (0, S.p)("bstHist", [location.pathname + location.hash, this.startPath, this.time], void 0, r.D.sessionTrace, n) })); try { i = new PerformanceObserver((e => { const t = e.getEntries(); (0, S.p)(J, [t], void 0, r.D.sessionTrace, n) })), i.observe({ type: ee, buffered: !0 }) } catch (e) { } this.importAggregator({ resourceObserver: i }) } }, de, K, P, le, k], loaderType: "pro" }) })() })();</script>
+  <meta name="keywords" content="fanfiction, transformative works, otw, fair use, archive" />
+  <meta name="language" content="en-US" />
+  <meta name="subject" content="fandom" />
+  <meta name="description" content="An Archive of Our Own, a project of the
+    Organization for Transformative Works" />
+  <meta name="distribution" content="GLOBAL" />
+  <meta name="classification" content="transformative works" />
+  <meta name="author" content="Organization for Transformative Works" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    Permablocking Specific Tags - Site Skin - Eli0t - Fandom - Fandom [Archive of Our Own]
+  </title>
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/01-core.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/02-elements.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/03-region-header.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/04-region-dashboard.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/05-region-main.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/06-region-footer.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/07-interactions.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/08-actions.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/09-roles-states.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/10-types-groups.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/11-group-listbox.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/12-group-meta.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/13-group-blurb.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/14-group-preface.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/15-group-comments.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/16-zone-system.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/17-zone-home.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/18-zone-searchbrowse.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/19-zone-tags.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/20-zone-translation.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/21-userstuff.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/22-system-messages.css" />
+  <link rel="stylesheet" type="text/css" media="only screen and (max-width: 62em), handheld" href="/stylesheets/site/2.0/25-media-midsize.css" />
+  <link rel="stylesheet" type="text/css" media="only screen and (max-width: 42em), handheld" href="/stylesheets/site/2.0/26-media-narrow.css" />
+  <link rel="stylesheet" type="text/css" media="speech" href="/stylesheets/site/2.0/27-media-aural.css" />
+  <link rel="stylesheet" type="text/css" media="print" href="/stylesheets/site/2.0/28-media-print.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/29-role-ie8_or_lower.css" /><![endif]-->
+  <!--[if IE 5]><link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/30-role-ie5.css" /><![endif]-->
+  <!--[if IE 6]><link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/31-role-ie6.css" /><![endif]-->
+  <!--[if IE 7]><link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/site/2.0/32-role-ie7.css" /><![endif]-->
+
+  <link rel="stylesheet" media="screen" href="/stylesheets/sandbox.css" />
+  <script src="/javascripts/livevalidation_standalone.js"></script>
+  <meta name="csrf-param" content="authenticity_token" />
+  <meta name="csrf-token" content="BwjDX7djizKoRG39lGGv1_GeG8dheiUUBPYQWS3K1Kj5ZVVehPtHPCIQMeGMotvByLovknT9pOw11jKh9YN0fw" />
+</head>
+
+<body class="logged-in">
+  <div id="outer" class="wrapper">
+    <ul id="skiplinks">
+      <li><a href="#main">Main Content</a></li>
+    </ul>
+
+    <noscript>
+      <p id="javascript-warning">
+        While we&#39;ve done our best to make the core functionality of this site accessible without javascript, it will work better with it enabled. Please consider turning it on!
+      </p>
+    </noscript>
+
+
+    <div id="header" class="region">
+      <h1 class="heading">
+        <a href="/"><span>Archive of Our Own</span><sup> beta</sup><img alt="Archive of Our Own" class="logo" src="/images/ao3_logos/logo_42.png" /></a>
+      </h1>
+      <div id="greeting">
+        <h3 class="landmark heading">User Navigation</h3>
+        <ul class="user navigation actions" role="navigation">
+          <li class="dropdown">
+            <a href="/users/nianeyna">Hi, nianeyna!</a>
+            <ul class="menu" role="menu">
+              <li><a href="/users/nianeyna">My Dashboard</a></li>
+              <li><a href="/users/nianeyna/subscriptions">My Subscriptions</a></li>
+              <li><a href="/users/nianeyna/works">My Works</a></li>
+              <li><a href="/users/nianeyna/bookmarks">My Bookmarks</a></li>
+              <li><a href="/users/nianeyna/readings">My History</a></li>
+              <li><a href="/users/nianeyna/preferences">My Preferences</a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a href="/works/new">Post</a>
+            <ul class="menu" role="menu">
+              <li><a href="/works/new">New Work</a></li>
+              <li><a href="/works/new?import=true">Import Work</a></li>
+            </ul>
+          </li>
+          <li><a rel="nofollow" data-method="delete" href="/users/logout">Log Out</a></li>
+        </ul>
+        <p class="icon"><a href="/users/nianeyna"><img alt class="icon" src="https://s3.amazonaws.com/otw-ao3-icons/icons/2475/standard.png?1649469276" /></a></p>
+      </div>
+      <h3 class="landmark heading">Site Navigation</h3>
+      <ul class="primary navigation actions" role="navigation">
+        <li class="dropdown">
+          <a href="/menu/fandoms">Fandoms</a>
+          <ul class="menu" role="menu">
+            <li><a href="/media">All Fandoms</a></li>
+            <li id="medium_5"><a href="/media/Anime%20*a*%20Manga/fandoms">Anime &amp; Manga</a></li>
+            <li id="medium_3"><a href="/media/Books%20*a*%20Literature/fandoms">Books &amp; Literature</a></li>
+            <li id="medium_4"><a href="/media/Cartoons%20*a*%20Comics%20*a*%20Graphic%20Novels/fandoms">Cartoons &amp; Comics &amp; Graphic Novels</a></li>
+            <li id="medium_7"><a href="/media/Celebrities%20*a*%20Real%20People/fandoms">Celebrities &amp; Real People</a></li>
+            <li id="medium_2"><a href="/media/Movies/fandoms">Movies</a></li>
+            <li id="medium_6"><a href="/media/Music%20*a*%20Bands/fandoms">Music &amp; Bands</a></li>
+            <li id="medium_8"><a href="/media/Other%20Media/fandoms">Other Media</a></li>
+            <li id="medium_30198"><a href="/media/Theater/fandoms">Theater</a></li>
+            <li id="medium_1"><a href="/media/TV%20Shows/fandoms">TV Shows</a></li>
+            <li id="medium_476"><a href="/media/Video%20Games/fandoms">Video Games</a></li>
+            <li id="medium_9971"><a href="/media/Uncategorized%20Fandoms/fandoms">Uncategorized Fandoms</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="/menu/browse">Browse</a>
+          <ul class="menu" role="menu">
+            <li><a href="/works">Works</a></li>
+            <li><a href="/bookmarks">Bookmarks</a></li>
+            <li><a href="/tags">Tags</a></li>
+            <li><a href="/collections">Collections</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="/menu/search">Search</a>
+          <ul class="menu" role="menu">
+            <li><a href="/works/search">Works</a></li>
+            <li><a href="/bookmarks/search">Bookmarks</a></li>
+            <li><a href="/tags/search">Tags</a></li>
+            <li><a href="/people/search">People</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="/menu/about">About</a>
+          <ul class="menu" role="menu">
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/admin_posts">News</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/wrangling_guidelines">Wrangling Guidelines</a></li>
+            <li><a href="/donate">Donate or Volunteer</a></li>
+          </ul>
+        </li>
+        <li class="search">
+          <form class="search" id="search" action="/works/search" accept-charset="UTF-8" method="get">
+            <fieldset>
+              <legend>Search Works</legend>
+              <p>
+                <label class="landmark" for="site_search">Work Search:</label>
+                <input class="text" id="site_search" aria-describedby="site_search_tooltip" type="text" name="work_search[query]" />
+                <span class="tip" role="tooltip" id="site_search_tooltip">tip: austen words:10000-50000 sort:title</span>
+                <span class="submit actions"><input type="submit" value="Search" class="button" /></span>
+              </p>
+            </fieldset>
+          </form>
+        </li>
+      </ul>
+      <div class="clear"></div>
+    </div>
+
+    <div id="inner" class="wrapper">
+
+
+
+      <div id="main" class="works-show region" role="main">
+        <div class="flash"></div>
+
+        <ul class="landmark skip">
+          <li><a name="top">&nbsp;</a></li>
+          <li><a href="#work">Skip header</a></li>
+        </ul>
+
+
+
+
+
+
+
+        <h3 class="landmark heading">Actions</h3>
+        <ul class="work navigation actions" role="menu">
+          <li class="chapter bychapter"><a href="/works/41214669/chapters/103324848">Chapter by Chapter</a></li>
+          <li class="bookmark">
+            <a class="bookmark_form_placement_open" href="#bookmark-form">Edit Bookmark</a>
+            <a class="hidden bookmark_form_placement_close" href="#">Cancel Bookmark</a>
+          </li>
+          <li class="mark">
+            <a href="/works/41214669/mark_for_later">Mark for Later</a>
+          </li>
+          <li class="comments" id="show_comments_link_top">
+            <a data-remote="true" href="/comments/show_comments?work_id=41214669">Comments </a>
+          </li>
+          <li class="share hidden">
+            <a class=" modal" title="Share Work" href="/works/41214669/share">Share</a>
+          </li>
+          <li class="subscribe">
+            <form class="ajax-create-destroy" id="new_subscription" data-create-value="Subscribe" data-destroy-value="Unsubscribe" action="/users/nianeyna/subscriptions" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="LtNO4ZXumvpfuxjEiQl4p_LkefmbaQJK_fGKOwPbJkyjVXTGbfUnxoHf3XAH1RDlkSUPAaCAwN1UM4MnMTPRoA" autocomplete="off" />
+              <input autocomplete="off" type="hidden" value="41214669" name="subscription[subscribable_id]" id="subscription_subscribable_id" />
+              <input autocomplete="off" type="hidden" value="Work" name="subscription[subscribable_type]" id="subscription_subscribable_type" />
+              <input type="submit" name="commit" value="Subscribe" />
+            </form>
+          </li>
+          <li class="download" aria-haspopup="true">
+            <a href="#">Download</a>
+            <ul class="expandable secondary">
+              <li><a href="/downloads/41214669/Permablocking_Specific.azw3?updated_at=1691677488">AZW3</a></li>
+              <li><a href="/downloads/41214669/Permablocking_Specific.epub?updated_at=1691677488">EPUB</a></li>
+              <li><a href="/downloads/41214669/Permablocking_Specific.mobi?updated_at=1691677488">MOBI</a></li>
+              <li><a href="/downloads/41214669/Permablocking_Specific.pdf?updated_at=1691677488">PDF</a></li>
+              <li><a href="/downloads/41214669/Permablocking_Specific.html?updated_at=1691677488">HTML</a></li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3 class="landmark heading">Work Header</h3>
+        <div class="wrapper">
+          <dl class="work meta group">
+            <dt class="rating tags">
+              Rating:
+            </dt>
+            <dd class="rating tags">
+              <ul class="commas">
+                <li><a class="tag" href="/tags/General%20Audiences/works">General Audiences</a></li>
+              </ul>
+            </dd>
+            <dt class="warning tags">
+              <a href="/tos_faq#tags">Archive Warning</a>:
+            </dt>
+            <dd class="warning tags">
+              <ul class="commas">
+                <li><a class="tag" href="/tags/No%20Archive%20Warnings%20Apply/works">No Archive Warnings Apply</a></li>
+              </ul>
+            </dd>
+            <dt class="fandom tags">
+              Fandoms:
+            </dt>
+            <dd class="fandom tags">
+              <ul class="commas">
+                <li><a class="tag" href="/tags/Fandom%20-%20Fandom/works">Fandom - Fandom</a></li>
+                <li><a class="tag" href="/tags/AO3/works">AO3</a></li>
+                <li><a class="tag" href="/tags/No%20Fandom/works">No Fandom</a></li>
+              </ul>
+            </dd>
+            <dt class="freeform tags">
+              Additional Tags:
+            </dt>
+            <dd class="freeform tags">
+              <ul class="commas">
+                <li><a class="tag" href="/tags/site%20skin/works">site skin</a></li>
+                <li><a class="tag" href="/tags/tutorial/works">tutorial</a></li>
+                <li><a class="tag" href="/tags/Embedded%20Images/works">Embedded Images</a></li>
+                <li><a class="tag" href="/tags/Fanwork%20Research%20*a*%20Reference%20Guides/works">Fanwork Research &amp; Reference Guides</a></li>
+              </ul>
+            </dd>
+            <dt class="language">
+              Language:
+            </dt>
+            <dd class="language" lang="en">
+              English
+            </dd>
+            <dt class="series">
+              Series:
+            </dt>
+            <dd class="series">
+              <span class="series"><span class="position">Part 1 of <a href="/series/3078150">AO3 Skins</a></span><span class="divider"> </span><a class="next" href="/works/34665865">Next Work &#8594;</a></span>, <span class="series"><span class="position">Part 1 of <a href="/series/3078153">:has() selector</a></span><span class="divider"> </span><a class="next" href="/works/46278850">Next Work &#8594;</a></span>
+            </dd>
+            <dt class="collections">
+              Collections:
+            </dt>
+            <dd class="collections">
+              <a href="/collections/Ao3skin">Ao3 Skins</a>
+            </dd>
+            <dt class="stats">Stats:</dt>
+            <dd class="stats">
+
+              <dl class="stats">
+                <dt class="published">Published:</dt>
+                <dd class="published">2022-08-22</dd>
+                <dt class="status">Completed:</dt>
+                <dd class="status">2023-08-10</dd>
+                <dt class="words">Words:</dt>
+                <dd class="words">2,232</dd>
+                <dt class="chapters">Chapters:</dt>
+                <dd class="chapters">3/3</dd>
+                <dt class="comments">Comments:</dt>
+                <dd class="comments">236</dd>
+                <dt class="kudos">Kudos:</dt>
+                <dd class="kudos">299</dd>
+                <dt class="bookmarks">Bookmarks:</dt>
+                <dd class="bookmarks"><a href="/works/41214669/bookmarks">280</a></dd>
+                <dt class="hits">Hits:</dt>
+                <dd class="hits">10,379</dd>
+              </dl>
+            </dd>
+          </dl>
+        </div>
+
+        <div id="workskin">
+          <div class="preface group">
+            <h2 class="title heading">
+              Permablocking Specific Tags - Site Skin
+            </h2>
+            <h3 class="byline heading">
+              <a rel="author" href="/users/Eli0t/pseuds/Eli0t">Eli0t</a>
+            </h3>
+            <div class="summary module">
+              <h3 class="heading">Summary:</h3>
+              <blockquote class="userstuff">
+                <p>It finally exists. You can block any tag you want forever! You no longer need 3rd party extensions for this!</p>
+              </blockquote>
+            </div>
+            <div class="notes module">
+              <h3 class="heading">Notes:</h3>
+              <p class="jump">(See the end of the work for <a href="#work_endnotes">notes</a> and <a href="#children">other works inspired by this one</a>.)</p>
+            </div>
+          </div>
+
+
+          <div id="chapters" role="article">
+
+            <div class="chapter" id="chapter-1">
+
+              <div class="chapter preface group">
+                <h3 class="title">
+                  <a href="/works/41214669/chapters/103324848">Chapter 1</a>
+                </h3>
+
+              </div>
+
+              <div class="userstuff module" role="article">
+                <h3 class="landmark heading" id="work">Chapter Text</h3>
+                <p>Hey, so there is a new thing in the web developer world that is slowly being rolled out to the major browsers that has made it so you can permablock specific tags on AO3 using a site skin. Yes, really. Currently it is working in safari, chrome, and firefox, though firefox and desktop chrome you have to enable a flag to allow it due to it being experimental on the current (non-beta) versions everyone has. I'll cover how to do it, plus how to enable the flags.</p>
+                <p><br />
+                </p>
+                <p>So the new thing is a pseudo-selector called :has(). A generic example using it might be</p>
+                <p><br />
+                  <code> .blurb:has(a) {</code><br />
+                  <code>color: blue; </code><br />
+                  <code>}</code><br />
+                </p>
+                <p>That would make all work blurbs that have any link (which they all will of course) turn the main text blue. It's a good way to test if you have the :has() flag enabled. Here is what a work search would look like with that code:</p>
+                <p align="center"><br />
+                  <img src="https://i.postimg.cc/FRbFCdtT/blue.png" align="center" /><br />
+                </p>
+                <p>Scroll to the flag enabling section at the end if yours doesn't have blue text where mine does.</p>
+                <p><br />
+                </p>
+                <p>Now, the next part is to get the actual link to the tag you want to block. This is fairly straightforward, just right click/long press the tag you don't want to see anymore and copy the link. <b>Somewhat important that you don't just click the link and copy from the url bar at the top.</b> This is because the way we are checking which tag is going to be blocked requires the exact link, not whatever it redirects to. So, sadly, you can't utilize wrangled top-level tags to block their subtags or synonyms.</p>
+                <p><br />
+                </p>
+                <p>(For example, if you block the tag Romance, it will block things tagged with "Romance", and not things tagged with "Courtship", "a bit of romance", or "summertime love", which are all part of the Romance tag tree, either as subtags or synonyms)</p>
+                <p><br />
+                </p>
+                <p>You can however block non-canonical tags. Also, as a commenter pointed out, there is an option for string matching which I'll lay out further down.</p>
+                <p><br />
+                </p>
+                <p>So the link you got will look something like https://archiveofourown.org/tags/Drama/works</p>
+                <p><br />
+                </p>
+                <p>You will want to remove the https://archiveofourown.org part, leaving only the /tags/Drama/works part.</p>
+                <p><br />
+                </p>
+                <p>Then change the first line of your css code from before to say</p>
+                <p><br />
+                </p>
+                <p>
+                  <code>.blurb:has(a[href$="/tags/Drama/works"]) { </code>
+                </p>
+                <p><br />
+                </p>
+                <p>This will change it so only the blurbs with the tag you chose will have the blue text. Here is how that would look:</p>
+                <p align="center"><br />
+                  <img src="https://i.postimg.cc/Kzhv57WK/selected-blue.png" align="center" /><br />
+                </p>
+                <p><b>*New Section Added*</b> Of course, just blocking singular tags is great but sometimes you want to block more general things. Maybe it's all things tagged with a certain character in any relationship, or reader inserts, or just anything that might mention a certain trigger word, even if the tag is saying "No [trigger word]". It's up to you. For that, we need to modify the lookup line ever so slightly and can then remove parts of our link.<br />
+                </p>
+                <p> xianvar in the comments gave an example of reader and you relationship tags. That code is as follows (slightly altered to make it non-case sensitive):</p>
+                <p>
+                  <code>.blurb:has(a[href*="*s*You/works" i]),</code><br />
+                  <code>.blurb:has(a[href*="*s*Reader/works" i]),</code><br />
+                  <code>.blurb:has(a[href*="/tags/Reader*s*" i]),</code><br />
+                  <code>.blurb:has(a[href*="/tags/You*s*" i])</code><br />
+                </p>
+                <p>The change comes in by changing the <code>href$=</code> to <code>href*=</code>.<br />
+                </p>
+                <p>For any relationship tag, you're going to want to do both halves of the tag so out of order tags will be picked up and blocked too. </p>
+                <p>Here is how a search page will look if you do the above code, when specifically searching for the tag "Reader Insert" as an additional tag.</p>
+                <p>
+                  <img src="https://i.postimg.cc/Pr4pH1hn/blue-Reader.png" align="center" />
+                </p>
+                <p>Note that because we included the *s* (/) from the relationship tags in the code, it <i>doesn't</i> pickup the one that is tagged with "Reader" and "reader-Insert" without using a reader relationship tag. If you wanted to block everything tagged with a tag that included the word 'reader' you would just leave off the *s*.</p>
+                <p>
+                  <b>*End new section*</b>
+                </p>
+                <p>Then just change your color:blue line to not display</p>
+                <p><br />
+                  <code>display: none !important;</code><br />
+                </p>
+                <p>So the full code reads like</p>
+                <p><br />
+                  <code>.blurb:has(a[href$="/tags/Drama/works"]) {<br/>
+display: none !important;<br/>
+}</code><br />
+                </p>
+                <p>Make sure you are copying the url correctly. A lot of characters have to be encoded in urls such as spaces, non-latin characters, and accented characters. You should not copy the name of the tag and assume the url will match the tag directly.</p>
+                <p>Here is a before and after of a results page where I filtered out the tags of "Drama" and the non-canonical "oops i made it dramatic" using this code (note the comma between the two tags)</p>
+                <p><br />
+                  <code>.blurb:has(a[href$="/tags/oops%20i%20made%20it%20dramatic/works"]),<br/>
+.blurb:has(a[href$="/tags/Drama/works"]) {<br/>
+display: none !important; } </code><br />
+                </p>
+                <p>Before:</p>
+                <p>
+                  <img src="https://i.postimg.cc/D02v9vnn/before.png" align="center" /><br />
+                </p>
+                <p>After:</p>
+                <p>
+                  <img src="https://i.postimg.cc/yYLxzZD5/after.png" align="center" /><br />
+                </p>
+                <h3>Flag Enabling:</h3>
+                <h3>
+                </h3>
+                <p><br />
+                </p>
+                <p>Here is how to enable the flags on chrome if you are before version 105 (desktop version, ios is already on 105 and I don't have an android to be able to check):</p>
+                <p><br />
+                </p>
+                <p>1: Go to chrome://flags/</p>
+                <p>2: search Experimental Web Platform features</p>
+                <p>3: enable it</p>
+                <p align="center">
+                  <img src="https://i.postimg.cc/Cxd1MxDK/chrome-flag.png" align="center" /><br />
+                </p>
+                <p>And for firefox (desktop, seems to work on firefox for ios for me too)</p>
+                <p>1: Go to about:config</p>
+                <p>2: accept the instability risk warning</p>
+                <p>3: search for layout.css.has-selector.enabled </p>
+                <p>4: enable it</p>
+                <p align="center"><br />
+                  <img src="https://i.postimg.cc/vZjm4wLt/firefox-flag.png" align="center" />
+                </p>
+              </div>
+
+            </div>
+
+
+            <div class="chapter" id="chapter-2">
+
+              <div class="chapter preface group">
+                <h3 class="title">
+                  <a href="/works/41214669/chapters/116468848">Chapter 2</a>: Tips, Tricks, and Extending things
+                </h3>
+
+                <div id="summary" class="summary module">
+                  <h3 class="heading">Summary:</h3>
+                  <blockquote class="userstuff">
+                    <p>Some tips and tricks I've picked up or been told about since I first made this, plus a little bit about extending this to make things even easier to use</p>
+                  </blockquote>
+                </div>
+              </div>
+
+              <div class="userstuff module" role="article">
+                <h3 class="landmark heading" id="work">Chapter Text</h3>
+                <p>So, MANY of you have commented and left tips and tricks and notes that have helped, and one person even made their own work inspired by this one that has a TON of info and tips that are super useful. I wanted to make an addition here to showcase some of those tips and tricks and to show a little bit of how this can be combined with some things that make this even easier to work with.</p>
+                <p><br />
+                  <strong>Tip 1</strong>: This is just a reminder that when you are getting the url, copy the link! Don't copy it from the URL bar at the top of the page! A LOT of characters get encoded for URLs, but especially punctuation, non-english alphabet characters (including characters with accent marks and umlauts), and some other common text things like spaces. The vast majority of people asking for help troubleshooting have ended up with this being their issue.
+                </p>
+                <p><strong>Tip 2</strong>: Case sensitivity is a thing. Take this example: Fic 1 is tagged with "Lawyer!AU", and fic 2 is tagged with "lawyer!au". If you used a standard lookup of <code>a[href="Lawyer!AU"]</code> you would be surprised to find out that only fic 1 would be selected for being hidden/highlighted/etc. This is because upper and lowercase letters are different things for computers. Luckily, whoever dictates CSS made an easy workaround by adding an "i" to the end of the lookup info before the closing bracket. So for our example, switching to <code>a[href="Lawyer!AU" i]</code> would select both fic 1 and fic 2.</p>
+                <p><strong>Tip 3</strong>: Not entirely relevant to blacklisting tags, but the :has() selector has a lot of other possible uses. I really recommend checking out najio's work that was inspired by this one for some examples of useful things it can do. <br />
+                  <br />
+                  and lastly <strong>Tip 4/how to extend this</strong>: So, you're a avid reader and you have particular tastes. You find yourself wanting to blacklist a whole bunch of different tags and their permutations. But site skins have a character limit and also typing up hundreds of different sets of these codes is a lot of work, right? Even worse, you want to blacklist things unless a specific other tag shows up? Well, as najio pointed out in their work, there are really useful other pseudo selectors called :is() and :not(). <em>(note: :is() used to be called :matches() so some older browsers you may need to switch out the :is() for that) <br />
+                    <br />
+                    <br />
+                  </em>The way :is() works is that it allows for a bunch of possible options to be listed and selected between. So, for example, if I wanted to filter out Magic, Mutants, and Family, I could do the following code<br />
+                  <br />
+                  <br />
+                </p>
+                <p>
+                  <code>.blurb:has(a[href*="Magic" i])
+</code>
+                </p>
+                <p>
+                  <code>{</code>
+                </p>
+                <p>
+                  <code> display: none !important;
+</code>
+                </p>
+                <p>
+                  <code>}
+</code>
+                </p>
+                <p>
+                  <code>.blurb:has(a[href*="Mutants" i])
+</code>
+                </p>
+                <p>
+                  <code>{</code>
+                </p>
+                <p>
+                  <code> display: none !important;
+</code>
+                </p>
+                <p>
+                  <code>}</code>
+                </p>
+                <p>
+                  <code>.blurb:has(a[href*="Family" i]) </code>
+                </p>
+                <p>
+                  <code>{</code>
+                </p>
+                <p>
+                  <code> display: none !important;
+</code>
+                </p>
+                <p>
+                  <code>}</code>
+                </p>
+                <p>Which can be shortened down to</p>
+                <p>
+                  <code>.blurb:has(a[href*="Magic" i]),
+</code>
+                </p>
+                <p>
+                  <code>.blurb:has(a[href*="Mutants" i]),
+</code>
+                </p>
+                <p>
+                  <code>.blurb:has(a[href*="Family" i]) </code>
+                </p>
+                <p>
+                  <code>{</code>
+                </p>
+                <p>
+                  <code> display: none !important;
+</code>
+                </p>
+                <p>
+                  <code>}</code>
+                </p>
+                <p>But, you can shorten it even further with :is(), which would look like:</p>
+                <p>
+                  <code>.blurb:has(a:is([href*="Magic" i], [href*="Mutants" i], [href*="Family" i]))</code>
+                </p>
+                <p>
+                  <code>{</code>
+                </p>
+                <p>
+                  <code> display: none !important;
+</code>
+                </p>
+                <p>
+                  <code>}</code>
+                </p>
+                <p>Which is super useful to make things a little easier to type out when you have LOTS you want to exclude. <br />
+                  <br />
+                  But, what about effectively whitelisting a tag? Let's say you really don't like AUs, but you don't mind a certain type of AU like canon divergence. So you want to exclude all of the possible AU tags, but not the ones that are canon divergence. Well, that's where the :not() pseudo selector comes into play. You just tack it onto the end with a :has() inside and use it just like you do the regular :has() selector by putting in the tag you want whitelisted (you can also use the :is() here if you want multiple whitelisted tags). So the code example I used was:<br />
+                  <br />
+                  <br />
+                </p>
+                <p>
+                  <code>.blurb:has(a:is([href*="Alternate%20Universe" i],[href*="%20AU" i],[href*="!au" i])):not(:has(a[href*="Canon%20Divergence" i]))</code>
+                </p>
+                <p>
+                  <code>{</code>
+                </p>
+                <p>
+                  <code> display: none !important;
+</code>
+                </p>
+                <p>
+                  <code>}</code>
+                </p>
+                <p>That will blacklist all of the tags that contain the terms "Alternate Universe", " AU" (note there is a space before the AU) or "!AU" , but if the work blurb has "Alternate Universe - Canon Divergence" or "Canon Divergence" as a tag, it would show up. </p>
+                <p>(second note, "au" is a semi-common letter combination outside of being an acronym for Alternate Universe, so this may select a handful of works that have tags like "Character has autism" or "reading auras" etc. just be warned of that kind of thing when using partial matches on short letter combinations.)<br />
+                  <br />
+                  So example:<br />
+                  <br />
+                  Fic 1 has the tag of "Alternate Universe - Fairies", Fic 2 has the tag "Alternate Universe - Canon Divergence", Fic 3 has the tags "fairy au" and "Alternate Universe - Canon Divergence", Fic 4 has the tags "Fairy!AU" and "Canon Divergence", using the code above, Fic 1 would be hidden, and fics 2, 3, and 4 would show up. To switch it so fics 1, 3 and 4 all were hidden and only fic 2 showed up, move the :not() inside of the :has() like so<br />
+                  <br />
+                  <br />
+                </p>
+                <p>
+                  <code>.blurb:has(a:is([href*="Alternate%20Universe" i],[href*="%20AU" i],[href*="!au" i]):not(a[href*="Canon%20Divergence" i]))</code>
+                </p>
+                <p>
+                  <code>{</code>
+                </p>
+                <p>
+                  <code> display: none !important;
+</code>
+                </p>
+                <p>
+                  <code>}</code>
+                </p>
+                <p> </p>
+                <p> </p>
+                <p>Anyways, I hope this helped some of you out. Let me know if you have any issues or comments!</p>
+              </div>
+
+            </div>
+
+
+            <div class="chapter" id="chapter-3">
+
+              <div class="chapter preface group">
+                <h3 class="title">
+                  <a href="/works/41214669/chapters/124276639">Chapter 3</a>: Knowing when something was removed
+                </h3>
+
+                <div id="summary" class="summary module">
+                  <h3 class="heading">Summary:</h3>
+                  <blockquote class="userstuff">
+                    <p>The current way this is done, you don't see any information about the thing being hidden. Here is how to add something to signify that a blurb was removed</p>
+                  </blockquote>
+                </div>
+              </div>
+
+              <div class="userstuff module" role="article">
+                <h3 class="landmark heading" id="work">Chapter Text</h3>
+                <p>Hey, so sorry there aren't any images right now, I'll add some later. But for now, here is a bit of an update for those who don't want the muted tagged work blurbs to completely disappear (so you know when something is removed). <br />
+                  <br />
+                </p>
+                <p>So if our current code is: </p>
+                <p> </p>
+                <p>
+                  <code>.blurb:has(a[href*="/tags/Violet%20the%20Hippo/works" i])<br/>
+{<br/>
+  display: none !important;<br/>
+}</code>
+                </p>
+                <p>that would remove the work blurb entirely. So we're going to add a new part in addition to that. <br />
+                  <br />
+                </p>
+                <p>
+                  <code>.blurb:has(a[href*="/tags/Violet%20the%20Hippo/works" i]):before<br/>
+{<br/>
+  content: "Work blurb removed for containing a muted tag";<br/>
+}</code>
+                </p>
+                <p> </p>
+                <p>That will add a little note into the blurb box that says whatever is written in the quotes. In this case "Work blurb removed for containing a muted tag". <br />
+                  <br />
+                </p>
+                <p>but it won't show up if we just added that in addition to the first bit of code. This is because that first bit of code just makes the entire box (including the line we added) disappear. So we need to edit it to only remove the child elements. You can do this like so:</p>
+                <p>
+                  <code>.blurb:has(a[href*="/tags/Violet%20the%20Hippo/works" i]) &gt; *<br/>
+{<br/>
+  display: none !important;<br/>
+}</code>
+                </p>
+                <p> </p>
+                <p>That will remove all of the elements inside the blurb box, except for the note we added about it having a muted word. <br />
+                  <br />
+                </p>
+                <p> </p>
+                <p>So, combined, your code will be like this:</p>
+                <p> </p>
+                <p>
+                  <code>.blurb:has(a[href*="/tags/Violet%20the%20Hippo/works" i]):before<br/>
+{<br/>
+  content: "Work blurb removed for containing a muted tag";<br/>
+}<br/>
+.blurb:has(a[href*="/tags/Violet%20the%20Hippo/works" i]) &gt; *<br/>
+{<br/>
+  display: none !important;<br/>
+}</code>
+                </p>
+                <p> </p>
+                <p>Notes section:</p>
+                <ul>
+                  <li>This should still work with all of the other fancy options for selection like :is() and :not(), you just need to copy it exactly. <br />
+                    <br />
+                  </li>
+                  <li>If you are using an :is() selector to select for multiple possible tags, there isn't a way to make the text say which tag caused the blurb to be muted. </li>
+                  <li>You cannot add a link to the work to bypass the mute. Only plain text can be added sadly. If you want to be able to access the work despite having the muted tag, change your code to this (plus the other half from before with the muting note):<br /><code>.blurb:has(a[href*="/tags/Violet%20the%20Hippo/works" i]) &gt; *:not(.module) {<br/>
+  display: none !important;<br/>
+}<br/>
+</code><br />
+                    Just the header will show up under the note we added. There are ways to also remove things like the ratings boxes and fandom tags if you just wanted the link and nothing else, but that seemed too specific for a general tutorial like this. Ask in the comments if you want the code for that!</li>
+                </ul>
+                <p> </p>
+                <p> </p>
+                <p>Hope this helps!</p>
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="afterword preface group">
+
+            <div id="work_endnotes" class="end notes module">
+              <h3 class="heading">Notes:</h3>
+              <blockquote class="userstuff">
+                <p>Let me know if you are having any trouble! &lt;3</p>
+              </blockquote>
+            </div>
+
+
+            <div id="series" class="series module">
+              <h3 class="heading">Series this work belongs to:</h3>
+              <ul>
+                <li><span class="series"><span class="position">Part 1 of <a href="/series/3078150">AO3 Skins</a></span><span class="divider"> </span><a class="next" href="/works/34665865">Next Work &#8594;</a></span></li>
+                <li><span class="series"><span class="position">Part 1 of <a href="/series/3078153">:has() selector</a></span><span class="divider"> </span><a class="next" href="/works/46278850">Next Work &#8594;</a></span></li>
+              </ul>
+            </div>
+
+
+            <div id="children" class="children module">
+              <h3 class="heading">Works inspired by this one:</h3>
+              <ul>
+                <li>
+                  <a href="https://archiveofourown.org/works/41589201">How to Block Tags With Site Skins (And Get Real Specific About It)</a> by <a rel="author" href="/users/najio/pseuds/najio">najio</a>
+                </li>
+                <li>
+                  <a href="https://archiveofourown.org/works/46279978">Permafiltering for first relationship tagged</a> by <a rel="author" href="/users/Eli0t/pseuds/Eli0t">Eli0t</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+
+
+
+        <div id="feedback" class="feedback">
+          <h3 class="landmark heading">Actions</h3>
+          <ul class="actions" role="navigation">
+            <li><a href="#main">&#8593; Top</a></li>
+            <li>
+              <form id="new_kudo" action="/kudos" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="iI-4ykU7aqzWDtSxR8T2K3bVTqchcdrXKIBgosyAvk1e-buVdimIPXV_wmWrUEgsVXJnPIfdsxeBrZ13Y4bScw" autocomplete="off" />
+                <input value="41214669" autocomplete="off" type="hidden" name="kudo[commentable_id]" id="kudo_commentable_id" />
+                <input value="Work" autocomplete="off" type="hidden" name="kudo[commentable_type]" id="kudo_commentable_type" />
+                <input type="submit" name="commit" value="Kudos ♥" id="kudo_submit" />
+              </form>
+            </li>
+            <li>
+              <a class="bookmark_form_placement_open" href="#bookmark-form">Edit Bookmark</a>
+            </li>
+            <li id="show_comments_link"><a data-remote="true" href="/comments/show_comments?work_id=41214669">Comments (236)</a></li>
+          </ul>
+          <div id="kudos_message"></div>
+          <h3 class="landmark heading">Kudos</h3>
+          <div id="kudos">
+            <p class="kudos">
+              <a href="/users/Ayumi579">Ayumi579</a>, <a href="/users/avesarchive">avesarchive</a>, <a href="/users/flornatic">flornatic</a>, <a href="/users/Yichu">Yichu</a>, <a href="/users/TheWriterWitch">TheWriterWitch</a>, <a href="/users/Muchoshka">Muchoshka</a>, <a href="/users/Gelati">Gelati</a>, <a href="/users/joshdonalds">joshdonalds</a>, <a href="/users/itoshii">itoshii</a>, <a href="/users/SwansongWrites">SwansongWrites</a>, <a href="/users/theboxygenie">theboxygenie</a>, <a href="/users/those_painted_wings">those_painted_wings</a>, <a href="/users/kyrakaryanne">kyrakaryanne</a>, <a href="/users/crayuu">crayuu</a>, <a href="/users/cfoundi">cfoundi</a>, <a href="/users/fanby">fanby</a>, <a href="/users/Lea_Ag">Lea_Ag</a>, <a href="/users/Crossover_Enthusiast">Crossover_Enthusiast</a>, <a href="/users/saime13">saime13</a>, <a href="/users/byrdsofthenyte">byrdsofthenyte</a>, <a href="/users/PirateLumi">PirateLumi</a>, <a href="/users/TuerShen">TuerShen</a>, <a href="/users/CloverthePanCake">CloverthePanCake</a>, <a href="/users/mienaiKnife">mienaiKnife</a>, <a href="/users/NinPotato">NinPotato</a>, <a href="/users/cybermanolo">cybermanolo</a>, <a href="/users/fakeharmless">fakeharmless</a>, <a href="/users/Dye_Iguess">Dye_Iguess</a>, <a href="/users/dollminie">dollminie</a>, <a href="/users/BWizard">BWizard</a>, <a href="/users/qidpro">qidpro</a>, <a href="/users/argumint">argumint</a>, <a href="/users/AjaGolde">AjaGolde</a>, <a href="/users/Mekachu04">Mekachu04</a>, <a href="/users/mystyrust">mystyrust</a>, <a href="/users/insom_nya">insom_nya</a>, <a href="/users/ALoneEXplorer">ALoneEXplorer</a>, <a href="/users/AKioshiWarrior">AKioshiWarrior</a>, <a href="/users/Vivifriend">Vivifriend</a>, <a href="/users/MMagg">MMagg</a>, <a href="/users/WeepySleepy">WeepySleepy</a>, <a href="/users/angelusagi">angelusagi</a>, <a href="/users/KiwiPolarBear">KiwiPolarBear</a>, <a href="/users/beelzebaozi">beelzebaozi</a>, <a href="/users/kashiwaminami">kashiwaminami</a>, <a href="/users/azunshi">azunshi</a>, <a href="/users/Applesap">Applesap</a>, <a href="/users/Midnightbird">Midnightbird</a>, <a href="/users/defessissima">defessissima</a>, <a href="/users/Qassidy">Qassidy</a><span id="kudos_more_connector">, and </span><a id="kudos_more_link" data-remote="true" href="/works/41214669/kudos?before=5268881467">206 more users</a>
+              as well as
+              43 guests
+              left kudos on this work!
+            </p>
+          </div>
+          <h3 class="landmark heading"><a id="comments">Comments</a></h3>
+          <div id="add_comment_placeholder" title="top level comment">
+            <div id="add_comment">
+
+              <div class="post comment" id="comment_form_for_41214669">
+                <form class="new_comment" id="comment_for_41214669" action="/works/41214669/comments" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="yUjyB9kIoLtfUuqbnRqAl3I_S7jsbtVofogor0qSQTAz2rbUjL9yvUmc9fZoPp557Oljjmbk70sQ-DI31_cjSg" autocomplete="off" />
+                  <fieldset>
+                    <legend>Post Comment</legend>
+                    <h4 class="heading">Comment as <span class="byline">nianeyna</span>
+                      <input value="2475" id="comment_pseud_id_for_41214669" autocomplete="off" type="hidden" name="comment[pseud_id]" />
+                    </h4>
+                    <p class="footnote">(Plain text with limited HTML <a class="help symbol question modal" title="Html help" href="/help/html-help.html"><span class="symbol question"><span>?</span></span></a>)</p>
+                    <p>
+                      <label for="comment_content_for_41214669" class="landmark">Comment</label>
+                      <textarea id="comment_content_for_41214669" class="comment_form observe_textlength" title="Enter Comment" name="comment[comment_content]">
+</textarea>
+                      <input type="hidden" id="controller_name_for_41214669" name="controller_name" value="works" />
+                    </p>
+                    <p class="character_counter" tabindex="0"><span id="comment_content_for_41214669_counter" class="value" data-maxlength="10000">10000</span> characters left</p>
+                    <script>
+                      //<![CDATA[
+                      var validation_for_comment_content_for_41214669 = new LiveValidation('comment_content_for_41214669', { wait: 500, onlyOnBlur: false });
+                      validation_for_comment_content_for_41214669.add(Validate.Presence, { "failureMessage": "Brevity is the soul of wit, but we need your comment to have text in it.", "validMessage": "" });
+                      validation_for_comment_content_for_41214669.add(Validate.Length, { "maximum": "10000", "tooLongMessage": "must be less than 10000 characters long." });
+                      //]]>
+                    </script>
+                    <p class="submit actions">
+                      <input type="submit" name="commit" value="Comment" id="comment_submit_for_41214669" data-disable-with="Please wait..." />
+                    </p>
+                  </fieldset>
+                </form>
+              </div>
+              <div class="clear"></div>
+            </div>
+          </div>
+
+
+          <div id="comments_placeholder" style="display:none;">
+          </div>
+          <div id="bookmark_form_placement" class="wrapper toggled">
+            <div class="post bookmark" id="bookmark-form">
+              <h3 class="landmark heading">Bookmark</h3>
+              <form action="/bookmarks/1153670031" accept-charset="UTF-8" method="post"><input type="hidden" name="_method" value="put" autocomplete="off" /><input type="hidden" name="authenticity_token" value="_IELmT3SyX88gmWCabJygBT_2YddLkwaiTg5Sb0WZD5vIbE8tcgnQjS-9zzavzgsn_A4FwhnIjC8FAQiodhaQQ" autocomplete="off" />
+                <fieldset>
+                  <legend>Bookmark</legend>
+                  <p class="close actions">
+                    <a class="bookmark_form_placement_close" href="#comments" aria-label="cancel">&times;</a>
+                  </p>
+                  <h4 class="heading">
+                    <span class="byline">
+                      nianeyna,
+                      <input value="2475" autocomplete="off" type="hidden" name="bookmark[pseud_id]" id="bookmark_pseud_id" />
+                    </span>
+                    save a bookmark!
+                  </h4>
+                  <fieldset>
+                    <legend>Write Comments</legend>
+                    <dl>
+                      <dt><label for="bookmark_notes">Notes</label></dt>
+                      <dd>
+                        <p class="footnote" id="notes-field-description">
+                          The creator&#39;s summary is added automatically.
+                          Plain text with limited HTML <a class="help symbol question modal" title="Html help" href="/help/html-help.html"><span class="symbol question"><span>?</span></span></a>
+                        </p>
+                        <textarea rows="4" id="bookmark_notes" class="observe_textlength" aria-describedby="notes-field-description" name="bookmark[bookmarker_notes]">
+</textarea>
+                        <p class="character_counter" tabindex="0"><span id="bookmark_notes_counter" class="value" data-maxlength="5000">5000</span> characters left</p>
+                      </dd>
+                      <dt><label for="bookmark_tag_string">Your tags</label></dt>
+                      <dd>
+                        <p class="footnote" id="tag-string-description">
+                          The creator&#39;s tags are added automatically.
+                        </p>
+                        <input class="autocomplete" data-autocomplete-method="/autocomplete/tag?type=all" data-autocomplete-hint-text="Start typing for suggestions!" data-autocomplete-no-results-text="(No suggestions found)" data-autocomplete-min-chars="1" data-autocomplete-searching-text="Searching..." size="60" aria-describedby="tag-string-description" type="text" value name="bookmark[tag_string]" id="bookmark_tag_string" />
+                        <p class="character_counter">
+                          Comma separated, 100 characters per tag
+                        </p>
+                      </dd>
+                      <dt><label for="bookmark_collection_names">Add to collections</label></dt>
+                      <dd>
+                        <input class="autocomplete" data-autocomplete-method="/autocomplete/open_collection_names" data-autocomplete-hint-text="Start typing for suggestions!" data-autocomplete-no-results-text="(No suggestions found)" data-autocomplete-min-chars="1" data-autocomplete-searching-text="Searching..." size="60" type="text" value name="bookmark[collection_names]" id="bookmark_collection_names" />
+                      </dd>
+                    </dl>
+                  </fieldset>
+                  <fieldset>
+                    <legend>Choose Type and Post</legend>
+                    <p>
+                      <input name="bookmark[private]" type="hidden" value="0" autocomplete="off" /><input type="checkbox" value="1" name="bookmark[private]" id="bookmark_private" /> <label for="bookmark_private">Private bookmark</label>
+                      <input name="bookmark[rec]" type="hidden" value="0" autocomplete="off" /><input type="checkbox" value="1" name="bookmark[rec]" id="bookmark_rec" /> <label for="bookmark_rec">Rec</label>
+                    </p>
+                    <p class="submit actions">
+                      <input type="submit" name="commit" value="Update" />
+                    </p>
+                  </fieldset>
+                </fieldset>
+              </form>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="clear"></div>
+      </div>
+
+    </div>
+
+    <div id="footer" role="contentinfo" class="region">
+      <h3 class="landmark heading">Footer</h3>
+      <ul class="navigation actions" role="navigation">
+        <li class="module group">
+          <h4 class="heading">Customize</h4>
+          <ul class="menu">
+            <li><a href="/skins/unset">Default</a></li>
+            <li><a href="/skins/891/set">Low Vision Default</a></li>
+            <li><a href="/skins/929/set">Reversi</a></li>
+            <li><a href="/skins/932/set">Snow Blue</a></li>
+          </ul>
+        </li>
+        <li class="module group">
+          <h4 class="heading">About the Archive</h4>
+          <ul class="menu">
+            <li><a href="/site_map">Site Map</a></li>
+            <li><a href="/diversity">Diversity Statement</a></li>
+            <li><a href="/tos">Terms of Service</a></li>
+            <li><a href="/dmca">DMCA Policy</a> </li>
+          </ul>
+        </li>
+        <li class="module group">
+          <h4 class="heading">Contact Us</h4>
+          <ul class="menu">
+            <li><a href="/abuse_reports/new">Policy Questions &amp; Abuse Reports</a></li>
+            <li><a href="/support">Technical Support &amp; Feedback</a></li>
+          </ul>
+        </li>
+        <li class="module group">
+          <h4 class="heading">Development</h4>
+          <ul class="menu">
+            <li><a href="https://github.com/otwcode/otwarchive/commits/v0.9.359.16">otwarchive v0.9.359.16</a></li>
+            <li><a href="/known_issues">Known Issues</a></li>
+            <li><a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html" title="View License">GPL</a> by the <a href="https://transformativeworks.org/" title="The Organization for Transformative Works">OTW</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js" type="text/javascript"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.0/jquery-ui.min.js" type="text/javascript"></script>
+
+  <script type="text/javascript">
+    if (typeof jQuery == 'undefined') {
+      document.write(unescape("%3Cscript src='/javascripts/jquery.min.js' type='text/javascript'%3E%3C/script%3E"));
+      document.write(unescape("%3Cscript src='/javascripts/jquery-ui.min.js' type='text/javascript'%3E%3C/script%3E"));
+    }
+  </script>
+  <script type="text/javascript">$j = jQuery.noConflict();</script>
+  <script src="/javascripts/jquery.scrollTo.min.js"></script>
+  <script src="/javascripts/jquery.livequery.min.js"></script>
+  <script src="/javascripts/rails.js"></script>
+  <script src="/javascripts/application.js"></script>
+  <script src="/javascripts/bootstrap/bootstrap-dropdown.min.js"></script>
+  <script src="/javascripts/jquery-shuffle.js"></script>
+  <script src="/javascripts/jquery.tokeninput.min.js"></script>
+  <script src="/javascripts/jquery.trap.min.js"></script>
+  <script src="/javascripts/ao3modal.min.js"></script>
+  <script src="/javascripts/js.cookie.min.js"></script>
+  <script src="/javascripts/filters.min.js"></script>
+  <script>
+    //<![CDATA[
+
+    $j(document).ready(function () {
+      var permitted_hosts = ["104.153.64.122", "208.85.241.152", "208.85.241.157", "ao3.org", "archiveofourown.com", "archiveofourown.net", "archiveofourown.org", "download.archiveofourown.org", "insecure.archiveofourown.org", "secure.archiveofourown.org", "www.archiveofourown.com", "www.archiveofourown.net", "www.archiveofourown.org", "www.ao3.org", "archive.transformativeworks.org"];
+      var current_host = window.location.hostname;
+
+      if (!permitted_hosts.includes(current_host) && Cookies.get("proxy_notice") !== "0" && window.location.protocol !== "file:") {
+        $j("#skiplinks").after("<div id=\"proxy-notice\">\n  <div class=\"userstuff\">\n    <p class=\"important\">Important message:<\/p>\n    <ol>\n      <li>You are using a proxy site that is not part of the Archive of Our Own.<\/li>\n      <li>The entity that set up the proxy site can see what you submit, including your IP address. If you log in through the proxy site, it can see your password.<\/li>\n    <\/ol>\n    <p class=\"important\">重要提示：<\/p>\n    <ol>\n      <li>您使用的是第三方开发的反向代理网站，此网站并非Archive of Our Own - AO3（AO3作品库）原站。<\/li>\n      <li>代理网站的开发者能够获取您上传至该站点的全部内容，包括您的ip地址。如您通过代理登录AO3，对方将获得您的密码。<\/li>\n    <\/ol>\n    <p class=\"submit\"><button class=\"action\" type=\"button\" id=\"proxy-notice-dismiss\">Dismiss Notice<\/button><\/p>\n  <\/div>\n<\/div>\n\n<script>\n//<![CDATA[\n\n  \$j(document).ready(function() {\n    \$j(\"#proxy-notice-dismiss\").on(\"click\", function() {\n      Cookies.set(\"proxy_notice\", \"0\");\n      \$j(\"#proxy-notice\").slideUp();\n    });\n  });\n\n//]]]]><![CDATA[>\n<\/script>");
+      }
+    });
+
+    //]]>
+  </script>
+  <script>
+    $j(document).on("loadedCSRF", function () {
+      function send() {
+        $j.post("/works/41214669/hit_count.json")
+      }
+
+      // If a browser doesn't support prerendering, then document.prerendering
+      // will be undefined, and we'll just send the hit count immediately.
+      if (document.prerendering) {
+        document.addEventListener("prerenderingchange", send);
+      } else {
+        send();
+      }
+    })
+  </script>
+</body>
+
+</html>

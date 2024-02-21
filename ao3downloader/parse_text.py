@@ -14,9 +14,10 @@ def get_pinboard_url(api_token: str, date: datetime.datetime) -> str:
         return strings.POSTS_FROM_DATE_URL.format(api_token, timestamp)
 
 
-def get_valid_filename(filename: str) -> str:
+def get_valid_filename(filename: str, maximum: int) -> str:
     valid_name = filename.translate({ord(i):None for i in strings.INVALID_FILENAME_CHARACTERS})
-    return valid_name[:50].strip()
+    if maximum == 0: return valid_name.strip()
+    return valid_name[:maximum].strip()
 
 
 def get_file_type(filetype: str) -> str:
