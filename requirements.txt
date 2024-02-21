@@ -4,7 +4,7 @@ cffi==1.15.1
 chardet==5.1.0
 charset-normalizer==3.1.0
 colorama==0.4.6
-cryptography==42.0.0
+cryptography==42.0.4
 cssselect==1.2.0
 EbookLib==0.18
 exceptiongroup==1.2.0
