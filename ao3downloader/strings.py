@@ -18,6 +18,11 @@ INI_SECTION_NAME = 'settings'
 
 INI_WAIT_TIME = 'ExtraWaitTime'
 INI_PASSWORD_SAVE = 'SavePassword'
+INI_NAME_LENGTH = 'FileNameLength'
+INI_NAME_PATTERN = 'FileNamePattern'
+
+INI_DEFAULT_NAME_LENGTH = '50'
+INI_DEFAULT_NAME_PATTERN = '{worknum} {title} - {author}'
 
 SETTING_USERNAME = 'username'
 SETTING_PASSWORD = 'password'
@@ -67,7 +72,7 @@ AO3_PROMPT_LINK = 'please enter link to ao3'
 AO3_PROMPT_LAST_PAGE = 'do you want to start downloading from the page you stopped on last time? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_PAGES = 'please enter page number to stop on. enter 0 to download all pages.'
 AO3_PROMPT_IMAGES = 'do you want to download embedded images? (will be saved separately) ({}/{})'.format(PROMPT_YES, PROMPT_NO)
-AO3_PROMPT_SERIES = 'do you want to get works from all encountered series links? (bookmarked series will always be downloaded, regardles of this option) ({}/{})'.format(PROMPT_YES, PROMPT_NO)
+AO3_PROMPT_SERIES = 'do you want to get works from all encountered series links? (bookmarked series will always be downloaded, regardless of this option) ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_METADATA = 'do you want to include work metadata? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_FILE_INPUT = 'please enter complete file path (including file extension) to file containing links to download (must be a text file with one link on each line)'
 AO3_INFO_LOGIN = 'logging in'

@@ -57,8 +57,9 @@ def visited(fileops: FileOps, filetypes: list[str]) -> list[str]:
     if logs:
         print(strings.AO3_INFO_VISITED)
         titles = parse_text.get_title_dict(logs)
+        maximum = fileops.get_ini_value_integer(strings.INI_NAME_LENGTH, strings.INI_DEFAULT_NAME_LENGTH)
         visited = list({x for x in titles if 
-            fileops.file_exists(x, titles, filetypes)})
+            fileops.file_exists(x, titles, filetypes, maximum)})
     if os.path.exists(strings.IGNORELIST_FILE_NAME):
         with open(strings.IGNORELIST_FILE_NAME, 'r', encoding='utf-8') as f: 
                 visited.extend([x[:x.find('; ')] for x in f.readlines()])

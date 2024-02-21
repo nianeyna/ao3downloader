@@ -31,8 +31,9 @@ def action():
             print(strings.INFO_EXCLUDING_WORKS)
             titles = parse_text.get_title_dict(logs)
             unsuccessful = parse_text.get_unsuccessful_downloads(logs)
+            maximum = fileops.get_ini_value_integer(strings.INI_NAME_LENGTH, strings.INI_DEFAULT_NAME_LENGTH)
             bookmarks = list(filter(lambda x: 
-                not fileops.file_exists(x['href'], titles, filetypes) 
+                not fileops.file_exists(x['href'], titles, filetypes, maximum) 
                 and x['href'] not in unsuccessful, 
                 bookmarks))
 

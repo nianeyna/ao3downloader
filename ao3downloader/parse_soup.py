@@ -107,7 +107,7 @@ def get_full_work_url(url: str) -> str:
     """Get full ao3 work url from partial url"""
 
     work_number = parse_text.get_work_number(url)
-    return strings.AO3_BASE_URL + "/works/" + work_number
+    return strings.AO3_BASE_URL + '/works/' + work_number
 
 
 def get_series_urls(soup: BeautifulSoup, get_all: bool) -> list[str]:
@@ -117,7 +117,7 @@ def get_series_urls(soup: BeautifulSoup, get_all: bool) -> list[str]:
 
     return list(dict.fromkeys(list(
         map(lambda w: get_full_series_url(w.get('href')), 
-            filter(lambda a : is_series(a, get_all, bookmarks),
+            filter(lambda a : a.get('href') and is_series(a, get_all, bookmarks),
                    soup.find_all('a'))))))
 
 
@@ -139,7 +139,7 @@ def get_full_series_url(url: str) -> str:
     """Get full ao3 series url from partial url"""
 
     series_number = parse_text.get_series_number(url)
-    return strings.AO3_BASE_URL + url.split(series_number)[0] + series_number
+    return strings.AO3_BASE_URL + '/series/' + series_number
 
 
 def get_work_and_series_urls(soup: BeautifulSoup, get_all: bool=False) -> list[str]:
@@ -151,7 +151,7 @@ def get_work_and_series_urls(soup: BeautifulSoup, get_all: bool=False) -> list[s
 
 
 def get_proceed_link(soup: BeautifulSoup) -> str:
-    """Get link to proceed through explict work agreement."""
+    """Get link to proceed through explicit work agreement."""
 
     try:
         link = (soup.find('div', class_='works-show region')
@@ -198,17 +198,57 @@ def has_custom_skin(soup: BeautifulSoup) -> bool:
     return soup.find('ul', class_='work navigation actions').find('li', class_='style') is not None
 
 
-def get_title(soup: BeautifulSoup, link: str) -> str:
-    """Get work title, author, and id as a string"""
+def get_title(soup: BeautifulSoup, link: str, pattern: str) -> str:
+    """Get (non-truncated) filename for the work"""
 
-    worknum = parse_text.get_work_number(link)
-    title = soup.select('.preface .title')[0].get_text().strip()
-    author = soup.select('.preface .byline')[0].get_text().strip()
+    metadata = get_work_metadata_from_work(soup, link)
 
-    return f'{worknum} {title} - {author}'
+    for key, value in metadata.items():
+        pattern = pattern.replace(f'{{{key}}}', value)
+
+    return pattern
 
 
-def get_work_metadata(soup: BeautifulSoup, link: str) -> dict:
+def get_work_metadata_from_work(soup: BeautifulSoup, link: str) -> dict:
+    metadata = {}
+    metadata['worknum'] = parse_text.get_work_number(link)
+    metadata['title'] = get_text_or_empty(soup, '.preface .title')
+    metadata['author'] = get_text_or_empty(soup, '.preface .byline')
+    metadata['fandom'] = str.join(', ', list(map(lambda x: x.get_text(), soup.select('dd.fandom a'))))
+    metadata['pairing'] = str.join(', ', list(map(lambda x: x.get_text(), soup.select('dd.relationship a'))))
+    metadata['rating'] = get_text_or_empty(soup, 'dd.rating')
+    metadata['warning'] = str.join(', ', list(map(lambda x: x.get_text(), soup.select('dd.warning a'))))
+    metadata['category'] = str.join(', ', list(map(lambda x: x.get_text(), soup.select('dd.category a'))))
+    metadata['words'] = get_text_or_empty(soup, 'dd.words').replace(',', '').strip()
+    metadata['chapters'] = get_current_chapters(soup)
+    metadata['language'] = get_text_or_empty(soup, 'dd.language')
+    metadata['published'] = get_text_or_empty(soup, 'dd.published')
+    metadata['updated'] = get_text_or_empty(soup, 'dd.status')
+    series_list = list(map(lambda x: get_series_from_span(x), soup.select('dd.series span.series span.position')))
+    metadata['series_title'] = str.join(', ', list(map(lambda x: x[0], series_list)))
+    metadata['series_index'] = str.join(', ', list(map(lambda x: x[1], series_list)))
+    return metadata
+
+
+def get_text_or_empty(soup: BeautifulSoup, selector: str) -> str:
+    """Get text from a selector, or return an empty string if it doesn't exist"""
+
+    try:
+        return soup.select(selector)[0].get_text().strip()
+    except:
+        return ''
+
+
+def get_series_from_span(soup: BeautifulSoup) -> tuple[str, str]:
+    """Get series title and index from span element"""
+
+    series_link = soup.find('a')
+    series_title = series_link.get_text().strip()
+    work_index = re.sub(r'\D', '', soup.decode_contents().replace(str(series_link), '')).strip()
+    return series_title, work_index
+
+
+def get_work_metadata_from_list(soup: BeautifulSoup, link: str) -> dict:
     metadata = {}
     try:
         worknum = parse_text.get_work_number(link)

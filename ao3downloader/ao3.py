@@ -71,8 +71,8 @@ class Ao3:
         if parse_text.is_work(link):
             if link not in links_list:
                 if metadata:
-                    metatdata = parse_soup.get_work_metadata(soup, link)
-                    links_list[link] = metatdata
+                    metadata = parse_soup.get_work_metadata_from_list(soup, link)
+                    links_list[link] = metadata
                 else:
                     links_list[link] = None
         elif parse_text.is_series(link):
@@ -169,8 +169,10 @@ class Ao3:
             if int(currentchapters) <= int(chapters):
                 return False
         
-        title = parse_soup.get_title(thesoup, work_url)
-        filename = parse_text.get_valid_filename(title)
+        pattern = self.fileops.get_ini_value(strings.INI_NAME_PATTERN, strings.INI_DEFAULT_NAME_PATTERN)
+        maximum = self.fileops.get_ini_value_integer(strings.INI_NAME_LENGTH, strings.INI_DEFAULT_NAME_LENGTH)
+        title = parse_soup.get_title(thesoup, work_url, pattern)
+        filename = parse_text.get_valid_filename(title, maximum)
         log['title'] = title
         log['workskin'] = parse_soup.has_custom_skin(thesoup)
 

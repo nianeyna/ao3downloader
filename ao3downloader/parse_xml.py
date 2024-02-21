@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as ET
 
+from urllib.parse import urlparse
+
 from ao3downloader import parse_text
 
 
@@ -9,7 +11,7 @@ def get_bookmark_list(bookmark_xml: ET.Element, exclude_toread: bool) -> list[di
         attributes = child.attrib
         # only include valid ao3 links
         link = attributes['href']
-        if 'archiveofourown.org' in link and (parse_text.is_work(link) or parse_text.is_series(link)):
+        if urlparse(link).hostname == 'archiveofourown.org' and (parse_text.is_work(link) or parse_text.is_series(link)):
             # if exclude_toread is true, only include read bookmarks
             if exclude_toread:
                 if not 'toread' in attributes:

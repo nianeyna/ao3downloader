@@ -81,9 +81,9 @@ class FileOps:
         return logs
 
 
-    def file_exists(self, id: str, titles: dict[str, str], filetypes: list[str]) -> bool:
+    def file_exists(self, id: str, titles: dict[str, str], filetypes: list[str], maximum: int) -> bool:
         if id not in titles: return False
-        filename = parse_text.get_valid_filename(titles[id])
+        filename = parse_text.get_valid_filename(titles[id], maximum)
         files = list(map(lambda x: os.path.join(self.downloadfolder, filename + '.' + x.lower()), filetypes))
         for file in files:
             if not os.path.exists(file):
@@ -101,3 +101,9 @@ class FileOps:
         config = configparser.ConfigParser()
         config.read(self.inifile)
         return config.getboolean(strings.INI_SECTION_NAME, key, fallback=fallback)
+
+
+    def get_ini_value_integer(self, key: str, fallback: int) -> int:
+        config = configparser.ConfigParser()
+        config.read(self.inifile)
+        return config.getint(strings.INI_SECTION_NAME, key, fallback=fallback)
