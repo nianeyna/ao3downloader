@@ -254,11 +254,9 @@ def get_work_metadata_from_list(soup: BeautifulSoup, link: str) -> dict:
         worknum = parse_text.get_work_number(link)
         blurb = soup.find('li', class_=f'work-{worknum}')
         tags = blurb.find('ul', class_='tags')
-        metadata['title'] = blurb.find('a', href=f'/works/{worknum}').get_text()
-        try:
-            metadata['author'] = blurb.find('a', rel='author').get_text()
-        except:
-            metadata['author'] = 'Anonymous'
+        metadata['title'] = blurb.select('h4.heading a')[0].get_text()
+        metadata['author'] = str.join(', ', list(x.get_text() for x in blurb.find_all('a', rel='author')))
+        if not metadata['author']: metadata['author'] = 'Anonymous'
         try:
             metadata['summary'] = blurb.find('blockquote', class_='summary').decode_contents()
         except:
