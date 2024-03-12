@@ -31,12 +31,15 @@ As of January 17, 2023 I have changed how file names are generated (again). All 
 ## Instructions
 
 1. install python [from this link](https://www.python.org/downloads/release/python-3114/). **do not install the latest version of python**, or a version of python lower than 3.9.0.
-2. download the repository as a zip file. the "repository" means the folder containing the code.
+   - if on Windows, make sure you get the "installer" and not the "embeddable package" (if you are not sure which of the installers you need, get the 64-bit one)
+   - during installation, choose "Customize installation" when prompted, and check the "Add Python to environment variables" checkbox when it appears. (this option was previously called "add to PATH"). everything else can be left as default.
+3. download the repository as a zip file. the "repository" means the folder containing the code.
    - if you are reading this on [github](https://github.com/nianeyna/ao3downloader), you can download the repository by clicking on the "Code" button in github and selecting "Download ZIP"
    - if you are reading this on [my website](https://nianeyna.dev/ao3downloader/), you can download the repository by clicking the button at the top of the page that says "Click to Download"
-3. unzip the zip file you just downloaded. this will create a folder. open it. if you see a file called "ao3downloader.py" then you're in the right place.
-4. run the script using the instructions for your operating system:
-   - windows: double-click on "ao3downloader.cmd"
+4. unzip the zip file you just downloaded. this will create a folder. open it. if you see a file called "ao3downloader.py" then you're in the right place.
+5. run the script using the instructions for your operating system:
+   - windows: double-click on "ao3downloader.cmd" (if you can't see the file extensions: this is the file named "ao3downloader" which does *not* have a python logo)
+     - note: don't use the search bar to find the right file - the script will not work properly when run from the search results pane
    - mac:
      - open a terminal window pointed to the folder containing "ao3downloader.py".
        - You can do this by right-clicking on the folder, going to Services at the bottom of the menu, and clicking "New Terminal at Folder". Alternatively, you can type "cd " and drag the folder to the terminal to copy the folder path.
