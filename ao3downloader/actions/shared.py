@@ -73,7 +73,7 @@ def pinboard_date() -> datetime.datetime:
         date_format = 'mm/dd/yyyy'
         print(strings.PINBOARD_PROMPT_ENTER_DATE.format(date_format))
         inputdate = input()
-        date = datetime.strptime(inputdate, '%m/%d/%Y')
+        date = datetime.datetime.strptime(inputdate, '%m/%d/%Y')
     else:
         date = None
     return date
