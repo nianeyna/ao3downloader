@@ -9,6 +9,7 @@ if (!(Test-Path -Path .\venv\)) {
         python install $depend
     }
 } else {
+    Write-Host "Venv Path found, continuing on"
     call .\venv\Scripts\activate
 }
 
