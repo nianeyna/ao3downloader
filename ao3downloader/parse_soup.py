@@ -80,18 +80,10 @@ def get_image_links(soup: BeautifulSoup) -> list[str]:
     return links
 
 
-def get_series_info(soup: BeautifulSoup) -> dict:
-    """Get series title and list of work urls."""
+def get_series_title(soup: BeautifulSoup) -> dict:
+    """Get series title."""
 
-    work_urls = get_work_urls(soup)
-
-    # create dictionary for series info
-    series_info = {'work_urls': work_urls}
-
-    # add series title to dictionary
-    series_info['title'] = soup.select('.series-show h2')[0].get_text().strip()
-
-    return series_info
+    return soup.select('.series-show h2')[0].get_text().strip()
 
 
 def get_work_urls(soup: BeautifulSoup) -> list[str]:
