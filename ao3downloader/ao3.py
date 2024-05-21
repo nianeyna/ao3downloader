@@ -141,8 +141,7 @@ class Ao3:
                 work_urls = parse_soup.get_work_urls(series_soup)
                 if len(work_urls) == 0: break
                 for work_url in work_urls:
-                    if work_url not in visited:
-                        self.download_work(work_url, log, None)
+                    self.download_recursive(work_url, log, visited)
                 link = parse_text.get_next_page(link)
         except Exception as e:
             log['link'] = link
