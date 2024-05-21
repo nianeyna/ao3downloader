@@ -92,7 +92,7 @@ def get_work_urls(soup: BeautifulSoup) -> list[str]:
     return list(dict.fromkeys(list(
         map(lambda w: get_full_work_url(w.get('href')), 
             filter(lambda a : a.get('href') and parse_text.is_work(a.get('href')), 
-                   soup.find_all('a'))))))
+                   soup.select('.index.group a'))))))
 
 
 def get_full_work_url(url: str) -> str:
@@ -110,7 +110,7 @@ def get_series_urls(soup: BeautifulSoup, get_all: bool) -> list[str]:
     return list(dict.fromkeys(list(
         map(lambda w: get_full_series_url(w.get('href')), 
             filter(lambda a : a.get('href') and is_series(a, get_all, bookmarks),
-                   soup.find_all('a'))))))
+                   soup.select('.index.group a'))))))
 
 
 def is_series(element: Any, get_all: bool, bookmarks: ResultSet[Any]) -> bool:
