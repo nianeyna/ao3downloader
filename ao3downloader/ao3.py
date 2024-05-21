@@ -115,10 +115,10 @@ class Ao3:
             self.download_series(link, log, visited)        
         elif strings.AO3_BASE_URL in link:
             while True:
-                self.fileops.write_log({'starting': link})
                 thesoup = self.repo.get_soup(link)
                 urls = parse_soup.get_work_and_series_urls(thesoup, self.series)
                 if len(urls) == 0: break
+                self.fileops.write_log({'starting': link})
                 for url in urls:
                     self.download_recursive(url, log, visited)
                 if not self.mark:
@@ -137,9 +137,9 @@ class Ao3:
             while True:
                 series_soup = self.repo.get_soup(link)
                 series_soup = self.proceed(series_soup)
-                log['series'] = parse_soup.get_series_title(series_soup)
                 work_urls = parse_soup.get_work_urls(series_soup)
                 if len(work_urls) == 0: break
+                self.fileops.write_log({'starting': link})
                 for work_url in work_urls:
                     self.download_recursive(work_url, log, visited)
                 link = parse_text.get_next_page(link)

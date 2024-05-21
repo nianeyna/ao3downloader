@@ -80,12 +80,6 @@ def get_image_links(soup: BeautifulSoup) -> list[str]:
     return links
 
 
-def get_series_title(soup: BeautifulSoup) -> dict:
-    """Get series title."""
-
-    return soup.select('.series-show h2')[0].get_text().strip()
-
-
 def get_work_urls(soup: BeautifulSoup) -> list[str]:
     """Get all links to ao3 works on a page"""
 
