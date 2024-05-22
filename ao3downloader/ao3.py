@@ -78,11 +78,14 @@ class Ao3:
         elif parse_text.is_series(link):
             if link not in visited_series:
                 visited_series.append(link)
-                series_soup = self.repo.get_soup(link)
-                series_soup = self.proceed(series_soup)
-                work_urls = parse_soup.get_work_urls(series_soup)
-                for work_url in work_urls:
-                    self.get_work_links_recursive(links_list, work_url, visited_series, metadata, series_soup)
+                while True:
+                    series_soup = self.repo.get_soup(link)
+                    series_soup = self.proceed(series_soup)
+                    work_urls = parse_soup.get_work_urls(series_soup)
+                    if len(work_urls) == 0: break
+                    for work_url in work_urls:
+                        self.get_work_links_recursive(links_list, work_url, visited_series, metadata, series_soup)
+                    link = parse_text.get_next_page(link)
         elif strings.AO3_BASE_URL in link:
             while True:
                 self.fileops.write_log({'starting': link})
@@ -112,10 +115,10 @@ class Ao3:
             self.download_series(link, log, visited)        
         elif strings.AO3_BASE_URL in link:
             while True:
-                self.fileops.write_log({'starting': link})
                 thesoup = self.repo.get_soup(link)
                 urls = parse_soup.get_work_and_series_urls(thesoup, self.series)
                 if len(urls) == 0: break
+                self.fileops.write_log({'starting': link})
                 for url in urls:
                     self.download_recursive(url, log, visited)
                 if not self.mark:
@@ -131,14 +134,15 @@ class Ao3:
         """"Download all works in a series"""
 
         try:
-            series_soup = self.repo.get_soup(link)
-            series_soup = self.proceed(series_soup)
-            series_info = parse_soup.get_series_info(series_soup)
-            series_title = series_info['title']
-            log['series'] = series_title
-            for work_url in series_info['work_urls']:
-                if work_url not in visited:
-                    self.download_work(work_url, log, None)
+            while True:
+                series_soup = self.repo.get_soup(link)
+                series_soup = self.proceed(series_soup)
+                work_urls = parse_soup.get_work_urls(series_soup)
+                if len(work_urls) == 0: break
+                self.fileops.write_log({'starting': link})
+                for work_url in work_urls:
+                    self.download_recursive(work_url, log, visited)
+                link = parse_text.get_next_page(link)
         except Exception as e:
             log['link'] = link
             self.log_error(log, e)

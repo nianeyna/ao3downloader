@@ -80,27 +80,13 @@ def get_image_links(soup: BeautifulSoup) -> list[str]:
     return links
 
 
-def get_series_info(soup: BeautifulSoup) -> dict:
-    """Get series title and list of work urls."""
-
-    work_urls = get_work_urls(soup)
-
-    # create dictionary for series info
-    series_info = {'work_urls': work_urls}
-
-    # add series title to dictionary
-    series_info['title'] = soup.select('.series-show h2')[0].get_text().strip()
-
-    return series_info
-
-
 def get_work_urls(soup: BeautifulSoup) -> list[str]:
     """Get all links to ao3 works on a page"""
 
     return list(dict.fromkeys(list(
         map(lambda w: get_full_work_url(w.get('href')), 
             filter(lambda a : a.get('href') and parse_text.is_work(a.get('href')), 
-                   soup.find_all('a'))))))
+                   soup.select('.index.group a'))))))
 
 
 def get_full_work_url(url: str) -> str:
@@ -118,7 +104,7 @@ def get_series_urls(soup: BeautifulSoup, get_all: bool) -> list[str]:
     return list(dict.fromkeys(list(
         map(lambda w: get_full_series_url(w.get('href')), 
             filter(lambda a : a.get('href') and is_series(a, get_all, bookmarks),
-                   soup.find_all('a'))))))
+                   soup.select('.index.group a'))))))
 
 
 def is_series(element: Any, get_all: bool, bookmarks: ResultSet[Any]) -> bool:
