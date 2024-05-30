@@ -37,7 +37,8 @@ As of January 17, 2023 I have changed how file names are generated (again). All 
    - if you are reading this on [github](https://github.com/nianeyna/ao3downloader), you can download the repository by clicking on the "Code" button in github and selecting "Download ZIP"
    - if you are reading this on [my website](https://nianeyna.dev/ao3downloader/), you can download the repository by clicking the button at the top of the page that says "Click to Download"
 4. unzip the zip file you just downloaded. this will create a folder. open it. if you see a file called "ao3downloader.py" then you're in the right place.
-5. run the script using the instructions for your operating system:
+   - to unzip the file, you must *right-click* on it and select the option that says something like "Extract All" - don't just double-click it! this may *appear* to open the folder, but it's really just a preview that won't work correctly.
+6. run the script using the instructions for your operating system:
    - windows: double-click on "ao3downloader.cmd" (if you can't see the file extensions: this is the file named "ao3downloader" which does *not* have a python logo)
      - note: don't use the search bar to find the right file - the script will not work properly when run from the search results pane
    - mac:
