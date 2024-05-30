@@ -1,5 +1,7 @@
 @echo off
 
+pushd %~dp0
+
 if not exist "venv\" (set firstrun="true") else (set firstrun="false")
 
 if %firstrun%=="true" python -m venv venv
