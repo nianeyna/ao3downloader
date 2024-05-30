@@ -8,7 +8,7 @@ cryptography==42.0.4
 cssselect==1.2.0
 EbookLib==0.18
 exceptiongroup==1.2.0
-idna==3.4
+idna==3.7
 iniconfig==2.0.0
 loguru==0.6.0
 lxml==4.9.2
