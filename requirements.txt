@@ -27,5 +27,5 @@ soupsieve==2.4.1
 syrupy==4.6.0
 tomli==2.0.1
 tqdm==4.66.3
-urllib3==2.0.7
+urllib3==2.2.2
 win32-setctime==1.1.0
