@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import ao3downloader.strings as strings
 
 from ao3downloader.actions import ao3download
