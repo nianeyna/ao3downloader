@@ -30,6 +30,8 @@ As of January 17, 2023 I have changed how file names are generated (again). All 
 
 ## Instructions
 
+### Windows and Mac
+
 1. install python [from this link](https://www.python.org/downloads/release/python-3114/). **do not install the latest version of python**, or a version of python lower than 3.9.0.
    - if on Windows, make sure you get the "installer" and not the "embeddable package" (if you are not sure which of the installers you need, get the 64-bit one)
    - during installation, choose "Customize installation" when prompted, and check the "Add Python to environment variables" checkbox when it appears. (this option was previously called "add to PATH"). everything else can be left as default.
@@ -59,6 +61,25 @@ As of January 17, 2023 I have changed how file names are generated (again). All 
      ```
      - note that if you delete the "venv" folder for any reason you will need to do the initial setup again.
    - other platforms: ao3downloader should work on any platform that supports python, however, you will need to do your own research into how to run python programs on your system.
+
+### Linux (Podman container)
+
+#### Setup
+1. Install podman if necessary. [Instructions](https://podman.io/docs/installation#installing-on-linux)
+2. (Optional) Create a settings directory named in `~/.config/ao3downloader` and copy `settings.ini` into it. Customize the copy as desired.
+2. At the command line, go into ao3downloader's directory.
+3. Run the following command to build the container image:
+   ```sh
+   podman build -t ao3downloader .
+   ```
+
+#### Running ao3downloader
+1. Go to the directory where you would like your downloaded files to be put at the command line
+2. Run the following command:
+```sh
+podman run --rm -it -v $(pwd):/app/downloads:Z -v $HOME/.config/ao3downloader:/app/settings:Z ao3downloader
+```
+I recommend putting the command in a script. `$(pwd)` can be replaced by the path of a fixed directory if you wish to always download to a specific place rather than the current directory.
 
 ## Menu Options Explanation
 
