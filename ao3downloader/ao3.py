@@ -33,9 +33,9 @@ class Ao3:
 
 
     def update(self, link: str, chapters: str) -> None:
-        
+
         log = {}
-        
+
         try:
             self.download_work(link, log, chapters)
         except Exception as e:
@@ -53,7 +53,7 @@ class Ao3:
 
 
     def get_work_links(self, link: str, metadata: bool) -> dict[str, dict]:
-        
+
         links_list = {}
         visited_series = []
 
@@ -112,7 +112,7 @@ class Ao3:
             self.download_work(link, log, None)
         elif parse_text.is_series(link):
             log = {}
-            self.download_series(link, log, visited)        
+            self.download_series(link, log, visited)
         elif strings.AO3_BASE_URL in link:
             while True:
                 thesoup = self.repo.get_soup(link)
@@ -142,6 +142,7 @@ class Ao3:
                 self.fileops.write_log({'starting': link})
                 for work_url in work_urls:
                     self.download_recursive(work_url, log, visited)
+                self.fileops.write_log({'ending': link})
                 link = parse_text.get_next_page(link)
         except Exception as e:
             log['link'] = link
@@ -172,11 +173,15 @@ class Ao3:
             currentchapters = parse_soup.get_current_chapters(thesoup)
             if int(currentchapters) <= int(chapters):
                 return False
-        
+
         pattern = self.fileops.get_ini_value(strings.INI_NAME_PATTERN, strings.INI_DEFAULT_NAME_PATTERN)
+        pattern_subdir = self.fileops.get_ini_value(strings.INI_DIRNAME_PATTERN, strings.INI_DEFAULT_DIRNAME_PATTERN)
         maximum = self.fileops.get_ini_value_integer(strings.INI_NAME_LENGTH, strings.INI_DEFAULT_NAME_LENGTH)
-        title = parse_soup.get_title(thesoup, work_url, pattern)
-        filename = parse_text.get_valid_filename(title, maximum)
+        title = parse_soup.get_title(thesoup, work_url, pattern, pattern_subdir)
+        # title is a tuple: (file, dir)
+        filename = parse_text.get_valid_filename(title[0], maximum)
+        if title[1]:
+            filename = os.path.join(parse_text.get_valid_filename(title[1], maximum), filename)
         log['title'] = title
         log['workskin'] = parse_soup.has_custom_skin(thesoup)
 
@@ -200,7 +205,7 @@ class Ao3:
                     counter += 1
                 except Exception as e:
                     self.fileops.write_log({
-                        'message': strings.ERROR_IMAGE, 'link': work_url, 'title': title, 
+                        'message': strings.ERROR_IMAGE, 'link': work_url, 'title': title,
                         'img': img, 'error': str(e), 'stacktrace': traceback.format_exc()})
 
         if self.mark:

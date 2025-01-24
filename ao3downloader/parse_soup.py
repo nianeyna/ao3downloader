@@ -84,8 +84,8 @@ def get_work_urls(soup: BeautifulSoup) -> list[str]:
     """Get all links to ao3 works on a page"""
 
     return list(dict.fromkeys(list(
-        map(lambda w: get_full_work_url(w.get('href')), 
-            filter(lambda a : a.get('href') and parse_text.is_work(a.get('href')), 
+        map(lambda w: get_full_work_url(w.get('href')),
+            filter(lambda a : a.get('href') and parse_text.is_work(a.get('href')),
                    soup.select('.index.group a'))))))
 
 
@@ -102,7 +102,7 @@ def get_series_urls(soup: BeautifulSoup, get_all: bool) -> list[str]:
     bookmarks = None if get_all else soup.find_all('li', class_='bookmark')
 
     return list(dict.fromkeys(list(
-        map(lambda w: get_full_series_url(w.get('href')), 
+        map(lambda w: get_full_series_url(w.get('href')),
             filter(lambda a : a.get('href') and is_series(a, get_all, bookmarks),
                    soup.select('.index.group a'))))))
 
@@ -171,7 +171,7 @@ def get_mark_as_read_link(soup: BeautifulSoup) -> str:
                     .get('href'))
     except:
         return None
-    
+
     if not link:
         return None
 
@@ -184,16 +184,21 @@ def has_custom_skin(soup: BeautifulSoup) -> bool:
     return soup.find('ul', class_='work navigation actions').find('li', class_='style') is not None
 
 
-def get_title(soup: BeautifulSoup, link: str, pattern: str) -> str:
+def get_title(soup: BeautifulSoup, link: str, pattern: str, pattern_subdir: str) -> str:
     """Get (non-truncated) filename for the work"""
 
     metadata = get_work_metadata_from_work(soup, link)
 
     for key, value in metadata.items():
         pattern = pattern.replace(f'{{{key}}}', value)
+    pattern = pattern.strip()
 
-    return pattern
+    if isinstance(pattern_subdir, str):
+        for key, value in metadata.items():
+            pattern_subdir = pattern_subdir.replace(f'{{{key}}}', value)
+        pattern_subdir = pattern_subdir.strip()
 
+    return (pattern, pattern_subdir)
 
 def get_work_metadata_from_work(soup: BeautifulSoup, link: str) -> dict:
     metadata = {}
@@ -213,6 +218,7 @@ def get_work_metadata_from_work(soup: BeautifulSoup, link: str) -> dict:
     series_list = list(map(lambda x: get_series_from_span(x), soup.select('dd.series span.series span.position')))
     metadata['series_title'] = str.join(', ', list(map(lambda x: x[0], series_list)))
     metadata['series_index'] = str.join(', ', list(map(lambda x: x[1], series_list)))
+    metadata['series_number'] = str.join(', ', list(map(lambda x: x[2], series_list)))
     return metadata
 
 
@@ -225,13 +231,14 @@ def get_text_or_empty(soup: BeautifulSoup, selector: str) -> str:
         return ''
 
 
-def get_series_from_span(soup: BeautifulSoup) -> tuple[str, str]:
+def get_series_from_span(soup: BeautifulSoup) -> tuple[str, str, str]:
     """Get series title and index from span element"""
 
     series_link = soup.find('a')
+    series_number = parse_text.get_series_number(series_link['href'])
     series_title = series_link.get_text().strip()
     work_index = re.sub(r'\D', '', soup.decode_contents().replace(str(series_link), '')).strip()
-    return series_title, work_index
+    return series_title, work_index, series_number
 
 
 def get_work_metadata_from_list(soup: BeautifulSoup, link: str) -> dict:
@@ -269,7 +276,7 @@ def get_current_chapters(soup: BeautifulSoup) -> str:
 
     index = text.find('/')
     if index == -1: return -1
-    
+
     return parse_text.get_current_chapters(text, index)
 
 
