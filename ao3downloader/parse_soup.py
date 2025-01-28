@@ -84,8 +84,8 @@ def get_work_urls(soup: BeautifulSoup) -> list[str]:
     """Get all links to ao3 works on a page"""
 
     return list(dict.fromkeys(list(
-        map(lambda w: get_full_work_url(w.get('href')),
-            filter(lambda a : a.get('href') and parse_text.is_work(a.get('href')),
+        map(lambda w: get_full_work_url(w.get('href')), 
+            filter(lambda a : a.get('href') and parse_text.is_work(a.get('href')), 
                    soup.select('.index.group a'))))))
 
 
@@ -102,7 +102,7 @@ def get_series_urls(soup: BeautifulSoup, get_all: bool) -> list[str]:
     bookmarks = None if get_all else soup.find_all('li', class_='bookmark')
 
     return list(dict.fromkeys(list(
-        map(lambda w: get_full_series_url(w.get('href')),
+        map(lambda w: get_full_series_url(w.get('href')), 
             filter(lambda a : a.get('href') and is_series(a, get_all, bookmarks),
                    soup.select('.index.group a'))))))
 
@@ -171,7 +171,7 @@ def get_mark_as_read_link(soup: BeautifulSoup) -> str:
                     .get('href'))
     except:
         return None
-
+    
     if not link:
         return None
 
@@ -276,7 +276,7 @@ def get_current_chapters(soup: BeautifulSoup) -> str:
 
     index = text.find('/')
     if index == -1: return -1
-
+    
     return parse_text.get_current_chapters(text, index)
 
 
