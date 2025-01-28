@@ -20,9 +20,11 @@ INI_WAIT_TIME = 'ExtraWaitTime'
 INI_PASSWORD_SAVE = 'SavePassword'
 INI_NAME_LENGTH = 'FileNameLength'
 INI_NAME_PATTERN = 'FileNamePattern'
+INI_DIRNAME_PATTERN = 'DirNamePattern'
 
 INI_DEFAULT_NAME_LENGTH = '50'
 INI_DEFAULT_NAME_PATTERN = '{worknum} {title} - {author}'
+INI_DEFAULT_DIRNAME_PATTERN = '{series_title}'
 
 SETTING_USERNAME = 'username'
 SETTING_PASSWORD = 'password'

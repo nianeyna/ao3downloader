@@ -184,16 +184,21 @@ def has_custom_skin(soup: BeautifulSoup) -> bool:
     return soup.find('ul', class_='work navigation actions').find('li', class_='style') is not None
 
 
-def get_title(soup: BeautifulSoup, link: str, pattern: str) -> str:
+def get_title(soup: BeautifulSoup, link: str, pattern: str, pattern_subdir: str) -> str:
     """Get (non-truncated) filename for the work"""
 
     metadata = get_work_metadata_from_work(soup, link)
 
     for key, value in metadata.items():
         pattern = pattern.replace(f'{{{key}}}', value)
+    pattern = pattern.strip()
 
-    return pattern
+    if isinstance(pattern_subdir, str):
+        for key, value in metadata.items():
+            pattern_subdir = pattern_subdir.replace(f'{{{key}}}', value)
+        pattern_subdir = pattern_subdir.strip()
 
+    return (pattern, pattern_subdir)
 
 def get_work_metadata_from_work(soup: BeautifulSoup, link: str) -> dict:
     metadata = {}
@@ -213,6 +218,7 @@ def get_work_metadata_from_work(soup: BeautifulSoup, link: str) -> dict:
     series_list = list(map(lambda x: get_series_from_span(x), soup.select('dd.series span.series span.position')))
     metadata['series_title'] = str.join(', ', list(map(lambda x: x[0], series_list)))
     metadata['series_index'] = str.join(', ', list(map(lambda x: x[1], series_list)))
+    metadata['series_number'] = str.join(', ', list(map(lambda x: x[2], series_list)))
     return metadata
 
 
@@ -225,13 +231,14 @@ def get_text_or_empty(soup: BeautifulSoup, selector: str) -> str:
         return ''
 
 
-def get_series_from_span(soup: BeautifulSoup) -> tuple[str, str]:
+def get_series_from_span(soup: BeautifulSoup) -> tuple[str, str, str]:
     """Get series title and index from span element"""
 
     series_link = soup.find('a')
+    series_number = parse_text.get_series_number(series_link['href'])
     series_title = series_link.get_text().strip()
     work_index = re.sub(r'\D', '', soup.decode_contents().replace(str(series_link), '')).strip()
-    return series_title, work_index
+    return series_title, work_index, series_number
 
 
 def get_work_metadata_from_list(soup: BeautifulSoup, link: str) -> dict:

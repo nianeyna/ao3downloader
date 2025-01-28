@@ -142,6 +142,7 @@ class Ao3:
                 self.fileops.write_log({'starting': link})
                 for work_url in work_urls:
                     self.download_recursive(work_url, log, visited)
+                self.fileops.write_log({'ending': link})
                 link = parse_text.get_next_page(link)
         except Exception as e:
             log['link'] = link
@@ -174,9 +175,13 @@ class Ao3:
                 return False
         
         pattern = self.fileops.get_ini_value(strings.INI_NAME_PATTERN, strings.INI_DEFAULT_NAME_PATTERN)
+        pattern_subdir = self.fileops.get_ini_value(strings.INI_DIRNAME_PATTERN, strings.INI_DEFAULT_DIRNAME_PATTERN)
         maximum = self.fileops.get_ini_value_integer(strings.INI_NAME_LENGTH, strings.INI_DEFAULT_NAME_LENGTH)
-        title = parse_soup.get_title(thesoup, work_url, pattern)
-        filename = parse_text.get_valid_filename(title, maximum)
+        title = parse_soup.get_title(thesoup, work_url, pattern, pattern_subdir)
+        # title is a tuple: (file, dir)
+        filename = parse_text.get_valid_filename(title[0], maximum)
+        if title[1]:
+            filename = os.path.join(parse_text.get_valid_filename(title[1], maximum), filename)
         log['title'] = title
         log['workskin'] = parse_soup.has_custom_skin(thesoup)
 
