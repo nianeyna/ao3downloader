@@ -158,5 +158,6 @@ ERROR_FIC_IN_SERIES = 'Problem parsing file while checking for fics in series'
 ERROR_REDOWNLOAD = 'Error processing file for re-download'
 ERROR_IMAGE = 'Problem getting image'
 ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be complete.'
+ERROR_HTTP_GET = 'Error encountered while getting page'
 
 # endregion
