@@ -15,6 +15,24 @@ from ao3downloader import exceptions, parse_soup, parse_text, strings
 from ao3downloader.fileio import FileOps
 
 
+class LoggingRetry(Retry):
+    """Custom retry class to log retries."""
+
+    def __init__(self, fileOps: FileOps, *args, **kwargs):
+        self.fileOps = fileOps
+        super().__init__(*args, **kwargs)
+
+    def increment(self, *args, **kwargs):
+        try:
+            url = args[0].url
+            error = args[1]
+            message = f'Retrying request. Attempt {self.total}.'
+            self.fileops.write_log({'link': url, 'message': message, 'error': str(error), 'stacktrace': ''.join(traceback.TracebackException.from_exception(error).format())})
+        except Exception as e:
+            self.fileOps.write_log({'message': 'Error encountered while logging retry attempt', 'error': str(e), 'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format())})
+        return super().increment(*args, **kwargs)
+
+
 class Repository:
 
     headers = {'user-agent': 'ao3downloader +nianeyna@gmail.com'}
@@ -24,10 +42,21 @@ class Repository:
         self.fileops = fileops
         self.session = requests.Session()
         self.extra_wait = int(fileops.get_ini_value(strings.INI_WAIT_TIME, '0'))
-        retries = Retry(total=None, backoff_factor=0.1, backoff_max=30, allowed_methods=frozenset(['GET', 'POST']))
+
+        # Configure retry strategy
+        retry_args = {
+            'total': None,
+            'backoff_factor': 0.1,
+            'backoff_max': 30,
+            'allowed_methods': frozenset(['GET', 'POST']),
+            'status_forcelist': frozenset([500, 502, 503, 504]),
+        }
+        if fileops.get_ini_value_boolean('EnableDebugLogging', False):
+            retries = LoggingRetry(fileops, **retry_args)
+        else:
+            retries = Retry(**retry_args)
         adapter = requests.adapters.HTTPAdapter(max_retries=retries)
-        self.session.mount('http://', adapter)
-        self.session.mount('https://', adapter)
+        self.session.mount(strings.AO3_BASE_URL, adapter)
 
 
     def __enter__(self):
