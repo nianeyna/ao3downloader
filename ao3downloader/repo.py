@@ -18,19 +18,25 @@ from ao3downloader.fileio import FileOps
 class LoggingRetry(Retry):
     """Custom retry class to log retries."""
 
-    def __init__(self, fileOps: FileOps, *args, **kwargs):
-        self.fileOps = fileOps
+    def __init__(self, fileops: FileOps, *args, **kwargs):
+        self.fileops = fileops
         super().__init__(*args, **kwargs)
 
-    def increment(self, *args, **kwargs):
+    def new(self, *args, **kwargs):
+        return LoggingRetry(self.fileops, *args, **kwargs)
+
+    def increment(self, method=None, url=None, response=None, error=None, _pool=None, _stacktrace=None):
         try:
-            url = args[0].url
-            error = args[1]
-            message = f'Retrying request. Attempt {self.total}.'
-            self.fileops.write_log({'link': url, 'message': message, 'error': str(error), 'stacktrace': ''.join(traceback.TracebackException.from_exception(error).format())})
+            message = f'Retrying request'
+            if error:
+                self.fileops.write_log({'link': url, 'message': message, 'error': str(error), 'stacktrace': ''.join(traceback.TracebackException.from_exception(error).format())})
+            elif response and response.status:
+                self.fileops.write_log({'link': url, 'message': message, 'error': str(response.status)})
+            else:
+                self.fileops.write_log({'link': url, 'message': message})
         except Exception as e:
-            self.fileOps.write_log({'message': 'Error encountered while logging retry attempt', 'error': str(e), 'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format())})
-        return super().increment(*args, **kwargs)
+            self.fileops.write_log({'message': 'Error encountered while logging retry attempt', 'error': str(e), 'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format())})
+        return super().increment(method, url, response, error, _pool, _stacktrace)
 
 
 class Repository:
@@ -49,7 +55,7 @@ class Repository:
             'backoff_factor': 0.1,
             'backoff_max': 30,
             'allowed_methods': frozenset(['GET', 'POST']),
-            'status_forcelist': frozenset([500, 502, 503, 504]),
+            'status_forcelist': frozenset([500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 530]),
         }
         if fileops.get_ini_value_boolean('EnableDebugLogging', False):
             retries = LoggingRetry(fileops, **retry_args)
