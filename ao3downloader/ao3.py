@@ -91,20 +91,18 @@ class Ao3:
                     link = parse_text.get_next_page(link)
         elif strings.AO3_BASE_URL in link:
             while True:
-                self.fileops.write_log({'starting': link})
+                self.fileops.write_log({'link': link, 'message': strings.INFO_STARTING_PAGE, 'level': 'debug'})
                 thesoup = self.repo.get_soup(link)
                 urls = parse_soup.get_work_and_series_urls(thesoup, self.series)
                 if len(urls) == 0:
-                    if self.debug:
-                        self.fileops.write_log({'link': link, 'message': 'ending link scrape because no work or series urls were found on page'})
+                    if self.debug: self.fileops.write_log({'link': link, 'message': strings.INFO_NO_WORKS_ON_PAGE, 'level': 'debug'})
                     break
                 for url in urls:
                     self.get_work_links_recursive(links_list, url, visited_series, metadata, thesoup)
                 link = parse_text.get_next_page(link)
                 pagenum = parse_text.get_page_number(link)
                 if self.pages and pagenum == self.pages + 1:
-                    if self.debug:
-                        self.fileops.write_log({'link': link, 'message': 'ending link scrape because page limit was reached'})
+                    if self.debug: self.fileops.write_log({'link': link, 'message': strings.INFO_PAGE_LIMIT_REACHED, 'level': 'debug'})
                     break
                 print(strings.INFO_FINISHED_PAGE.format(str(pagenum - 1), str(pagenum)))
         else:
@@ -124,16 +122,20 @@ class Ao3:
             self.download_series(link, log, visited)        
         elif strings.AO3_BASE_URL in link:
             while True:
+                self.fileops.write_log({'link': link, 'message': strings.INFO_STARTING_PAGE, 'level': 'debug'})
                 thesoup = self.repo.get_soup(link)
                 urls = parse_soup.get_work_and_series_urls(thesoup, self.series)
-                if len(urls) == 0: break
-                self.fileops.write_log({'starting': link})
+                if len(urls) == 0: 
+                    if self.debug: self.fileops.write_log({'link': link, 'message': strings.INFO_NO_WORKS_ON_PAGE, 'level': 'debug'})
+                    break
                 for url in urls:
                     self.download_recursive(url, log, visited)
                 if not self.mark:
                     link = parse_text.get_next_page(link)
                     pagenum = parse_text.get_page_number(link)
-                    if self.pages and pagenum == self.pages + 1: break
+                    if self.pages and pagenum == self.pages + 1:
+                        if self.debug: self.fileops.write_log({'link': link, 'message': strings.INFO_PAGE_LIMIT_REACHED, 'level': 'debug'})
+                        break
                     print(strings.INFO_FINISHED_PAGE.format(str(pagenum - 1), str(pagenum)))
         else:
             raise exceptions.InvalidLinkException(strings.ERROR_INVALID_LINK)
@@ -148,7 +150,7 @@ class Ao3:
                 series_soup = self.proceed(series_soup)
                 work_urls = parse_soup.get_work_urls(series_soup)
                 if len(work_urls) == 0: break
-                self.fileops.write_log({'starting': link})
+                if self.debug: self.fileops.write_log({'link': link, 'message': strings.INFO_STARTING_PAGE, 'level': 'debug'})
                 for work_url in work_urls:
                     self.download_recursive(work_url, log, visited)
                 link = parse_text.get_next_page(link)
