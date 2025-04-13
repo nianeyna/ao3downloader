@@ -132,6 +132,7 @@ MESSAGE_SUCCESS = 'Successful {} request with status code {}'
 
 # region ao3 scraping
 
+AO3_DOMAIN = 'archiveofourown.org'
 AO3_BASE_URL = 'https://archiveofourown.org'
 AO3_LOGIN_URL = 'https://archiveofourown.org/users/login'
 

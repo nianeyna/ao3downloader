@@ -72,7 +72,7 @@ class Repository:
 
     def my_request_inner(self, method: str, url: str, attempt: int = 0, data: dict[str, str] = None) -> requests.Response:
 
-        should_retry = self.max_retries == 0 or attempt <= self.max_retries
+        should_retry = strings.AO3_DOMAIN in url.lower() and self.max_retries == 0 or attempt <= self.max_retries
         retry_delay = self.get_delay(attempt)
         attempt += 1
 
