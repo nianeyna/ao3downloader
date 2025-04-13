@@ -214,7 +214,7 @@ class Ao3:
 
         if self.mark:
             marklink = parse_soup.get_mark_as_read_link(thesoup)
-            if marklink: self.repo.my_get(marklink)
+            if marklink: self.repo.my_request('GET', marklink)
 
         return True
 

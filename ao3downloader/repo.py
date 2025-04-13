@@ -8,68 +8,24 @@ from time import sleep
 import requests
 from bs4 import BeautifulSoup
 from requests import codes
-import requests.adapters
-from urllib3 import Retry
 
 from ao3downloader import exceptions, parse_soup, parse_text, strings
 from ao3downloader.fileio import FileOps
 
 
-class LoggingRetry(Retry):
-    """Custom retry class to log retries."""
-
-    def __init__(self, fileops: FileOps, *args, **kwargs):
-        self.fileops = fileops
-        super().__init__(*args, **kwargs)
-
-    def new(self, *args, **kwargs):
-        return LoggingRetry(self.fileops, *args, **kwargs)
-
-    def increment(self, method=None, url=None, response=None, error=None, _pool=None, _stacktrace=None):
-        try:
-            if error:
-                self.fileops.write_log({'link': url, 'message': strings.MESSAGE_RETRY.format(method), 'error': str(error), 'stacktrace': ''.join(traceback.TracebackException.from_exception(error).format())})
-            elif response and response.status:
-                self.fileops.write_log({'link': url, 'message': strings.MESSAGE_RETRY.format(method), 'error': str(response.status)})
-            else:
-                self.fileops.write_log({'link': url, 'message': strings.MESSAGE_RETRY.format(method)})
-        except Exception as e:
-            self.fileops.write_log({'message': strings.ERROR_RETRY_LOG, 'error': str(e), 'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format())})
-        return super().increment(method, url, response, error, _pool, _stacktrace)
-
-
 class Repository:
 
     headers = {'user-agent': 'ao3downloader +nianeyna@gmail.com'}
+    retry_statuses = frozenset([500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 530])
+    retry_initial_delay = 0.1
+    retry_max_delay = 30
 
     def __init__(self, fileops: FileOps) -> None:
         self.fileops = fileops
         self.session = requests.Session()
         self.debug = fileops.get_ini_value_boolean(strings.INI_DEBUG_LOGGING, False)
-        self.extra_wait = int(fileops.get_ini_value(strings.INI_WAIT_TIME, '0'))
-
-        total_retries = fileops.get_ini_value_integer(strings.INI_MAX_RETRIES, 0)
-
-        # Configure retry strategy
-        retry_args = {
-            'total': None if total_retries == 0 else total_retries,
-            'connect': None,
-            'read': None,
-            'status': None,
-            'redirect': None,
-            'other': None,
-            'backoff_factor': 0.1,
-            'backoff_max': 30,
-            'allowed_methods': frozenset(['GET', 'POST']),
-            'status_forcelist': frozenset([500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 530]),
-        }
-        if self.debug:
-            retries = LoggingRetry(fileops, **retry_args)
-        else:
-            retries = Retry(**retry_args)
-        adapter = requests.adapters.HTTPAdapter(max_retries=retries)
-        self.session.mount(strings.AO3_BASE_URL, adapter)
-
+        self.extra_wait = fileops.get_ini_value_integer(strings.INI_WAIT_TIME, 0)
+        self.max_retries = fileops.get_ini_value_integer(strings.INI_MAX_RETRIES, 0)
 
     def __enter__(self):
         return self
@@ -82,7 +38,7 @@ class Repository:
     def get_xml(self, url: str) -> ET.Element:
         """Get XML object from a url."""
 
-        content = self.my_get(url).content
+        content = self.my_request('GET', url).content
         xml = ET.XML(content)
         return xml
 
@@ -90,7 +46,7 @@ class Repository:
     def get_soup(self, url: str) -> BeautifulSoup:
         """Get BeautifulSoup object from a url."""
 
-        html = self.my_get(url).text
+        html = self.my_request('GET', url).text
         soup = BeautifulSoup(html, 'html.parser')
         return soup
 
@@ -98,15 +54,38 @@ class Repository:
     def get_book(self, url: str) -> bytes:
         """Get content from url. Intended for downloading works from ao3."""
 
-        response = self.my_get(url).content
+        response = self.my_request('GET', url).content
         return response
 
 
-    def my_get(self, url: str) -> requests.Response:
+    def my_request(self, method: str, url: str, attempt: int = 0, data: dict[str, str] = None) -> requests.Response:
         """Get response from a url."""
 
         try:
-            response = self.session.get(url, headers=self.headers)
+            should_retry = self.max_retries == 0 or attempt <= self.max_retries
+            retry_delay = self.get_delay(attempt)
+            attempt += 1
+            try:
+                response = self.session.request(method, url, data, headers=self.headers)
+            except Exception as e:
+                if should_retry:
+                    if self.debug: self.fileops.write_log(
+                            {'link': url, 'message': strings.MESSAGE_RETRY.format(method, attempt, retry_delay), 
+                             'error': str(e), 'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format())})
+                    sleep(retry_delay)
+                    return self.my_request(method, url, attempt)
+                else:
+                    raise
+
+            if response.status_code in self.retry_statuses:
+                if should_retry:
+                    if self.debug: self.fileops.write_log(
+                            {'link': url, 'message': strings.MESSAGE_RETRY.format(method, attempt, retry_delay), 
+                             'error': str(response.status_code)})
+                    sleep(retry_delay)
+                    return self.my_request(method, url, attempt)
+                else:
+                    raise exceptions.InvalidStatusCodeException(strings.ERROR_INVALID_STATUS_CODE.format(response.status_code))
 
             if response.status_code == codes['too_many_requests']:
                 try:
@@ -119,16 +98,17 @@ class Repository:
                 print(strings.MESSAGE_TOO_MANY_REQUESTS.format(pause_time, now.strftime('%H:%M:%S'), later.strftime('%H:%M:%S')))
                 sleep(pause_time)
                 print(strings.MESSAGE_RESUMING)
-                return self.my_get(url)
-        
+                return self.my_request(method, url, attempt)
+
             if self.extra_wait > 0: sleep(self.extra_wait)
 
-            if self.debug: self.fileops.write_log({'link': url, 'message': strings.MESSAGE_SUCCESS + ' ' + str(response.status_code)})
+            if self.debug: self.fileops.write_log(
+                {'link': url, 'message': strings.MESSAGE_SUCCESS.format(method, response.status_code)})
 
             return response
-        
+
         except Exception as e:
-            self.fileops.write_log({'link': url, 'message': strings.ERROR_HTTP_GET, 'error': str(e), 
+            self.fileops.write_log({'link': url, 'message': strings.ERROR_HTTP_REQUEST, 'error': str(e),
                                     'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format())})
             raise
 
@@ -139,7 +119,14 @@ class Repository:
         soup = self.get_soup(strings.AO3_LOGIN_URL)
         token = parse_soup.get_token(soup)
         payload = parse_text.get_payload(username, password, token)
-        response = self.session.post(strings.AO3_LOGIN_URL, data=payload, headers=self.headers)
+        response = self.my_request('POST', strings.AO3_LOGIN_URL, data=payload)
         soup = BeautifulSoup(response.text, 'html.parser')
         if not soup or parse_soup.is_failed_login(soup):
             raise exceptions.LoginException(strings.ERROR_FAILED_LOGIN)
+
+
+    def get_delay(self, attempt: int) -> float:
+        delay = self.retry_initial_delay * (2 ** attempt)
+        if delay > self.retry_max_delay:
+            return self.retry_max_delay
+        return delay

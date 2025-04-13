@@ -122,8 +122,8 @@ MESSAGE_RESUMING = 'resuming execution'
 MESSAGE_INCOMPLETE_FIC = 'found incomplete fic'
 MESSAGE_FIC_FILE = 'found fic file'
 MESSAGE_SERIES_FILE = 'found work in series'
-MESSAGE_RETRY = 'Retrying {} request'
-MESSAGE_SUCCESS = 'Successful GET request'
+MESSAGE_RETRY = 'Retrying {} request. Attempt {}. {} seconds until next attempt.'
+MESSAGE_SUCCESS = 'Successful {} request with status code {}'
 
 # endregion
 
@@ -163,7 +163,7 @@ ERROR_FIC_IN_SERIES = 'Problem parsing file while checking for fics in series'
 ERROR_REDOWNLOAD = 'Error processing file for re-download'
 ERROR_IMAGE = 'Problem getting image'
 ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be complete.'
-ERROR_HTTP_GET = 'Error encountered while getting page'
-ERROR_RETRY_LOG = 'Error encountered while logging retry attempt. This is a bug! Please report it.'
+ERROR_HTTP_REQUEST = 'Unrecoverable error encountered while making web request'
+ERROR_INVALID_STATUS_CODE = 'Request failed with status code {}'
 
 # endregion
