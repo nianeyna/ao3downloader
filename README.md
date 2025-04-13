@@ -4,7 +4,7 @@ I've just published a new version of the script that should be MUCH more resilie
 
 Note that the script will, of course, still be slower than it used to be. I can't conjure server capacity out of thin air, nor would I ever make any attempt to circumvent measures put into place by ao3 to preserve their site's technical integrity. I can only work around the limitations that exist - in this case, by automating the process of patiently trying again... and again... and again.
 
-If you use the new version, as usual, please do report any odd behavior you may encounter. I've done my best to shake out the wrinkles, but I've had to change some pretty key parts of the script and that always comes with the risk of introducting new bugs. Thanks in advance, and thank you all as well for your patience while I worked on this update.
+If you use the new version, as usual, please do report any odd behavior you may encounter. I've done my best to shake out the wrinkles, but I've had to change some pretty key parts of the script and that always comes with the risk of introducing new bugs. Thanks in advance, and thank you all as well for your patience while I worked on this update.
 
 ## What is this?
 
