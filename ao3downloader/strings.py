@@ -20,6 +20,8 @@ INI_WAIT_TIME = 'ExtraWaitTime'
 INI_PASSWORD_SAVE = 'SavePassword'
 INI_NAME_LENGTH = 'FileNameLength'
 INI_NAME_PATTERN = 'FileNamePattern'
+INI_DEBUG_LOGGING = 'EnableDebugLogging'
+INI_MAX_RETRIES = 'MaxRetries'
 
 INI_DEFAULT_NAME_LENGTH = '50'
 INI_DEFAULT_NAME_PATTERN = '{worknum} {title} - {author}'
@@ -113,12 +115,15 @@ INFO_NO_FOLDER = 'folder does not exist'
 INFO_EXCLUDING_WORKS = 'filtering out works that are already in the downloads folder'
 INFO_FINISHED_PAGE = 'finished getting page {}. starting page {}'
 INFO_PARSING_LOGS = 'parsing data from log entries with timestamps starting at {} and ending at {}'
+INFO_LINKS_LIST_CANCELED = '\nlink list generation manually canceled. list may not be complete.'
 
 MESSAGE_TOO_MANY_REQUESTS = 'ao3 has requested a {} second break\npaused at: {}\nresuming at: {}'
 MESSAGE_RESUMING = 'resuming execution'
 MESSAGE_INCOMPLETE_FIC = 'found incomplete fic'
 MESSAGE_FIC_FILE = 'found fic file'
 MESSAGE_SERIES_FILE = 'found work in series'
+MESSAGE_RETRY = 'Retrying {} request'
+MESSAGE_SUCCESS = 'Successful GET request'
 
 # endregion
 
@@ -159,5 +164,6 @@ ERROR_REDOWNLOAD = 'Error processing file for re-download'
 ERROR_IMAGE = 'Problem getting image'
 ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be complete.'
 ERROR_HTTP_GET = 'Error encountered while getting page'
+ERROR_RETRY_LOG = 'Error encountered while logging retry attempt. This is a bug! Please report it.'
 
 # endregion

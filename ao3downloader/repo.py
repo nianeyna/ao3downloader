@@ -27,15 +27,14 @@ class LoggingRetry(Retry):
 
     def increment(self, method=None, url=None, response=None, error=None, _pool=None, _stacktrace=None):
         try:
-            message = f'Retrying request'
             if error:
-                self.fileops.write_log({'link': url, 'message': message, 'error': str(error), 'stacktrace': ''.join(traceback.TracebackException.from_exception(error).format())})
+                self.fileops.write_log({'link': url, 'message': strings.MESSAGE_RETRY.format(method), 'error': str(error), 'stacktrace': ''.join(traceback.TracebackException.from_exception(error).format())})
             elif response and response.status:
-                self.fileops.write_log({'link': url, 'message': message, 'error': str(response.status)})
+                self.fileops.write_log({'link': url, 'message': strings.MESSAGE_RETRY.format(method), 'error': str(response.status)})
             else:
-                self.fileops.write_log({'link': url, 'message': message})
+                self.fileops.write_log({'link': url, 'message': strings.MESSAGE_RETRY.format(method)})
         except Exception as e:
-            self.fileops.write_log({'message': 'Error encountered while logging retry attempt', 'error': str(e), 'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format())})
+            self.fileops.write_log({'message': strings.ERROR_RETRY_LOG, 'error': str(e), 'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format())})
         return super().increment(method, url, response, error, _pool, _stacktrace)
 
 
@@ -43,21 +42,23 @@ class Repository:
 
     headers = {'user-agent': 'ao3downloader +nianeyna@gmail.com'}
 
-
     def __init__(self, fileops: FileOps) -> None:
         self.fileops = fileops
         self.session = requests.Session()
+        self.debug = fileops.get_ini_value_boolean(strings.INI_DEBUG_LOGGING, False)
         self.extra_wait = int(fileops.get_ini_value(strings.INI_WAIT_TIME, '0'))
+
+        total_retries = fileops.get_ini_value_integer(strings.INI_MAX_RETRIES, 0)
 
         # Configure retry strategy
         retry_args = {
-            'total': None,
+            'total': None if total_retries == 0 else total_retries,
             'backoff_factor': 0.1,
             'backoff_max': 30,
             'allowed_methods': frozenset(['GET', 'POST']),
             'status_forcelist': frozenset([500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 530]),
         }
-        if fileops.get_ini_value_boolean('EnableDebugLogging', False):
+        if self.debug:
             retries = LoggingRetry(fileops, **retry_args)
         else:
             retries = Retry(**retry_args)
@@ -100,7 +101,7 @@ class Repository:
         """Get response from a url."""
 
         try:
-            response = self.session.get(url, headers=self.headers, timeout=(30, 30))
+            response = self.session.get(url, headers=self.headers)
 
             if response.status_code == codes['too_many_requests']:
                 try:
@@ -117,7 +118,10 @@ class Repository:
         
             if self.extra_wait > 0: sleep(self.extra_wait)
 
+            if self.debug: self.fileops.write_log({'link': url, 'message': strings.MESSAGE_SUCCESS + ' ' + str(response.status_code)})
+
             return response
+        
         except Exception as e:
             self.fileops.write_log({'link': url, 'message': strings.ERROR_HTTP_GET, 'error': str(e), 
                                     'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format())})
