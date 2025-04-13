@@ -53,6 +53,11 @@ class Repository:
         # Configure retry strategy
         retry_args = {
             'total': None if total_retries == 0 else total_retries,
+            'connect': None,
+            'read': None,
+            'status': None,
+            'redirect': None,
+            'other': None,
             'backoff_factor': 0.1,
             'backoff_max': 30,
             'allowed_methods': frozenset(['GET', 'POST']),
