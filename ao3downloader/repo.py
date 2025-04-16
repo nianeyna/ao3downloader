@@ -21,6 +21,7 @@ class Repository:
     retry_initial_delay = 0.1
     retry_max_delay = 30
 
+
     def __init__(self, fileops: FileOps) -> None:
         self.fileops = fileops
         self.session = requests.Session()
@@ -28,11 +29,14 @@ class Repository:
         self.extra_wait = fileops.get_ini_value_integer(strings.INI_WAIT_TIME, 0)
         self.max_retries = fileops.get_ini_value_integer(strings.INI_MAX_RETRIES, 0)
 
+
     def __enter__(self):
         return self
 
+
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.session.close()
+
 
     def get_xml(self, url: str) -> ET.Element:
         """Get XML object from a url."""
@@ -41,6 +45,7 @@ class Repository:
         xml = ET.XML(content)
         return xml
 
+
     def get_soup(self, url: str) -> BeautifulSoup:
         """Get BeautifulSoup object from a url."""
 
@@ -48,11 +53,13 @@ class Repository:
         soup = BeautifulSoup(html, 'html.parser')
         return soup
 
+
     def get_book(self, url: str) -> bytes:
         """Get content from url. Intended for downloading works from ao3."""
 
         response = self.my_request('GET', url).content
         return response
+
 
     def my_request(self, method: str, url: str, data: dict[str, str] = None) -> requests.Response:
         """Get response from a url."""
@@ -71,6 +78,7 @@ class Repository:
                      'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format()), 
                      'level': 'debug'})
             raise
+
 
     def my_request_inner(self, method: str, url: str, attempt: int = 0, data: dict[str, str] = None) -> requests.Response:
 
@@ -122,6 +130,7 @@ class Repository:
 
         return response
 
+
     def login(self, username: str, password: str):
         """Login to ao3."""
 
@@ -130,8 +139,10 @@ class Repository:
         payload = parse_text.get_payload(username, password, token)
         response = self.my_request('POST', strings.AO3_LOGIN_URL, payload)
         soup = BeautifulSoup(response.text, 'html.parser')
-        if not soup or parse_soup.is_failed_login(soup):
+        if not soup: raise Exception(strings.ERROR_FAILED_LOGIN) # raise normal exception type
+        if parse_soup.is_failed_login(soup): # raise exception type that indicates we should clear username and password data
             raise exceptions.LoginException(strings.ERROR_FAILED_LOGIN)
+
 
     def get_delay(self, attempt: int) -> float:
         delay = self.retry_initial_delay * (2 ** attempt)
