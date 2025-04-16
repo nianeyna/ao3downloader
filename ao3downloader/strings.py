@@ -20,6 +20,8 @@ INI_WAIT_TIME = 'ExtraWaitTime'
 INI_PASSWORD_SAVE = 'SavePassword'
 INI_NAME_LENGTH = 'FileNameLength'
 INI_NAME_PATTERN = 'FileNamePattern'
+INI_DEBUG_LOGGING = 'EnableDebugLogging'
+INI_MAX_RETRIES = 'MaxRetries'
 
 INI_DEFAULT_NAME_LENGTH = '50'
 INI_DEFAULT_NAME_PATTERN = '{worknum} {title} - {author}'
@@ -111,19 +113,26 @@ IGNORELIST_PROMPT_CHECK_DELETED = 'do you want to check the log file for deleted
 INFO_NO_LOG_FILE = 'no log file'
 INFO_NO_FOLDER = 'folder does not exist'
 INFO_EXCLUDING_WORKS = 'filtering out works that are already in the downloads folder'
+INFO_STARTING_PAGE = 'starting page'
 INFO_FINISHED_PAGE = 'finished getting page {}. starting page {}'
 INFO_PARSING_LOGS = 'parsing data from log entries with timestamps starting at {} and ending at {}'
+INFO_LINKS_LIST_CANCELED = '\nlink list generation manually canceled. list may not be complete.'
+INFO_NO_WORKS_ON_PAGE = 'ending scrape because no work or series urls were found on page'
+INFO_PAGE_LIMIT_REACHED = 'ending scrape because page limit was reached'
 
 MESSAGE_TOO_MANY_REQUESTS = 'ao3 has requested a {} second break\npaused at: {}\nresuming at: {}'
 MESSAGE_RESUMING = 'resuming execution'
 MESSAGE_INCOMPLETE_FIC = 'found incomplete fic'
 MESSAGE_FIC_FILE = 'found fic file'
 MESSAGE_SERIES_FILE = 'found work in series'
+MESSAGE_RETRY = 'Retrying {} request. Attempt {}. {} seconds until next attempt.'
+MESSAGE_SUCCESS = 'Successful {} request with status code {}'
 
 # endregion
 
 # region ao3 scraping
 
+AO3_DOMAIN = 'archiveofourown.org'
 AO3_BASE_URL = 'https://archiveofourown.org'
 AO3_LOGIN_URL = 'https://archiveofourown.org/users/login'
 
@@ -158,5 +167,7 @@ ERROR_FIC_IN_SERIES = 'Problem parsing file while checking for fics in series'
 ERROR_REDOWNLOAD = 'Error processing file for re-download'
 ERROR_IMAGE = 'Problem getting image'
 ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be complete.'
+ERROR_HTTP_REQUEST = 'Unrecoverable error encountered while making web request'
+ERROR_INVALID_STATUS_CODE = 'Request failed with status code {}'
 
 # endregion

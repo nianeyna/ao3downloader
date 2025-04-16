@@ -240,7 +240,8 @@ def get_last_page_downloaded(fileops: FileOps) -> str:
     latest = None
     try:
         logs = fileops.load_logfile()
-        starts = filter(lambda x: 'starting' in x, logs)
+        starts = filter(lambda x: x and 'message' in x and x['message'] == strings.INFO_STARTING_PAGE, logs)
+        if not starts: starts = filter(lambda x: 'starting' in x, logs) # backwards compatibility
         bydate = sorted(starts, key=lambda x: datetime.datetime.strptime(x['timestamp'], '%m/%d/%Y, %H:%M:%S'), reverse=True)
         if bydate: latest = bydate[0]
     except Exception as e:
@@ -250,6 +251,6 @@ def get_last_page_downloaded(fileops: FileOps) -> str:
     if latest:
         print(strings.AO3_PROMPT_LAST_PAGE)
         if input() == strings.PROMPT_YES:
-            link = latest['starting']
+            link = latest['link'] if 'link' in latest else latest['starting']
 
     return link

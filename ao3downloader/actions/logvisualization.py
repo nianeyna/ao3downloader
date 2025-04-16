@@ -43,11 +43,12 @@ def action():
 
             for line in buf:
                 js = json.loads(line)
-                if 'starting' not in js:
-                    for key in js:
-                        if key not in keys:
-                            keys.append(key)
-                    data.append(js)
+                if 'level' in js and js['level'] == 'debug': continue
+                if 'starting' in js: continue # backwards compatibility
+                for key in js:
+                    if key not in keys:
+                        keys.append(key)
+                data.append(js)
 
             for item in data:
                 for key in keys:

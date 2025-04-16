@@ -21,9 +21,13 @@ class DownloadException(Ao3DownloaderException):
     pass
 
 
+class LoginException(Ao3DownloaderException):
+    pass
+
+
 class InvalidLinkException(Ao3DownloaderException):
     pass
 
 
-class LoginException(Ao3DownloaderException):
+class InvalidStatusCodeException(Ao3DownloaderException):
     pass
