@@ -169,5 +169,6 @@ ERROR_IMAGE = 'Problem getting image'
 ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be complete.'
 ERROR_HTTP_REQUEST = 'Unrecoverable error encountered while making web request'
 ERROR_INVALID_STATUS_CODE = 'Request failed with status code {}'
+ERROR_TIMEOUT = 'Request exceeded the timeout limit of {} seconds'
 
 # endregion

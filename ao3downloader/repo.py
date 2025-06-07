@@ -16,6 +16,7 @@ from ao3downloader.fileio import FileOps
 class Repository:
 
     headers = {'user-agent': 'ao3downloader +nianeyna@gmail.com'}
+    timeout = 60
 
     retry_statuses = frozenset([500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 530])
     retry_initial_delay = 0.1
@@ -64,71 +65,61 @@ class Repository:
     def my_request(self, method: str, url: str, data: dict[str, str] = None) -> requests.Response:
         """Get response from a url."""
 
-        try:
-            response = self.my_request_inner(method, url, data=data)
+        attempt = 0
+
+        while True:
+            should_retry = strings.AO3_DOMAIN in url.lower() and (self.max_retries == 0 or attempt < self.max_retries)
+            retry_delay = self.get_delay(attempt)
+
+            try:
+                try:
+                    response = self.session.request(method, url, data, headers=self.headers, timeout=self.timeout)
+                except requests.exceptions.Timeout as e: # raw timeout exceptions are way too verbose
+                    raise exceptions.TimeoutException(strings.ERROR_TIMEOUT.format(self.timeout)) from e
+            except Exception as e:
+                if should_retry:
+                    attempt += 1
+                    self.log_error(url, strings.MESSAGE_RETRY.format(method, attempt, retry_delay), e)
+                    sleep(retry_delay)
+                    continue
+                else:
+                    self.log_error(url, strings.ERROR_HTTP_REQUEST, e)
+                    raise
+
+            if response.status_code in self.retry_statuses:
+                if should_retry:
+                    attempt += 1
+                    if self.debug:
+                        self.fileops.write_log(
+                            {'link': url, 'message': strings.MESSAGE_RETRY.format(method, attempt, retry_delay),
+                             'error': str(response.status_code), 'level': 'debug'})
+                    sleep(retry_delay)
+                    continue
+                else:
+                    raise exceptions.InvalidStatusCodeException(strings.ERROR_INVALID_STATUS_CODE.format(response.status_code))
+
+            if response.status_code == codes['too_many_requests']:
+                try:
+                    pause_time = int(response.headers['retry-after'])
+                except:
+                    pause_time = 300  # default to 5 minutes in case there was a problem getting retry-after
+                if pause_time <= 0:
+                    pause_time = 300  # default to 5 minutes if retry-after is an invalid value
+                now = datetime.datetime.now()
+                later = now + datetime.timedelta(0, pause_time)
+                print(strings.MESSAGE_TOO_MANY_REQUESTS.format(pause_time, now.strftime('%H:%M:%S'), later.strftime('%H:%M:%S')))
+                sleep(pause_time)
+                print(strings.MESSAGE_RESUMING)
+                continue
+
+            if self.extra_wait > 0: sleep(self.extra_wait)
+
             if self.debug:
                 self.fileops.write_log(
                     {'link': url, 'message': strings.MESSAGE_SUCCESS.format(method, response.status_code), 
                      'level': 'debug'})
+                
             return response
-        except Exception as e:
-            if self.debug:
-                self.fileops.write_log(
-                    {'link': url, 'message': strings.ERROR_HTTP_REQUEST, 'error': str(e),
-                     'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format()), 
-                     'level': 'debug'})
-            raise
-
-
-    def my_request_inner(self, method: str, url: str, attempt: int = 0, data: dict[str, str] = None) -> requests.Response:
-
-        should_retry = strings.AO3_DOMAIN in url.lower() and (self.max_retries == 0 or attempt < self.max_retries)
-        retry_delay = self.get_delay(attempt)
-        attempt += 1
-
-        try:
-            response = self.session.request(method, url, data, headers=self.headers)
-        except Exception as e:
-            if should_retry:
-                if self.debug:
-                    self.fileops.write_log(
-                        {'link': url, 'message': strings.MESSAGE_RETRY.format(method, attempt, retry_delay),
-                         'error': str(e), 'stacktrace': ''.join(traceback.TracebackException.from_exception(e).format()),
-                         'level': 'debug'})
-                sleep(retry_delay)
-                return self.my_request_inner(method, url, attempt, data)
-            else:
-                raise
-
-        if response.status_code in self.retry_statuses:
-            if should_retry:
-                if self.debug:
-                    self.fileops.write_log(
-                        {'link': url, 'message': strings.MESSAGE_RETRY.format(method, attempt, retry_delay),
-                         'error': str(response.status_code), 'level': 'debug'})
-                sleep(retry_delay)
-                return self.my_request_inner(method, url, attempt, data)
-            else:
-                raise exceptions.InvalidStatusCodeException(strings.ERROR_INVALID_STATUS_CODE.format(response.status_code))
-
-        if response.status_code == codes['too_many_requests']:
-            try:
-                pause_time = int(response.headers['retry-after'])
-            except:
-                pause_time = 300  # default to 5 minutes in case there was a problem getting retry-after
-            if pause_time <= 0:
-                pause_time = 300  # default to 5 minutes if retry-after is an invalid value
-            now = datetime.datetime.now()
-            later = now + datetime.timedelta(0, pause_time)
-            print(strings.MESSAGE_TOO_MANY_REQUESTS.format(pause_time, now.strftime('%H:%M:%S'), later.strftime('%H:%M:%S')))
-            sleep(pause_time)
-            print(strings.MESSAGE_RESUMING)
-            attempt -= 1 # kind of messy, but we don't want to count this against the retry limit
-            return self.my_request_inner(method, url, attempt, data)
-
-        if self.extra_wait > 0: sleep(self.extra_wait)
-
-        return response
 
 
     def login(self, username: str, password: str):
@@ -149,3 +140,11 @@ class Repository:
         if delay > self.retry_max_delay:
             return self.retry_max_delay
         return delay
+
+
+    def log_error(self, url: str, message: str, error: Exception):
+        if not self.debug: return
+        log = {'link': url, 'message': message, 'error': str(error), 'level': 'debug'}
+        if not isinstance(error, exceptions.Ao3DownloaderException):
+            log['stacktrace'] = ''.join(traceback.TracebackException.from_exception(error).format())
+        self.fileops.write_log(log)

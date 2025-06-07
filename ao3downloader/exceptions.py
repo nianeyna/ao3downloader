@@ -5,6 +5,10 @@ class Ao3DownloaderException(Exception):
     pass
 
 
+class TimeoutException(Ao3DownloaderException):
+    pass
+
+
 class LockedException(Ao3DownloaderException):
     pass
 
