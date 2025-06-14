@@ -1,3 +1,9 @@
+**PSA: The [Troubleshooting](#troubleshooting) section of this readme exists and I swear to you it's not bullshit. If you encounter problems with the script DO THE TROUBLESHOOTING STEPS before giving up and/or sending a bug report. Thank you! 🙏**
+
+## What is this?
+
+This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard.
+
 ## Special Announcement
 
 I've just published a new version of the script that should be MUCH more resilient to errors and instability. My hope is that this will make ao3's [new bot restrictions](https://www.transformativeworks.org/intermittent-site-slowness-and-errors/) completely invisible to you as a user, allowing you to peacefully ignore them 😌 
@@ -5,12 +11,6 @@ I've just published a new version of the script that should be MUCH more resilie
 Note that the script will, of course, still be slower than it used to be. I can't conjure server capacity out of thin air, nor would I ever make any attempt to circumvent measures put into place by ao3 to preserve their site's technical integrity. I can only work around the limitations that exist - in this case, by automating the process of patiently trying again... and again... and again.
 
 If you use the new version, as usual, please do report any odd behavior you may encounter. I've done my best to shake out the wrinkles, but I've had to change some pretty key parts of the script and that always comes with the risk of introducing new bugs. Thanks in advance, and thank you all as well for your patience while I worked on this update.
-
-## What is this?
-
-This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard.
-
-**PSA: The [Troubleshooting](#troubleshooting) section of this readme exists and I swear to you it's not bullshit. If you encounter problems with the script DO THE TROUBLESHOOTING STEPS before giving up and/or sending a bug report. Thank you! 🙏**
 
 ## Table of Contents
 
@@ -35,6 +35,8 @@ As of May 14, 2022 I have reduced the maximum length of file and folder names ge
 As of September 16, 2022 I have very regretfully removed the series subfolders option, due to the fact that it was causing a huge amount of unnecessary repeated downloads even for people who weren't using it.
 
 As of January 17, 2023 I have changed how file names are generated (again). All file names will now be prefixed with the work id. This is to fix the problem where fics with the same title and author would sometimes overwrite each other in the downloads folder. I have also removed the fandom from the file name, because it was usually gettting cut off by the path length restriction, anyway.
+
+As of June 14, 2025 I have returned the power of series subfolders to you, along with many other subfolder options! Check out the <!--CHECK-->settings.ini<!--INI_FILE_NAME--> file to learn more.
 
 ## Instructions
 

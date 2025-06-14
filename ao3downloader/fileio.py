@@ -81,10 +81,10 @@ class FileOps:
         return logs
 
 
-    def file_exists(self, id: str, titles: dict[str, str], filetypes: list[str], maximum: int) -> bool:
+    def file_exists(self, id: str, titles: dict[str, list[str]], filetypes: list[str], maximum: int) -> bool:
         if id not in titles: return False
         filename = parse_text.get_valid_filename(titles[id], maximum)
-        files = list(map(lambda x: os.path.join(self.downloadfolder, filename + '.' + x.lower()), filetypes))
+        files = list(map(lambda x: os.path.join(self.downloadfolder, filename + parse_text.get_file_type(x)), filetypes))
         for file in files:
             if not os.path.exists(file):
                 return False

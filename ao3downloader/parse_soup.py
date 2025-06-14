@@ -184,15 +184,20 @@ def has_custom_skin(soup: BeautifulSoup) -> bool:
     return soup.find('ul', class_='work navigation actions').find('li', class_='style') is not None
 
 
-def get_title(soup: BeautifulSoup, link: str, pattern: str) -> str:
+def get_title(soup: BeautifulSoup, link: str, pattern: str) -> list[str]:
     """Get (non-truncated) filename for the work"""
 
+    result = []
     metadata = get_work_metadata_from_work(soup, link)
+    split_pattern = pattern.split('/')
+    
+    for part in split_pattern:
+        part_result = part
+        for key, value in metadata.items():
+            part_result = part_result.replace(f'{{{key}}}', value)
+        result.append(part_result)
 
-    for key, value in metadata.items():
-        pattern = pattern.replace(f'{{{key}}}', value)
-
-    return pattern
+    return result
 
 
 def get_work_metadata_from_work(soup: BeautifulSoup, link: str) -> dict:

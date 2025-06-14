@@ -18,10 +18,14 @@
   ])
 # ---
 # name: test_get_title
-  "id:12345678 title:so I open the window to hear sounds of people author:oriflamme fandom:The Locked Tomb Series | Gideon the Ninth Series - Tamsyn Muir pairing: rating:Teen And Up Audiences warning:No Archive Warnings Apply category:Gen words:5688 chapters:1 language:English published:2022-09-20 updated: series_title:it's about the bones 👌 series_index:3"
+  list([
+    "id:12345678 title:so I open the window to hear sounds of people author:oriflamme fandom:The Locked Tomb Series | Gideon the Ninth Series - Tamsyn Muir pairing: rating:Teen And Up Audiences warning:No Archive Warnings Apply category:Gen words:5688 chapters:1 language:English published:2022-09-20 updated: series_title:it's about the bones 👌 series_index:3",
+  ])
 # ---
 # name: test_get_title_multiple_series
-  'AO3 Skins, :has() selector 1, 1 Fandom - Fandom, AO3, No Fandom'
+  list([
+    'AO3 Skins, :has() selector 1, 1 Fandom - Fandom, AO3, No Fandom',
+  ])
 # ---
 # name: test_get_work_urls
   list([

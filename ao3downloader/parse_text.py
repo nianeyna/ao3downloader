@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from ao3downloader import strings
 
@@ -14,7 +15,14 @@ def get_pinboard_url(api_token: str, date: datetime.datetime) -> str:
         return strings.POSTS_FROM_DATE_URL.format(api_token, timestamp)
 
 
-def get_valid_filename(filename: str, maximum: int) -> str:
+def get_valid_filename(filename: list[str], maximum: int) -> str:
+    valid_path = list(filter(lambda x: x, [get_valid_filepath(segment, maximum) for segment in filename]))
+    if len(valid_path) == 0: return ''
+    if len(valid_path) == 1: return valid_path[0]
+    return os.path.join(*valid_path)
+
+
+def get_valid_filepath(filename: str, maximum: int) -> str:
     valid_name = filename.translate({ord(i):None for i in strings.INVALID_FILENAME_CHARACTERS})
     if maximum == 0: return valid_name.strip()
     return valid_name[:maximum].strip()
@@ -120,13 +128,14 @@ def get_payload(username: str, password: str, token: str) -> dict[str, str]:
     return payload
 
 
-def get_title_dict(logs: list[dict]) -> dict[str, str]:
+def get_title_dict(logs: list[dict]) -> dict[str, list[str]]:
     dictionary = {}
     titles = filter(lambda x: 'title' in x and 'link' in x, logs)
     for obj in list(titles):
         link = obj['link']
         if link not in dictionary:
             title = obj['title']
+            if not isinstance(title, list): title = [title]
             dictionary[link] = title
     return dictionary
 
