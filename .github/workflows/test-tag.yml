@@ -25,7 +25,7 @@ jobs:
 
       - name: get current version
         run: |
-          response=$(curl -s -w "status:%{http_code}" "$api_url")
+          response=$(curl -s -w "status:%{http_code}" "${{ env.api_url }}")
           body=$(echo "$response" | sed -e 's/status\:.*//g')
           status=$(echo "$response" | tr -d '\n' | sed -e 's/.*status://')
           if [ "$status" -eq 200 ]; then
@@ -35,7 +35,7 @@ jobs:
             version="0.0.0"
             echo "current_version=$version" >> $GITHUB_ENV
           else
-            echo "Failed to fetch current version from $api_url with status $status"
+            echo "Failed to fetch current version from ${{ env.api_url }} with status $status"
             exit 1
           fi
 
