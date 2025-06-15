@@ -70,7 +70,7 @@ jobs:
         run: |
           uv_version=$(uv version --short)
           if [[ "${{ env.new_version }}" == "$uv_version" ]]; then
-            echo "new_number=$(( ${{ env.new_version_number }} + 1 ))" >> $GITHUB_ENV
+            echo "new_version_number=$(( ${{ env.new_version_number }} + 1 ))" >> $GITHUB_ENV
             echo "new_version=${{ env.new_version_prefix }}.${{ env.new_version_number }}" >> $GITHUB_ENV
           fi
 
