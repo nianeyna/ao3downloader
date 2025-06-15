@@ -54,14 +54,18 @@ jobs:
           today=$(date -u +%Y.%-m)
           echo "new_version_prefix=$today" >> $GITHUB_ENV
 
-      - name: calculate new version
+      - name: calculate new version number
         run: |
           if [[ "${{ env.current_version_prefix }}" == "${{ env.new_version_prefix }}" ]]; then
             new_number=$(( ${current_version_number} + 1 ))
+            echo "new_version_number=$new_number" >> $GITHUB_ENV
           else
             new_number=0
+            echo "new_version_number=$new_number" >> $GITHUB_ENV
           fi
-          echo "new_version_number=$new_number" >> $GITHUB_ENV
+
+      - name: calculate new version
+        run: |
           new_version="${{ env.new_version_prefix }}.${{ env.new_version_number }}"
           echo "new_version=$new_version" >> $GITHUB_ENV
 
@@ -73,8 +77,12 @@ jobs:
           uv_version=$(uv version --short)
           if [[ "${{ env.new_version }}" == "$uv_version" ]]; then
             echo "new_version_number=$(( ${{ env.new_version_number }} + 1 ))" >> $GITHUB_ENV
-            echo "new_version=${{ env.new_version_prefix }}.${{ env.new_version_number }}" >> $GITHUB_ENV
           fi
+
+      - name: recalculate new version
+        run: |
+          new_version="${{ env.new_version_prefix }}.${{ env.new_version_number }}"
+          echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: set version with uv
         run: uv version ${{ env.new_version }}
