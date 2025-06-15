@@ -50,6 +50,7 @@ jobs:
       - name: get new version prefix from today's date
         run: |
           today=$(date -u +%Y.%-m)
+          echo $today
           echo "new_version_prefix=$today" >> $GITHUB_ENV
 
       - name: calculate new version
@@ -57,7 +58,7 @@ jobs:
           if [[ "${{ env.current_version_prefix }}" == "${{ env.new_version_prefix }}" ]]; then
             new_number=$(( ${current_version_number} + 1 ))
           else
-            new_number=1
+            new_number=0
           fi
           echo "new_version_number=$new_number" >> $GITHUB_ENV
           new_version="${{ env.new_version_prefix }}.${{ env.new_version_number }}"
