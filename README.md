@@ -1,4 +1,4 @@
-## THIS IS A PRE-RELEASE BRANCH AND IS UNDER DEVELOPMENT. README MAY NOT BE ACCURATE.
+## THIS IS A PRE-RELEASE BRANCH AND IS UNDER DEVELOPMENT. README MAY NOT BE ACCURATE. 
 
 **PSA: The [Troubleshooting](#troubleshooting) section of this readme exists and I swear to you it's not bullshit. If you encounter problems with the script DO THE TROUBLESHOOTING STEPS before giving up and/or sending a bug report. Thank you! 🙏**
 
