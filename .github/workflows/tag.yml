@@ -1,0 +1,89 @@
+name: create tagged release
+
+on: 
+  workflow_dispatch:
+    inputs:
+      release_description:
+        description: 'Short description for the tagged release'
+        required: true
+
+env:
+  api_url: https://pypi.org/pypi/ao3downloader/json
+  current_version: ''
+  current_version_prefix: ''
+  current_version_number: ''
+  new_version_prefix: ''
+  new_version: ''
+  tag_name: ''
+
+jobs:
+  tag:
+    name: create tagged release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: get current version
+        run: |
+          response=$(curl -s -w "status:%{http_code}" "$api_url")
+          body=$(echo "$response" | sed -e 's/status\:.*//g')
+          status=$(echo "$response" | tr -d '\n' | sed -e 's/.*status://')
+          if [ "$status" -eq 200 ]; then
+            version=$(echo "$body" | jq -r '.info.version')
+            echo "current_version=$version" >> $GITHUB_ENV
+          else if [ "$status" -eq 404 ]; then
+            version="0.0.0"
+            echo "current_version=$version" >> $GITHUB_ENV
+          else
+            echo "Failed to fetch current version from $api_url with status $status"
+            exit 1
+          fi
+
+      - name: get current version variables
+        run: |
+          if [[ "${{ env.current_version }}" =~ ^([0-9]{1,4})\.([0-9]{1,2})\.([0-9]+) ]]; then
+            echo "current_version_prefix=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}" >> $GITHUB_ENV
+            echo "current_version_number=${BASH_REMATCH[3]}" >> $GITHUB_ENV
+          fi
+      
+      - name: get new version prefix from today's date
+        run: |
+          today=$(date -u +%Y.%-m)
+          echo "new_version_prefix=$today" >> $GITHUB_ENV
+
+      - name: calculate new version
+        run: |
+          if [[ "${{ env.current_version_prefix }}" == "${{ env.new_version_prefix }}" ]]; then
+            new_number=$(( ${current_version_number} + 1 ))
+          else
+            new_number=0
+          fi
+          new_version="${{ env.new_version_prefix }}.${new_number}"
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: set version with uv
+        run: uv version ${{ env.new_version }}
+
+      - name: commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml
+          git commit -m "Bump version to ${{ env.new_version }}"
+
+      - name: set tag name
+        run: |
+          echo "tag_name=v${{ env.new_version }}" >> $GITHUB_ENV
+
+      - name: create tag
+        run: git tag "${{ env.tag_name }}" -m "${{ github.event.inputs.release_description }}"
+
+      - name: push commit and tag
+        run: |
+          git push origin HEAD:main
+          git push origin "${{ env.tag_name }}"

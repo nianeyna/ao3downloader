@@ -1,0 +1,55 @@
+[project]
+name = "ao3downloader"
+version = "0.0.0"
+description = "Utility for downloading fanfiction in bulk from the Archive of Our Own"
+readme = "README.md"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+requires-python = ">=3.9.0"
+authors = [
+    { name = "nianeyna", email = "nianeyna@gmail.com" }
+]
+keywords = [
+    "ao3",
+    "archive of our own",
+    "fanfiction",
+    "downloader",
+    "bulk download",
+    "ao3 downloader",
+]
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "ebooklib>=0.19",
+    "mobi>=0.3.3",
+    "pdfquery>=0.4.3",
+    "requests>=2.32.4",
+    "tqdm>=4.67.1",
+]
+
+[project.scripts]
+ao3downloader = "ao3downloader:main.ao3downloader"
+
+[project.urls]
+Homepage = "https://nianeyna.dev/ao3downloader"
+Repository = "https://github.com/nianeyna/ao3downloader"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-cov>=6.2.1",
+    "syrupy>=4.9.1",
+]
+
+[options.package-data]
+ao3downloader.html = ["*.html"]
+ao3downloader.settings = ["*.ini"]
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true

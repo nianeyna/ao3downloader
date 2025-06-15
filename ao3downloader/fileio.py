@@ -2,6 +2,7 @@
 
 import configparser
 import datetime
+import importlib
 import json
 import os
 
@@ -12,6 +13,10 @@ class FileOps:
     def __init__(self):
         if not os.path.exists(strings.LOG_FOLDER_NAME): os.mkdir(strings.LOG_FOLDER_NAME)
         if not os.path.exists(strings.DOWNLOAD_FOLDER_NAME): os.mkdir(strings.DOWNLOAD_FOLDER_NAME)
+        if not os.path.exists(strings.INI_FILE_NAME):
+            with importlib.resources.open_text(strings.SETTINGS_FOLDER_NAME, strings.INI_FILE_NAME) as f:
+                with open(strings.INI_FILE_NAME, 'w', encoding='utf-8') as ini_file:
+                    ini_file.write(f.read())
         self.logfile = os.path.join(strings.LOG_FOLDER_NAME, strings.LOG_FILE_NAME)
         self.inifile = strings.INI_FILE_NAME
         self.settingsfile = strings.SETTINGS_FILE_NAME

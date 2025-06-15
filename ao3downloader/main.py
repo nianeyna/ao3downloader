@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import ao3downloader.strings as strings
 
 from ao3downloader.actions import ao3download
@@ -104,11 +102,12 @@ actions = {
     'i': ignorelist_action
     }
 
-display_menu()
+def ao3downloader():
+    display_menu()
 
-while True:
-    print('\'{}\' to display the menu again'.format(MENU_ACTION))
-    print('please enter your choice, or \'{}\' to quit:'.format(QUIT_ACTION))
-    choice = input()
-    if choice == QUIT_ACTION: break
-    choose(choice)
+    while True:
+        print('\'{}\' to display the menu again'.format(MENU_ACTION))
+        print('please enter your choice, or \'{}\' to quit:'.format(QUIT_ACTION))
+        choice = input()
+        if choice == QUIT_ACTION: break
+        choose(choice)
