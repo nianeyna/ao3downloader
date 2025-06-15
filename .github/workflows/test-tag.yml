@@ -31,7 +31,7 @@ jobs:
           if [ "$status" -eq 200 ]; then
             version=$(echo "$body" | jq -r '.info.version')
             echo "current_version=$version" >> $GITHUB_ENV
-          else if [ "$status" -eq 404 ]; then
+          elif [ "$status" -eq 404 ]; then
             version="0.0.0"
             echo "current_version=$version" >> $GITHUB_ENV
           else
