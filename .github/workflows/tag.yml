@@ -13,6 +13,7 @@ env:
   current_version_prefix: ''
   current_version_number: ''
   new_version_prefix: ''
+  new_version_number: ''
   new_version: ''
   tag_name: ''
 
@@ -60,11 +61,20 @@ jobs:
           else
             new_number=0
           fi
-          new_version="${{ env.new_version_prefix }}.${new_number}"
+          echo "new_version_number=$new_number" >> $GITHUB_ENV
+          new_version="${{ env.new_version_prefix }}.${{ env.new_version_number }}"
           echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: install uv
         uses: astral-sh/setup-uv@v5
+      
+      - name: increment version number if it is identical to the uv version
+        run: |
+          uv_version=$(uv version --short)
+          if [[ "${{ env.new_version }}" == "$uv_version" ]]; then
+            echo "new_number=${{ env.new_version_number }} + 1" >> $GITHUB_ENV
+            echo "new_version=${{ env.new_version_prefix }}.${{ env.new_version_number }}" >> $GITHUB_ENV
+          fi
 
       - name: set version with uv
         run: uv version ${{ env.new_version }}
