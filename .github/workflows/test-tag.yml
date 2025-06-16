@@ -131,7 +131,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.tag_name }}
+          ref: ${{ github.ref_name }}
 
       - name: setup
         uses: astral-sh/setup-uv@v5
