@@ -13,9 +13,6 @@ jobs:
     name: bump version
     runs-on: ubuntu-latest
 
-    outputs:
-      new_version: ${{ steps.set_version.outputs.new_version }}
-
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -116,9 +113,18 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
+      - name: install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: get current version
+        id: current_version
+        run: |
+          uv_version=$(uv version --short)
+          echo "current_version=$uv_version" >> $GITHUB_OUTPUT
+
       - name: set tag name
         id: set_tag
-        run: echo "tag_name=prerelease-${{ needs.bump.outputs.new_version }}" >> $GITHUB_OUTPUT
+        run: echo "tag_name=prerelease-${{ steps.current_version.outputs.current_version }}" >> $GITHUB_OUTPUT
 
       - name: create tag
         run: git tag "${{ steps.set_tag.outputs.tag_name }}"
