@@ -16,8 +16,8 @@ env:
   tag_name: ''
 
 jobs:
-  tag:
-    name: create tagged prerelease
+  bump:
+    name: bump version
     runs-on: ubuntu-latest
 
     steps:
@@ -93,6 +93,21 @@ jobs:
           git add pyproject.toml
           git commit -m "Bump version to ${{ env.new_version }}"
 
+      - name: push commit
+        run: |
+          git push origin HEAD:${{ github.ref_name }}
+
+  tag:
+    name: tag
+    needs: bump
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
       - name: set tag name
         run: |
           echo "tag_name=prerelease-${{ env.new_version }}" >> $GITHUB_ENV
@@ -100,9 +115,8 @@ jobs:
       - name: create tag
         run: git tag "${{ env.tag_name }}"
 
-      - name: push commit and tag
+      - name: push tag
         run: |
-          git push origin HEAD:${{ github.ref_name }}
           git push origin "${{ env.tag_name }}"
 
   publish:
