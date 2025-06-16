@@ -86,7 +86,8 @@ jobs:
         run: |
           new_version="${{ env.new_version_prefix }}.${{ env.new_version_number }}"
           echo "new_version=$new_version" >> $GITHUB_ENV
-
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+          
       - name: set version with uv
         run: uv version ${{ env.new_version }}
 
@@ -117,15 +118,14 @@ jobs:
 
       - name: set tag name
         id: set_tag
-        run: |
-          echo "tag_name=prerelease-${{ needs.bump.outputs.new_version }}" >> $GITHUB_ENV
+        run: echo "tag_name=prerelease-${{ needs.bump.outputs.new_version }}" >> $GITHUB_OUTPUT
 
       - name: create tag
-        run: git tag "${{ env.tag_name }}"
+        run: git tag "${{ steps.set_tag.outputs.tag_name }}"
 
       - name: push tag
         run: |
-          git push origin "${{ env.tag_name }}"
+          git push origin "${{ steps.set_tag.outputs.tag_name }}"
 
   publish:
     name: publish
