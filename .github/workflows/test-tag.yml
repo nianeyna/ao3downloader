@@ -53,7 +53,7 @@ jobs:
         id: new_version_number
         run: |
           if [[ "${{ steps.get_current_version_vars.outputs.current_version_prefix }}" == "${{ steps.new_version_prefix.outputs.new_version_prefix }}" ]]; then
-            new_number=$(( ${{ steps.get_current_version_vars.outputs.get_current_version_vars.current_version_number}} + 1 ))
+            new_number=$(( ${{ steps.get_current_version_vars.outputs.current_version_number}} + 1 ))
             echo "new_version_number=$new_number" >> $GITHUB_OUTPUT
           else
             new_number=0
