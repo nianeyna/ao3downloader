@@ -20,6 +20,9 @@ jobs:
     name: bump version
     runs-on: ubuntu-latest
 
+    outputs:
+      new_version: ${{ steps.set_version.outputs.new_version }}
+
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -79,6 +82,7 @@ jobs:
           fi
 
       - name: recalculate new version
+        id: set_version
         run: |
           new_version="${{ env.new_version_prefix }}.${{ env.new_version_number }}"
           echo "new_version=$new_version" >> $GITHUB_ENV
@@ -101,6 +105,9 @@ jobs:
     name: tag
     needs: bump
     runs-on: ubuntu-latest
+    
+    outputs:
+      tag_name: ${{ steps.set_tag.outputs.tag_name }}
 
     steps:
       - name: checkout
@@ -109,8 +116,9 @@ jobs:
           ref: ${{ github.ref_name }}
 
       - name: set tag name
+        id: set_tag
         run: |
-          echo "tag_name=prerelease-${{ env.new_version }}" >> $GITHUB_ENV
+          echo "tag_name=prerelease-${{ needs.bump.outputs.new_version }}" >> $GITHUB_ENV
 
       - name: create tag
         run: git tag "${{ env.tag_name }}"
@@ -131,7 +139,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ needs.tag.outputs.tag_name }}
 
       - name: setup
         uses: astral-sh/setup-uv@v5
