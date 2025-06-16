@@ -7,13 +7,6 @@ on:
 
 env:
   api_url: https://test.pypi.org/pypi/ao3downloader/json
-  current_version: ''
-  current_version_prefix: ''
-  current_version_number: ''
-  new_version_prefix: ''
-  new_version_number: ''
-  new_version: ''
-  tag_name: ''
 
 jobs:
   bump:
@@ -28,75 +21,82 @@ jobs:
         uses: actions/checkout@v4
 
       - name: get current version
+        id: current_version
         run: |
           response=$(curl -s -w "status:%{http_code}" "${{ env.api_url }}")
           body=$(echo "$response" | sed -e 's/status\:.*//g')
           status=$(echo "$response" | tr -d '\n' | sed -e 's/.*status://')
           if [ "$status" -eq 200 ]; then
             version=$(echo "$body" | jq -r '.info.version')
-            echo "current_version=$version" >> $GITHUB_ENV
+            echo "current_version=$version" >> $GITHUB_OUTPUT
           elif [ "$status" -eq 404 ]; then
             version="0.0.0"
-            echo "current_version=$version" >> $GITHUB_ENV
+            echo "current_version=$version" >> $GITHUB_OUTPUT
           else
             echo "Failed to fetch current version from ${{ env.api_url }} with status $status"
             exit 1
           fi
 
       - name: get current version variables
+        id: get_current_version_vars
         run: |
-          if [[ "${{ env.current_version }}" =~ ^([0-9]{1,4})\.([0-9]{1,2})\.([0-9]+) ]]; then
-            echo "current_version_prefix=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}" >> $GITHUB_ENV
-            echo "current_version_number=${BASH_REMATCH[3]}" >> $GITHUB_ENV
+          if [[ "${{ steps.current_version.outputs.current_version }}" =~ ^([0-9]{1,4})\.([0-9]{1,2})\.([0-9]+) ]]; then
+            echo "current_version_prefix=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
+            echo "current_version_number=${BASH_REMATCH[3]}" >> $GITHUB_OUTPUT
           fi
 
       - name: get new version prefix from today's date
+        id: new_version_prefix
         run: |
           today=$(date -u +%Y.%-m)
           echo $today
-          echo "new_version_prefix=$today" >> $GITHUB_ENV
+          echo "new_version_prefix=$today" >> $GITHUB_OUTPUT
 
       - name: calculate new version number
+        id: new_version_number
         run: |
-          if [[ "${{ env.current_version_prefix }}" == "${{ env.new_version_prefix }}" ]]; then
-            new_number=$(( ${current_version_number} + 1 ))
-            echo "new_version_number=$new_number" >> $GITHUB_ENV
+          if [[ "${{ steps.get_current_version_vars.outputs.current_version_prefix }}" == "${{ steps.new_version_prefix.outputs.new_version_prefix }}" ]]; then
+            new_number=$(( ${{ steps.get_current_version_vars.outputs.get_current_version_vars.current_version_number}} + 1 ))
+            echo "new_version_number=$new_number" >> $GITHUB_OUTPUT
           else
             new_number=0
-            echo "new_version_number=$new_number" >> $GITHUB_ENV
+            echo "new_version_number=$new_number" >> $GITHUB_OUTPUT
           fi
 
       - name: calculate new version
+        id: new_version
         run: |
-          new_version="${{ env.new_version_prefix }}.${{ env.new_version_number }}"
-          echo "new_version=$new_version" >> $GITHUB_ENV
+          new_version="${{ steps.new_version_prefix.outputs.new_version_prefix }}.${{ steps.new_version_number.outputs.new_version_number }}"
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
 
       - name: install uv
         uses: astral-sh/setup-uv@v5
 
       - name: increment version number if it is identical to the uv version
+        id: increment_version_number
         run: |
           uv_version=$(uv version --short)
-          if [[ "${{ env.new_version }}" == "$uv_version" ]]; then
-            echo "new_version_number=$(( ${{ env.new_version_number }} + 1 ))" >> $GITHUB_ENV
+          if [[ "${{ steps.new_version.outputs.new_version }}" == "$uv_version" ]]; then
+            echo "new_version_number=$(( ${{ steps.new_version_number.outputs.new_version_number }} + 1 ))" >> $GITHUB_OUTPUT
+          else
+            echo "new_version_number=${{ steps.new_version_number.outputs.new_version_number }}" >> $GITHUB_OUTPUT
           fi
 
       - name: recalculate new version
         id: set_version
         run: |
-          new_version="${{ env.new_version_prefix }}.${{ env.new_version_number }}"
-          echo "new_version=$new_version" >> $GITHUB_ENV
+          new_version="${{ steps.new_version_prefix.outputs.new_version_prefix }}.${{ steps.increment_version_number.outputs.new_version_number }}"
           echo "new_version=$new_version" >> $GITHUB_OUTPUT
-          
+
       - name: set version with uv
-        run: uv version ${{ env.new_version }}
+        run: uv version ${{ steps.set_version.outputs.new_version }}
 
       - name: commit version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pyproject.toml
-          git commit -m "Bump version to ${{ env.new_version }}"
+          git commit -m "Bump version to ${{ steps.set_version.outputs.new_version }}"
 
       - name: push commit
         run: |
