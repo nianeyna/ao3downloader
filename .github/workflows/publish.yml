@@ -7,6 +7,9 @@ on:
         description: 'Short description for the release'
         required: true
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   publish:
     name: publish

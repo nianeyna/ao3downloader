@@ -90,6 +90,13 @@ git add pyproject.toml
 git add uv.lock
 git commit -m "Bump version to $new_version"
 
+remote_url=$(git remote get-url origin)
+if [[ "$remote_url" =~ ^https:// ]]; then
+    cleaned_url=$(echo "$remote_url" | sed -E 's#https://[^/@]+@#https://#')
+    authed_url=$(echo "$cleaned_url" | sed -E "s#https://#https://x-access-token:${GITHUB_TOKEN}@#")
+    git remote set-url origin "$authed_url"
+fi
+
 git push origin HEAD:"$branch_name"
 git pull origin "$branch_name"
 
