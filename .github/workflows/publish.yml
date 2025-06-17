@@ -1,9 +1,11 @@
 name: publish
 
-on:
-  push:
-    tags:
-      - 'v*'
+on: 
+  workflow_dispatch:
+    inputs:
+      release_description:
+        description: 'Short description for the release'
+        required: true
 
 jobs:
   publish:
@@ -20,8 +22,5 @@ jobs:
       - name: setup
         uses: astral-sh/setup-uv@v5
 
-      - name: build
-        run: uv build
-
-      - name: publish
-        run: uv publish
+      - name: run script
+        run: bash publish.sh "v" "${{ github.event.inputs.release_description }}" "main"

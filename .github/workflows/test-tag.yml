@@ -1,141 +1,13 @@
-name: create tagged prerelease
+name: test publish
 
 on:
   push:
     branches:
       - uv
 
-env:
-  api_url: https://test.pypi.org/pypi/ao3downloader/json
-
 jobs:
-  bump:
-    name: bump version
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: get current version
-        id: current_version
-        run: |
-          response=$(curl -s -w "status:%{http_code}" "${{ env.api_url }}")
-          body=$(echo "$response" | sed -e 's/status\:.*//g')
-          status=$(echo "$response" | tr -d '\n' | sed -e 's/.*status://')
-          if [ "$status" -eq 200 ]; then
-            version=$(echo "$body" | jq -r '.info.version')
-            echo "current_version=$version" >> $GITHUB_OUTPUT
-          elif [ "$status" -eq 404 ]; then
-            version="0.0.0"
-            echo "current_version=$version" >> $GITHUB_OUTPUT
-          else
-            echo "Failed to fetch current version from ${{ env.api_url }} with status $status"
-            exit 1
-          fi
-
-      - name: get current version variables
-        id: get_current_version_vars
-        run: |
-          if [[ "${{ steps.current_version.outputs.current_version }}" =~ ^([0-9]{1,4})\.([0-9]{1,2})\.([0-9]+) ]]; then
-            echo "current_version_prefix=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
-            echo "current_version_number=${BASH_REMATCH[3]}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: get new version prefix from today's date
-        id: new_version_prefix
-        run: |
-          today=$(date -u +%Y.%-m)
-          echo $today
-          echo "new_version_prefix=$today" >> $GITHUB_OUTPUT
-
-      - name: calculate new version number
-        id: new_version_number
-        run: |
-          if [[ "${{ steps.get_current_version_vars.outputs.current_version_prefix }}" == "${{ steps.new_version_prefix.outputs.new_version_prefix }}" ]]; then
-            new_number=$(( ${{ steps.get_current_version_vars.outputs.current_version_number}} + 1 ))
-            echo "new_version_number=$new_number" >> $GITHUB_OUTPUT
-          else
-            new_number=0
-            echo "new_version_number=$new_number" >> $GITHUB_OUTPUT
-          fi
-
-      - name: calculate new version
-        id: new_version
-        run: |
-          new_version="${{ steps.new_version_prefix.outputs.new_version_prefix }}.${{ steps.new_version_number.outputs.new_version_number }}"
-          echo "new_version=$new_version" >> $GITHUB_OUTPUT
-
-      - name: install uv
-        uses: astral-sh/setup-uv@v5
-
-      - name: increment version number if it is identical to the uv version
-        id: increment_version_number
-        run: |
-          uv_version=$(uv version --short)
-          if [[ "${{ steps.new_version.outputs.new_version }}" == "$uv_version" ]]; then
-            echo "new_version_number=$(( ${{ steps.new_version_number.outputs.new_version_number }} + 1 ))" >> $GITHUB_OUTPUT
-          else
-            echo "new_version_number=${{ steps.new_version_number.outputs.new_version_number }}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: recalculate new version
-        id: set_version
-        run: |
-          new_version="${{ steps.new_version_prefix.outputs.new_version_prefix }}.${{ steps.increment_version_number.outputs.new_version_number }}"
-          echo "new_version=$new_version" >> $GITHUB_OUTPUT
-
-      - name: set version with uv
-        run: uv version ${{ steps.set_version.outputs.new_version }}
-
-      - name: commit version bump
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml
-          git commit -m "Bump version to ${{ steps.set_version.outputs.new_version }}"
-
-      - name: push commit
-        run: |
-          git push origin HEAD:${{ github.ref_name }}
-
-  tag:
-    name: tag
-    needs: bump
-    runs-on: ubuntu-latest
-    
-    outputs:
-      tag_name: ${{ steps.set_tag.outputs.tag_name }}
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-
-      - name: install uv
-        uses: astral-sh/setup-uv@v5
-
-      - name: get current version
-        id: current_version
-        run: |
-          uv_version=$(uv version --short)
-          echo "current_version=$uv_version" >> $GITHUB_OUTPUT
-
-      - name: set tag name
-        id: set_tag
-        run: echo "tag_name=prerelease-${{ steps.current_version.outputs.current_version }}" >> $GITHUB_OUTPUT
-
-      - name: create tag
-        run: git tag "${{ steps.set_tag.outputs.tag_name }}"
-
-      - name: push tag
-        run: |
-          git push origin "${{ steps.set_tag.outputs.tag_name }}"
-
   publish:
     name: publish
-    needs: tag
     runs-on: ubuntu-latest
 
     permissions:
@@ -144,14 +16,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.tag.outputs.tag_name }}
 
-      - name: setup
+      - name: install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: build
-        run: uv build
-
-      - name: publish
-        run: uv publish --index testpypi
+      - name: run script
+        run: bash publish.sh "prerelease-" "Test" "${{ github.ref_name }}" "true"
