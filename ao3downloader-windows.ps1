@@ -3,6 +3,7 @@ if (!(Get-Command uv -ErrorAction SilentlyContinue)) {
     if ($choice -match '^[Yy]$') {
         Write-Host "installing uv..."
         powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+        $env:PATH = "$env:USERPROFILE\.local\bin;$env:PATH"
     } else {
         exit 1
     }

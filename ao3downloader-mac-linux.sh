@@ -5,6 +5,7 @@ if ! command -v uv &> /dev/null; then
     if [[ "$choice" =~ ^[Yy]$ ]]; then
         echo "installing uv..."
         curl -LsSf https://astral.sh/uv/install.sh | sh
+        export PATH="$HOME/.local/bin:$PATH"
     else
         exit 1
     fi
