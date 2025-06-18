@@ -132,7 +132,7 @@ MESSAGE_FIC_FILE = 'found fic file'
 MESSAGE_SERIES_FILE = 'found work in series'
 MESSAGE_RETRY = 'Retrying {} request. Attempt {}. {} seconds until next attempt.'
 MESSAGE_SUCCESS = 'Successful {} request with status code {}'
-MESSAGE_WELCOME = 'welcome to ao3downloader! the script has been initialized in the following directory:\n\t{}\nif you would like to change any settings, you may do so by entering \'{}\' to quit this\nmenu and then editing the file \'{}\' (located at the above folder path)\nbefore running the script again.\n'
+MESSAGE_WELCOME = 'welcome to ao3downloader!\nthe script has been initialized in the following directory:\n\t{}\nif you would like to change any settings, you may do so by entering \'{}\'\nto quit this menu and then editing the file \'{}\'\n(located at the above folder path) before running the script again.\n'
 MESSAGE_EXIT = '\nexiting'
 
 # endregion
