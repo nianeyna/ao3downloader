@@ -1,7 +1,7 @@
 # region file ops
 
 # based on https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
-INVALID_FILENAME_CHARACTERS = '<>:"/\|?*.' + ''.join(chr(i) for i in range(32))
+INVALID_FILENAME_CHARACTERS = r'<>:"/\|?*.' + ''.join(chr(i) for i in range(32))
 TIMESTAMP_FORMAT = '%m/%d/%Y, %H:%M:%S'
 
 DOWNLOAD_FOLDER_NAME = 'downloads'

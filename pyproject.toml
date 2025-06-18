@@ -5,7 +5,7 @@ description = "Utility for downloading fanfiction in bulk from the Archive of Ou
 readme = "README.md"
 license = "GPL-3.0-only"
 license-files = ["LICENSE"]
-requires-python = ">=3.9.0"
+requires-python = ">=3.9,<3.13"
 authors = [
     { name = "nianeyna", email = "nianeyna@gmail.com" }
 ]
