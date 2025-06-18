@@ -16,11 +16,11 @@ $latest_version = (Invoke-RestMethod -Uri "https://test.pypi.org/pypi/ao3downloa
 
 if (-not $current_version) {
     Write-Host "ao3downloader is not installed. installing latest version..."
-    uv tool install --index "https://test.pypi.org/simple/" --index-strategy unsafe-best-match ao3downloader@latest
+    uv tool install --force --index "https://test.pypi.org/simple/" --index-strategy unsafe-best-match ao3downloader@latest
 } elseif ($latest_version -and ($current_version -ne $latest_version)) {
     $choice = Read-Host "a new version of ao3downloader is available ($latest_version, you have $current_version). install the latest version? (y/n)"
     if ($choice -match '^[Yy]$') {
-        uv tool install --index "https://test.pypi.org/simple/" --index-strategy unsafe-best-match ao3downloader@latest
+        uv tool install --force --index "https://test.pypi.org/simple/" --index-strategy unsafe-best-match ao3downloader@latest
     }
 }
 

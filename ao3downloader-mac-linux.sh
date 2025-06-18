@@ -15,11 +15,11 @@ latest_version=$(curl -s https://test.pypi.org/pypi/ao3downloader/json | grep '"
 
 if [[ -z "$current_version" ]]; then
     echo "ao3downloader is not installed. installing latest version..."
-    uv tool install --index https://test.pypi.org/simple/ --index-strategy unsafe-best-match ao3downloader@latest
+    uv tool install --force --index https://test.pypi.org/simple/ --index-strategy unsafe-best-match ao3downloader@latest
 elif [[ "$current_version" != "$latest_version" ]]; then
     read -p "a new version of ao3downloader is available ($latest_version, you have $current_version). install the latest version? (y/n): " choice
     if [[ "$choice" =~ ^[Yy]$ ]]; then
-        uv tool install --index https://test.pypi.org/simple/ --index-strategy unsafe-best-match ao3downloader@latest
+        uv tool install --force --index https://test.pypi.org/simple/ --index-strategy unsafe-best-match ao3downloader@latest
     fi
 fi
 
