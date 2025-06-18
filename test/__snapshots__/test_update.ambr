@@ -1,0 +1,60 @@
+# serializer version: 1
+# name: test_get_epub_preface
+  '''
+  <html:html xmlns:html="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+    <html:head>
+      <html:meta content="ie=edge" http-equiv="x-ua-compatible" />
+      <html:title>My Aim Is Steady And True - nianeyna - Final Fantasy XIV</html:title>
+      <html:meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <html:link rel="stylesheet" type="text/css" href="stylesheet.css" />
+  <html:link rel="stylesheet" type="text/css" href="page_styles.css" />
+  </html:head>
+    <html:body class="calibre">
+  <html:div id="preface" class="calibre1">
+    <html:h2 class="toc-heading" id="calibre_toc_2">Preface</html:h2>
+  
+    <html:p class="message">
+      <html:b class="calibre2">My Aim Is Steady And True</html:b><html:br class="calibre1" />
+      Posted originally on the <html:a href="http://archiveofourown.org/">Archive of Our Own</html:a> at <html:a href="http://archiveofourown.org/works/23009290">http://archiveofourown.org/works/23009290</html:a>.
+    </html:p>
+  
+    <html:div class="calibre1">
+      <html:dl class="tags">
+            <html:dt class="calibre3">Rating:</html:dt>
+            <html:dd class="calibre4"><html:a href="http://archiveofourown.org/tags/Teen%20And%20Up%20Audiences">Teen And Up Audiences</html:a></html:dd>
+            <html:dt class="calibre3">Archive Warning:</html:dt>
+            <html:dd class="calibre4"><html:a href="http://archiveofourown.org/tags/Graphic%20Depictions%20Of%20Violence">Graphic Depictions Of Violence</html:a></html:dd>
+            <html:dt class="calibre3">Category:</html:dt>
+            <html:dd class="calibre4"><html:a href="http://archiveofourown.org/tags/M*s*M">M/M</html:a></html:dd>
+            <html:dt class="calibre3">Fandom:</html:dt>
+            <html:dd class="calibre4"><html:a href="http://archiveofourown.org/tags/Final%20Fantasy%20XIV">Final Fantasy XIV</html:a></html:dd>
+            <html:dt class="calibre3">Relationship:</html:dt>
+            <html:dd class="calibre4"><html:a href="http://archiveofourown.org/tags/Honoroit%20Banlardois*s*Emmanellain%20de%20Fortemps">Honoroit Banlardois/Emmanellain de Fortemps</html:a></html:dd>
+            <html:dt class="calibre3">Characters:</html:dt>
+            <html:dd class="calibre4"><html:a href="http://archiveofourown.org/tags/Honoroit%20Banlardois">Honoroit Banlardois</html:a>, <html:a href="http://archiveofourown.org/tags/Emmanellain%20de%20Fortemps">Emmanellain de Fortemps</html:a></html:dd>
+            <html:dt class="calibre3">Additional Tags:</html:dt>
+            <html:dd class="calibre4"><html:a href="http://archiveofourown.org/tags/Hurt*s*Comfort">Hurt/Comfort</html:a>, <html:a href="http://archiveofourown.org/tags/Stabbing">Stabbing</html:a>, <html:a href="http://archiveofourown.org/tags/Chest%20Wounds">Chest Wounds</html:a>, <html:a href="http://archiveofourown.org/tags/Fantasy%20Medicine">Fantasy Medicine</html:a>, <html:a href="http://archiveofourown.org/tags/Future%20Fic">Future Fic</html:a>, <html:a href="http://archiveofourown.org/tags/Adult!Honoroit">Adult!Honoroit</html:a>, <html:a href="http://archiveofourown.org/tags/Angst%20with%20a%20Happy%20Ending">Angst with a Happy Ending</html:a>, <html:a href="http://archiveofourown.org/tags/Id%20Fic">Id Fic</html:a></html:dd>
+  
+          <html:dt class="calibre3">Language:</html:dt>
+          <html:dd class="calibre4">English</html:dd>
+  
+        <html:dt class="calibre3">Stats:</html:dt>
+        <html:dd class="calibre5">
+          Published: 2020-03-04
+          Words: 4,559
+          Chapters: 1/1
+        </html:dd>
+      </html:dl>
+      </html:div>
+  </html:div>
+  
+  
+  </html:body></html:html>
+  '''
+# ---
+# name: test_process_file_epub_incomplete_work
+  dict({
+    'chapters': '3',
+    'link': 'http://archiveofourown.org/works/218676',
+  })
+# ---

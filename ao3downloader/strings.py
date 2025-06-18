@@ -41,6 +41,8 @@ SETTING_UPDATE_FILETYPES = 'update_filetypes'
 PROMPT_YES = 'y'
 PROMPT_NO = 'n'
 
+PROMPT_MENU = '\'{}\' to display the menu again'
+PROMPT_CHOOSE = 'please enter your choice, or \'{}\' to quit:'
 PROMPT_OPTIONS = 'options'
 PROMPT_INVALID_ACTION = 'please choose a valid action'
 
@@ -65,8 +67,10 @@ PINBOARD_INFO_GETTING_BOOKMARKS = 'getting bookmark urls from pinboard'
 PINBOARD_INFO_NUM_RETURNED = '{} bookmarks returned'
 
 AO3_PROMPT_LOGIN = 'do you want to log in to ao3? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
-AO3_PROMPT_USERNAME = 'please enter username'
-AO3_PROMPT_PASSWORD = 'please enter password'
+AO3_PROMPT_USERNAME = 'please enter username:'
+AO3_PROMPT_PASSWORD = 'NOTE: password {} be saved in the ' + SETTINGS_FILE_NAME + ' file. to change this behavior, quit the script (using ctrl+c or by closing the window) and edit the ' + INI_PASSWORD_SAVE + ' setting in the ' + INI_FILE_NAME + ' file before running the script again\nNOTE: password will not be displayed in this window as you type it in\nplease enter password:'
+AO3_PROMPT_PASSWORD_SAVE_TRUE = 'will'
+AO3_PROMPT_PASSWORD_SAVE_FALSE = 'will not'
 AO3_PROMPT_USE_SAVED_DOWNLOAD_TYPES = 'use saved download type list? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_ACCEPTABLE_DOWNLOAD_TYPES = ['AZW3', 'EPUB', 'MOBI', 'PDF', 'HTML']
 AO3_PROMPT_DOWNLOAD_TYPE = 'please enter download type. choose from the following (case-sensitive):\n' + '\n'.join(AO3_ACCEPTABLE_DOWNLOAD_TYPES)
@@ -128,6 +132,7 @@ MESSAGE_FIC_FILE = 'found fic file'
 MESSAGE_SERIES_FILE = 'found work in series'
 MESSAGE_RETRY = 'Retrying {} request. Attempt {}. {} seconds until next attempt.'
 MESSAGE_SUCCESS = 'Successful {} request with status code {}'
+MESSAGE_WELCOME = 'welcome to ao3downloader! the script has been initialized in the following directory:\n{}\nif you would like to change any settings, you may do so by entering \'{}\' to quit this menu and then editing the file \'{}\' (located at the above folder path) before running the script again.'
 
 # endregion
 
@@ -140,9 +145,6 @@ AO3_LOGIN_URL = 'https://archiveofourown.org/users/login'
 AO3_FAILED_LOGIN = 'The password or user name you entered doesn\'t match our records.'
 AO3_PROCEED = 'Yes, Continue'
 AO3_MARK_READ = 'Mark as Read'
-
-AO3_TITLE = '[Archive of Our Own]'
-AO3_CHAPTER_TITLE = 'Chapter 1 - '
 
 # endregion
 

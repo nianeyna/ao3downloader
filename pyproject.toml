@@ -19,10 +19,10 @@ keywords = [
 ]
 dependencies = [
     "beautifulsoup4>=4.13.4",
-    "ebooklib>=0.19",
     "mobi>=0.3.3",
     "pdfquery>=0.4.3",
     "requests>=2.32.4",
+    "six>=1.17.0",
     "tqdm>=4.67.1",
 ]
 

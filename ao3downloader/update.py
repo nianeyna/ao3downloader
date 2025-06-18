@@ -1,12 +1,11 @@
 import os
 import shutil
 import xml.etree.ElementTree as ET
+import zipfile
 
-import ebooklib
 import mobi
 import pdfquery
 from bs4 import BeautifulSoup
-from ebooklib import epub
 
 from ao3downloader import parse_pdf, parse_soup, parse_text, parse_xml, strings
 
@@ -16,6 +15,8 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
 
     if filetype == 'EPUB':
         xml = get_epub_preface(path)
+        # if the preface is not found at the expected location, we assume this is not an AO3 epub
+        if xml is None: return None 
         href = parse_xml.get_work_link_epub(xml)
         stats = parse_xml.get_stats_epub(xml)
         if update_series: series = parse_xml.get_series_epub(xml)
@@ -36,6 +37,7 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
                 return None
             # the extracted epub is formatted the same way as the regular epubs, yay
             xml = get_epub_preface(filepath)
+            if xml is None: return None
             href = parse_xml.get_work_link_epub(xml)
             stats = parse_xml.get_stats_epub(xml)
             if update_series: series = parse_xml.get_series_epub(xml)
@@ -98,7 +100,13 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
 
 
 def get_epub_preface(path: str) -> ET.Element:
-    book = epub.read_epub(path, {'ignore_ncx': True})
-    preface = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))[0]
-    content = preface.get_content().decode('utf-8')
-    return ET.fromstring(content)
+    try:
+        with zipfile.ZipFile(path, 'r') as zf:
+            with zf.open('content.opf') as of: 
+                opf = ET.parse(of).getroot()
+                preface_path = parse_xml.get_preface_path_epub(opf)
+                if preface_path is None: return None
+                with zf.open(preface_path) as doc: 
+                    return ET.parse(doc).getroot()
+    except (zipfile.BadZipFile, FileNotFoundError):
+        return None
