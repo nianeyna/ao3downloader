@@ -64,9 +64,9 @@ def initialize() -> str:
             with open(strings.INI_FILE_NAME, 'w', encoding='utf-8') as ini_file:
                 ini_file.write(f.read())
     fileOps = FileOps()
-    if (fileOps.get_ini_value_boolean(strings.INI_PASSWORD_SAVE) == False):
-        fileOps.set_setting(strings.SETTING_PASSWORD, None)
-    return os.path.dirname(os.path.abspath(__file__))
+    if (fileOps.get_ini_value_boolean(strings.INI_PASSWORD_SAVE, False) == False):
+        fileOps.save_setting(strings.SETTING_PASSWORD, None)
+    return os.getcwd()
 
 
 def display_menu():
@@ -120,13 +120,15 @@ actions = {
     }
 
 def ao3downloader():
-    current_directory = initialize()
-    print(strings.MESSAGE_WELCOME.format(current_directory, QUIT_ACTION, strings.INI_FILE_NAME))
-    display_menu()
-
-    while True:
-        print(strings.PROMPT_MENU.format(MENU_ACTION))
-        print(strings.PROMPT_CHOOSE.format(QUIT_ACTION))
-        choice = input()
-        if choice == QUIT_ACTION: break
-        choose(choice)
+    try:
+        current_directory = initialize()
+        print(strings.MESSAGE_WELCOME.format(current_directory, QUIT_ACTION, strings.INI_FILE_NAME))
+        display_menu()
+        while True:
+            print(strings.PROMPT_MENU.format(MENU_ACTION))
+            print(strings.PROMPT_CHOOSE.format(QUIT_ACTION))
+            choice = input()
+            if choice == QUIT_ACTION: break
+            choose(choice)
+    except KeyboardInterrupt:
+        print(strings.MESSAGE_EXIT)
