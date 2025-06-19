@@ -12,7 +12,7 @@ jobs:
           python-version: '3.9'
       - name: run script
         id: script
-        run:  echo "::set-output name=bad-values::$(python readme_util.py)"
+        run:  echo "::set-output name=bad-values::$(python dev/readme_util.py)"
       - name: check output
         if: ${{steps.script.outputs.bad-values != 0}}
         uses: actions/github-script@v3

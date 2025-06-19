@@ -25,4 +25,4 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: run script
-        run: bash publish.sh "prerelease-" "Test" "${{ github.ref_name }}" "true"
+        run: bash dev/publish.sh "prerelease-" "Test" "${{ github.ref_name }}" "true"
