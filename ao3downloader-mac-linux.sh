@@ -1,39 +1,32 @@
 #!/bin/bash
 
-if ! command -v uv &>/dev/null; then
-    read -p "uv is required to run this script, but is not currently installed. do you want to install it? (y/n): " choice
-    if [[ "$choice" =~ ^[Yy]$ ]]; then
-        echo "installing uv..."
-        if ! command -v curl &>/dev/null; then
-            # Debian/Ubuntu
-            if command -v apt-get &>/dev/null; then
-                echo "curl not found, installing..."
-                sudo apt-get update && sudo apt-get install -y curl
-                curl -LsSf https://astral.sh/uv/install.sh | sh
-            # Fedora
-            elif command -v dnf &>/dev/null; then
-                echo "curl not found, installing..."
-                sudo dnf install -y curl
-                curl -LsSf https://astral.sh/uv/install.sh | sh
-            # Fallback to wget
-            elif command -v wget &>/dev/null; then
-                wget -qO- https://astral.sh/uv/install.sh | sh
-            else
-                echo "Error: curl is required but is not installed."
-                echo "Please install curl and try again."
-                exit 1
-            fi
-        else
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-        fi
-        export PATH="$HOME/.local/bin:$PATH"
+install_package() {
+    if command -v "$1" &>/dev/null; then
+        return
+    fi
+    echo "$1 is required but is not installed. attempting to install $1 automatically..."
+    if command -v apt-get &>/dev/null; then
+        sudo apt-get update && sudo apt-get install -y "$1"
+    elif command -v dnf &>/dev/null; then
+        sudo dnf install -y "$1"
     else
+        echo "could not install $1 automatically."
+        echo "please install $1 manually and try again."
         exit 1
     fi
+}
+
+if ! command -v uv &>/dev/null; then
+    echo "uv is required but is not installed. installing uv..."
+    install_package curl
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="$HOME/.local/bin:$PATH"
 fi
 
+install_package jq
+
 current_version=$(uv tool list | grep 'ao3downloader v' | awk '{print $2}' | sed 's/[^0-9.]*//g')
-latest_version=$(curl -s https://test.pypi.org/pypi/ao3downloader/json | grep '"version":' | head -1 | sed -E 's/.*"([0-9\.]+)".*/\1/')
+latest_version=$(curl -s https://test.pypi.org/pypi/ao3downloader/json | jq -r '.info.version')
 
 if [[ -z "$current_version" ]]; then
     echo "ao3downloader is not installed. installing latest version..."

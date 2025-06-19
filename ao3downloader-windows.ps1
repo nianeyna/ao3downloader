@@ -1,12 +1,7 @@
 if (!(Get-Command uv -ErrorAction SilentlyContinue)) {
-    $choice = Read-Host "uv is required to run this script, but is not currently installed. do you want to install it? (y/n)"
-    if ($choice -match '^[Yy]$') {
-        Write-Host "installing uv..."
-        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-        $env:PATH = "$env:USERPROFILE\.local\bin;$env:PATH"
-    } else {
-        exit 1
-    }
+    Write-Host "uv is required but is not installed. installing uv..."
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+    $env:PATH = "$env:USERPROFILE\.local\bin;$env:PATH"
 }
 
 $current_version = (& uv tool list | Select-String 'ao3downloader v' | ForEach-Object {
