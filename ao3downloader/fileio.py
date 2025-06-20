@@ -3,6 +3,8 @@
 import configparser
 import datetime
 import getpass
+import importlib
+import importlib.metadata
 import json
 import os
 
@@ -15,6 +17,72 @@ class FileOps:
         self.inifile = strings.INI_FILE_NAME
         self.settingsfile = strings.SETTINGS_FILE_NAME
         self.downloadfolder = strings.DOWNLOAD_FOLDER_NAME
+
+
+    def initialize(self) -> None:
+        if not os.path.exists(strings.LOG_FOLDER_NAME): os.mkdir(strings.LOG_FOLDER_NAME)
+        if not os.path.exists(self.downloadfolder): os.mkdir(self.downloadfolder)
+        if not os.path.exists(self.inifile):
+            with importlib.resources.open_text(strings.SETTINGS_FOLDER_NAME, self.inifile) as f:
+                with open(self.inifile, 'w', encoding='utf-8') as ini_file:
+                    ini_file.write(f.read())
+        if (self.get_ini_value_boolean(strings.INI_PASSWORD_SAVE, False) == False):
+            self.save_setting(strings.SETTING_PASSWORD, None)
+
+
+    def update_ini(self) -> None:
+        with open(self.inifile, 'r', encoding='utf-8') as l: 
+            local = l.read()
+        with importlib.resources.open_text(strings.SETTINGS_FOLDER_NAME, self.inifile) as r: 
+            remote = r.read()
+        ini_differences = self.ini_differences(local, remote)
+        if ini_differences: self.save_new_ini(ini_differences)
+
+
+    def ini_differences(self, local: str, remote: str) -> str:
+        local_config = configparser.ConfigParser()
+        local_config.read_string(local)
+        remote_config = configparser.ConfigParser()
+        remote_config.read_string(remote)
+        local_config_structure = {section: set(local_config.options(section)) for section in local_config.sections()}
+        remote_config_structure = {section: set(remote_config.options(section)) for section in remote_config.sections()}
+        return self.ini_differences_str(local_config_structure, remote_config_structure)
+
+
+    def ini_differences_str(self, local: dict[str, set[str]], remote: dict[str, set[str]]) -> str:
+        if local == remote: return None
+        message = strings.MESSAGE_INI_DIFFERENCES
+        for section in local:
+            if section not in remote:
+                message += strings.MESSAGE_INI_REMOVED_SECTION.format(section)
+                local.pop(section, None)
+        for section in remote:
+            if section not in local:
+                message += strings.MESSAGE_INI_ADDED_SECTION.format(section)
+                remote.pop(section, None)
+        if local or remote:
+            all_sections = set(local.keys()).union(remote.keys())
+            for section in all_sections:
+                local_keys = local.get(section, set())
+                remote_keys = remote.get(section, set())
+                added_keys = remote_keys - local_keys
+                removed_keys = local_keys - remote_keys
+                for key in added_keys:
+                    message += strings.MESSAGE_INI_ADDED_KEY.format(key, section)
+                for key in removed_keys:
+                    message += strings.MESSAGE_INI_REMOVED_KEY.format(key, section)
+        return message
+
+
+    def save_new_ini(self, ini_differences: str) -> None:
+        package_version = importlib.metadata.version('ao3downloader')
+        new_inifile = f'settings-v{package_version}.ini'
+        if not os.path.exists(new_inifile):
+            with importlib.resources.open_text(strings.SETTINGS_FOLDER_NAME, self.inifile) as f:
+                with open(new_inifile, 'w', encoding='utf-8') as ini_file:
+                    ini_file.write(f.read())
+            print(strings.MESSAGE_INI_FILE_CHANGED.format(new_inifile))
+            print(ini_differences)
 
 
     def write_log(self, log: dict) -> None:

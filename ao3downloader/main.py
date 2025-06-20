@@ -1,4 +1,3 @@
-import importlib
 import os
 
 import ao3downloader.strings as strings
@@ -56,19 +55,6 @@ def ignorelist_action():
     ignorelist.action()
 
 
-def initialize() -> str:
-    if not os.path.exists(strings.LOG_FOLDER_NAME): os.mkdir(strings.LOG_FOLDER_NAME)
-    if not os.path.exists(strings.DOWNLOAD_FOLDER_NAME): os.mkdir(strings.DOWNLOAD_FOLDER_NAME)
-    if not os.path.exists(strings.INI_FILE_NAME):
-        with importlib.resources.open_text(strings.SETTINGS_FOLDER_NAME, strings.INI_FILE_NAME) as f:
-            with open(strings.INI_FILE_NAME, 'w', encoding='utf-8') as ini_file:
-                ini_file.write(f.read())
-    fileOps = FileOps()
-    if (fileOps.get_ini_value_boolean(strings.INI_PASSWORD_SAVE, False) == False):
-        fileOps.save_setting(strings.SETTING_PASSWORD, None)
-    return os.getcwd()
-
-
 def display_menu():
     print(strings.PROMPT_OPTIONS)
     for key, value in actions.items():
@@ -121,8 +107,10 @@ actions = {
 
 def ao3downloader():
     try:
-        current_directory = initialize()
-        print(strings.MESSAGE_WELCOME.format(current_directory, QUIT_ACTION, strings.INI_FILE_NAME))
+        fileOps = FileOps()
+        fileOps.initialize()
+        print(strings.MESSAGE_WELCOME.format(os.getcwd(), QUIT_ACTION, strings.INI_FILE_NAME))
+        fileOps.update_ini()
         display_menu()
         while True:
             print(strings.PROMPT_MENU.format(MENU_ACTION))
@@ -132,3 +120,6 @@ def ao3downloader():
             choose(choice)
     except KeyboardInterrupt:
         print(strings.MESSAGE_EXIT)
+
+if __name__ == '__main__':
+    ao3downloader()
