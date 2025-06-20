@@ -44,7 +44,7 @@ New, easier installation instructions are here! You no longer need to install py
 
 ### PyPi
 
-If you know what you're about and don't care for install scripts, you can go directly to the ao3downloader PyPi package which is available [here]().
+If you know what you're about and don't care for install scripts, you can go directly to the ao3downloader PyPi package which is available [here](https://test.pypi.org/project/ao3downloader/).
 
 ## Menu Options Explanation
 
