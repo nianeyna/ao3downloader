@@ -1,18 +1,28 @@
 name: validate readme
+
 on: push
+
 jobs:
   validate:
+    name: validate
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     steps:
       - name: checkout
         uses: actions/checkout@v3
+
       - name: setup python
         uses: actions/setup-python@v3
         with: 
-          python-version: '3.9'
+          python-version: '3.12'
+
       - name: run script
         id: script
-        run:  echo "::set-output name=bad-values::$(python dev/readme_util.py)"
+        run:  echo "::set-output name=bad-values::$(python dev/readme.py)"
+
       - name: check output
         if: ${{steps.script.outputs.bad-values != 0}}
         uses: actions/github-script@v3
