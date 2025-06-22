@@ -1,6 +1,7 @@
-#!/usr/bin/env python3
+import os
 
 import ao3downloader.strings as strings
+from ao3downloader.fileio import FileOps
 
 from ao3downloader.actions import ao3download
 from ao3downloader.actions import pinboarddownload
@@ -104,11 +105,22 @@ actions = {
     'i': ignorelist_action
     }
 
-display_menu()
+def ao3downloader():
+    try:
+        os.system('clear||cls')
+        fileOps = FileOps()
+        fileOps.initialize()
+        print(strings.MESSAGE_WELCOME.format(os.getcwd(), QUIT_ACTION, strings.INI_FILE_NAME))
+        fileOps.update_ini()
+        display_menu()
+        while True:
+            print(strings.PROMPT_MENU.format(MENU_ACTION))
+            print(strings.PROMPT_CHOOSE.format(QUIT_ACTION))
+            choice = input()
+            if choice == QUIT_ACTION: break
+            choose(choice)
+    except KeyboardInterrupt:
+        print(strings.MESSAGE_EXIT)
 
-while True:
-    print('\'{}\' to display the menu again'.format(MENU_ACTION))
-    print('please enter your choice, or \'{}\' to quit:'.format(QUIT_ACTION))
-    choice = input()
-    if choice == QUIT_ACTION: break
-    choose(choice)
+if __name__ == '__main__':
+    ao3downloader()

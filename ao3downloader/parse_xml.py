@@ -22,6 +22,16 @@ def get_bookmark_list(bookmark_xml: ET.Element, exclude_toread: bool) -> list[di
     return bookmark_list
 
 
+def get_preface_path_epub(xml: ET.Element) -> str:
+    # assumption: the preface is always the first item in the manifest with media-type 
+    # application/xhtml+xml. should be fine unless ao3 drastically changes their epub format
+    manifest = xml.find('{http://www.idpf.org/2007/opf}manifest')
+    if manifest is None: return None
+    for item in manifest.findall('{http://www.idpf.org/2007/opf}item'):
+        if item.attrib.get('media-type') == 'application/xhtml+xml':
+            return item.attrib.get('href')
+
+
 def get_work_link_epub(xml: ET.Element) -> str:
     # assumption: the xml does not contain any links to other works than the one we are interested in. 
     # since this file should not include user-generated html (such as summary) this should be safe.

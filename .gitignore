@@ -1,7 +1,9 @@
-venv/
+.venv/
 __pycache__/
+.pytest_cache/
 *.pyc
-downloads/
-logs/
-settings.json
-ignorelist.txt
+/downloads/
+/logs/
+/data.json
+/settings.ini
+/ignorelist.txt

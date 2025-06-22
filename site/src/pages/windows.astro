@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/layout.astro';
+---
+
+<Layout title='ao3downloader installation — windows' description='install ao3downloader, a tool for downloading fanfiction in bulk from the archive of our own, on windows'>
+  <div class='flex flex-col items-center text-justify m-8 ps-8 pe-5 mx-auto sm:max-w-sm md:max-w-md lg:max-w-2/3 xl:max-w-1/2'>
+    <h1 class='text-center text-3xl'>Install on Windows</h1>
+    <a class='rounded my-8 p-3 bg-nia-primary italic' download href=`${import.meta.env.BASE_URL}/install/ao3downloader-windows.ps1`>Click to Download</a>
+    <ol class='list-decimal w-full'>
+      <li class='py-1'>The following instructions may pop up some warnings. That’s Microsoft trying to protect you because they don’t know who I am. I swear I’m not malware, but if you don’t trust like that, go ahead and peace out here. Otherwise, from here onward, agree to any prompts that show up asking whether you want to continue.</li>
+      <li class='py-1'>Click the above button to download the installation script for Windows.</li>
+      <li class='py-1'>Place the file you just downloaded in either an empty folder or, if you already have a folder with an ao3downloader instance that you would like to keep, place it in that folder.</li>
+      <li class='py-1'>Double-click on it.</li>
+      <li class='py-1'>If that just opens a file with some nonsense-looking text instead of running anything, close that and try right-clicking the installer file and choosing “Run with PowerShell”.</li>
+      <li class='py-1'>This will install ao3downloader’s dependencies (if they are not already installed) and start the program.</li>
+      <li class='py-1'>Any time you want to run ao3downloader again, just double-click (or right-click and run) that same file again.</li>
+    </ol>
+  </div>
+</Layout>

@@ -1,6 +1,8 @@
 '''Create an html document for the purpose of visualizing the logfile. Not the most optimized thing ever but it does the job.'''
 
 import datetime
+import importlib
+import importlib.resources
 import json
 import os
 
@@ -17,7 +19,7 @@ def action():
         print(strings.INFO_NO_LOG_FILE)
         return
     
-    with open(os.path.join(strings.HTML_FOLDER_NAME, strings.TEMPLATE_FILE_NAME), encoding='utf-8') as tmpl:
+    with importlib.resources.open_text(strings.HTML_FOLDER_NAME, strings.TEMPLATE_FILE_NAME) as tmpl:
         template = tmpl.read()
 
     filenumber = 0 # fallback identifier in case timestamps can't be extracted

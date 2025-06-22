@@ -1,0 +1,25 @@
+name: publish documentation
+
+on: workflow_dispatch
+
+permissions:
+  pages: write
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: build
+        uses: withastro/action@v3
+        with:
+          path: ./site
+
+      - name: deploy
+        uses: actions/deploy-pages@v4

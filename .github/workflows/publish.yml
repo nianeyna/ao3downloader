@@ -1,0 +1,30 @@
+name: publish package
+
+on: 
+  workflow_dispatch:
+    inputs:
+      release_description:
+        description: 'Short description for the release'
+        required: true
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup
+        uses: astral-sh/setup-uv@v5
+
+      - name: run script
+        run: bash dev/publish.sh "v" "${{ github.event.inputs.release_description }}" "main"

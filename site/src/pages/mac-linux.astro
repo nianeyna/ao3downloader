@@ -1,0 +1,32 @@
+---
+import Layout from '../layouts/layout.astro';
+---
+
+<Layout title='ao3downloader installation — mac or linux' description='install ao3downloader, a tool for downloading fanfiction in bulk from the archive of our own, on mac or linux'>
+  <div class='flex flex-col items-center text-justify m-8 ps-8 pe-5 mx-auto sm:max-w-sm md:max-w-md lg:max-w-2/3 xl:max-w-1/2'>
+    <h1 class='text-center text-3xl'>Install on Mac or Linux</h1>
+    <a class='rounded my-8 p-3 bg-nia-primary italic' download href=`${import.meta.env.BASE_URL}/install/ao3downloader-mac-linux.sh`>Click to Download</a>
+    <ol class='list-decimal w-full'>
+      <li class='py-1'>Click the above button to download the installation script for Mac and Linux.</li>
+      <li class='py-1'>Place the file you just downloaded in either an empty folder or, if you already have a folder with an ao3downloader instance that you would like to keep, place it in that folder.</li>
+      <li class='py-1'>Open a terminal pointed to the folder containing the installation script (see below if you don't know how to do this).</li>
+      <li class='py-1'>
+        Type or paste the following into the terminal window and then hit enter to make the script executable:
+        <code class='bg-nia-primary rounded p-1 text-sm h-full whitespace-pre justify-linebreak'>chmod +x ao3downloader-mac-linux.sh</code>
+      </li>
+      <li class='py-1'>
+        Type or paste the following into the terminal window and then hit enter:
+        <code class='bg-nia-primary rounded p-1 text-sm h-full whitespace-pre justify-linebreak'>./ao3downloader-mac-linux.sh</code>
+      </li>
+      <li class='py-1'>This will install ao3downloader’s dependencies (if they are not already installed) and start the program.</li>
+      <li class='py-1'>Any time you want to run ao3downloader again, repeat steps 3 and 5.</li>
+    </ol>
+    <h2 class='text-center text-2xl my-8'>Opening a Terminal</h2>
+    <ol class='list-decimal w-full'>
+      <li class='py-1'>Open the terminal application on your computer.</li>
+      <li class='py-1'>Type <code class='bg-nia-primary rounded p-1 text-sm h-full whitespace-pre'>cd</code> and then a space into the terminal window (don't hit enter yet).</li>
+      <li class='py-1'>Drag the folder containing the installation script to the terminal to copy the folder path.</li>
+      <li class='py-1'>Press enter.</li>
+    </ol>
+  </div>
+</Layout>

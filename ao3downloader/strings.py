@@ -1,15 +1,16 @@
 # region file ops
 
 # based on https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
-INVALID_FILENAME_CHARACTERS = '<>:"/\|?*.' + ''.join(chr(i) for i in range(32))
+INVALID_FILENAME_CHARACTERS = r'<>:"/\|?*.' + ''.join(chr(i) for i in range(32))
 TIMESTAMP_FORMAT = '%m/%d/%Y, %H:%M:%S'
 
 DOWNLOAD_FOLDER_NAME = 'downloads'
 IMAGE_FOLDER_NAME = 'images'
-HTML_FOLDER_NAME = 'html'
+HTML_FOLDER_NAME = 'ao3downloader.html'
+SETTINGS_FOLDER_NAME = 'ao3downloader.settings'
 LOG_FOLDER_NAME = 'logs'
 LOG_FILE_NAME = 'log.jsonl'
-SETTINGS_FILE_NAME = 'settings.json'
+SETTINGS_FILE_NAME = 'data.json'
 TEMPLATE_FILE_NAME = 'template.html'
 VISUALIZATION_FILE_NAME = 'logvisualization{}.html'
 IGNORELIST_FILE_NAME = 'ignorelist.txt'
@@ -40,6 +41,8 @@ SETTING_UPDATE_FILETYPES = 'update_filetypes'
 PROMPT_YES = 'y'
 PROMPT_NO = 'n'
 
+PROMPT_MENU = '\'{}\' to display the menu again'
+PROMPT_CHOOSE = 'please enter your choice, or \'{}\' to quit:'
 PROMPT_OPTIONS = 'options'
 PROMPT_INVALID_ACTION = 'please choose a valid action'
 
@@ -64,8 +67,10 @@ PINBOARD_INFO_GETTING_BOOKMARKS = 'getting bookmark urls from pinboard'
 PINBOARD_INFO_NUM_RETURNED = '{} bookmarks returned'
 
 AO3_PROMPT_LOGIN = 'do you want to log in to ao3? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
-AO3_PROMPT_USERNAME = 'please enter username'
-AO3_PROMPT_PASSWORD = 'please enter password'
+AO3_PROMPT_USERNAME = 'please enter username:'
+AO3_PROMPT_PASSWORD = 'please enter password:\nNOTE: password {} be saved. to change this behavior,\nquit the script (using ctrl+c or by closing the window)\nand edit the \'' + INI_PASSWORD_SAVE + '\' setting in the ' + INI_FILE_NAME + '\nfile before running the script again\nNOTE: password input will not be displayed in this window'
+AO3_PROMPT_PASSWORD_SAVE_TRUE = 'will'
+AO3_PROMPT_PASSWORD_SAVE_FALSE = 'will not'
 AO3_PROMPT_USE_SAVED_DOWNLOAD_TYPES = 'use saved download type list? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_ACCEPTABLE_DOWNLOAD_TYPES = ['AZW3', 'EPUB', 'MOBI', 'PDF', 'HTML']
 AO3_PROMPT_DOWNLOAD_TYPE = 'please enter download type. choose from the following (case-sensitive):\n' + '\n'.join(AO3_ACCEPTABLE_DOWNLOAD_TYPES)
@@ -127,6 +132,14 @@ MESSAGE_FIC_FILE = 'found fic file'
 MESSAGE_SERIES_FILE = 'found work in series'
 MESSAGE_RETRY = 'Retrying {} request. Attempt {}. {} seconds until next attempt.'
 MESSAGE_SUCCESS = 'Successful {} request with status code {}'
+MESSAGE_WELCOME = 'welcome to ao3downloader!\nthe script has been initialized in the following directory:\n\t{}\nif you would like to change any settings, you may do so by entering\n\'{}\' to quit this menu and then editing the file \'{}\'\n(located at the above folder path) before running the script again.\n'
+MESSAGE_EXIT = '\nexiting'
+MESSAGE_INI_FILE_CHANGED = 'the options available in ' + INI_FILE_NAME + ' have changed. a copy of the new default settings file has been saved as {}. please review the changes and update ' + INI_FILE_NAME + ' accordingly.'
+MESSAGE_INI_DIFFERENCES = 'the following differences were found:\n'
+MESSAGE_INI_ADDED_KEY = 'added \'{}\' to \'{}\' section.\n'
+MESSAGE_INI_REMOVED_KEY = 'removed \'{}\' from \'{}\' section.\n'
+MESSAGE_INI_ADDED_SECTION = '\'{}\' section has been added.\n'
+MESSAGE_INI_REMOVED_SECTION = '\'{}\' section has been removed.\n'
 
 # endregion
 
@@ -139,9 +152,6 @@ AO3_LOGIN_URL = 'https://archiveofourown.org/users/login'
 AO3_FAILED_LOGIN = 'The password or user name you entered doesn\'t match our records.'
 AO3_PROCEED = 'Yes, Continue'
 AO3_MARK_READ = 'Mark as Read'
-
-AO3_TITLE = '[Archive of Our Own]'
-AO3_CHAPTER_TITLE = 'Chapter 1 - '
 
 # endregion
 
