@@ -68,7 +68,7 @@ PINBOARD_INFO_NUM_RETURNED = '{} bookmarks returned'
 
 AO3_PROMPT_LOGIN = 'do you want to log in to ao3? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 AO3_PROMPT_USERNAME = 'please enter username:'
-AO3_PROMPT_PASSWORD = 'NOTE: password {} be saved in the ' + SETTINGS_FILE_NAME + ' file. to change this behavior, quit the script (using ctrl+c or by closing the window) and edit the ' + INI_PASSWORD_SAVE + ' setting in the ' + INI_FILE_NAME + ' file before running the script again\nNOTE: password will not be displayed in this window as you type it in\nplease enter password:'
+AO3_PROMPT_PASSWORD = 'please enter password:\nNOTE: password {} be saved. to change this behavior,\nquit the script (using ctrl+c or by closing the window)\nand edit the \'' + INI_PASSWORD_SAVE + '\' setting in the ' + INI_FILE_NAME + '\nfile before running the script again\nNOTE: password input will not be displayed in this window'
 AO3_PROMPT_PASSWORD_SAVE_TRUE = 'will'
 AO3_PROMPT_PASSWORD_SAVE_FALSE = 'will not'
 AO3_PROMPT_USE_SAVED_DOWNLOAD_TYPES = 'use saved download type list? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
@@ -132,7 +132,7 @@ MESSAGE_FIC_FILE = 'found fic file'
 MESSAGE_SERIES_FILE = 'found work in series'
 MESSAGE_RETRY = 'Retrying {} request. Attempt {}. {} seconds until next attempt.'
 MESSAGE_SUCCESS = 'Successful {} request with status code {}'
-MESSAGE_WELCOME = 'welcome to ao3downloader!\nthe script has been initialized in the following directory:\n\t{}\nif you would like to change any settings, you may do so by entering \'{}\'\nto quit this menu and then editing the file \'{}\'\n(located at the above folder path) before running the script again.\n'
+MESSAGE_WELCOME = 'welcome to ao3downloader!\nthe script has been initialized in the following directory:\n\t{}\nif you would like to change any settings, you may do so by entering\n\'{}\' to quit this menu and then editing the file \'{}\'\n(located at the above folder path) before running the script again.\n'
 MESSAGE_EXIT = '\nexiting'
 MESSAGE_INI_FILE_CHANGED = 'the options available in ' + INI_FILE_NAME + ' have changed. a copy of the new default settings file has been saved as {}. please review the changes and update ' + INI_FILE_NAME + ' accordingly.'
 MESSAGE_INI_DIFFERENCES = 'the following differences were found:\n'

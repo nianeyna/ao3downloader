@@ -107,6 +107,7 @@ actions = {
 
 def ao3downloader():
     try:
+        os.system('clear||cls')
         fileOps = FileOps()
         fileOps.initialize()
         print(strings.MESSAGE_WELCOME.format(os.getcwd(), QUIT_ACTION, strings.INI_FILE_NAME))
