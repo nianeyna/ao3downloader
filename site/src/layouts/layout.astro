@@ -1,0 +1,58 @@
+---
+import '/src/styles/global.css';
+
+export interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const year = new Date().getFullYear();
+const icon_src = `${import.meta.env.BASE_URL}/images/sleepyvixen.png`;
+const icon_alt = 'a rust-colored vixen curled up in a relaxed pose on a blue background with autumn leaves';
+---
+
+<!doctype html>
+<html lang='en' class='bg-nia-body text-white'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width' />
+    <meta name='description' content={description} />
+    <meta name='color-scheme' content='light dark' />
+    <meta property='og:type' content='website' />
+    <meta property='og:title' content={title} />
+    <meta property='og:site_name' content='ao3downloader' />
+    <meta property='og:description' content={description} />
+    <meta property='og:image' content={icon_src} />
+    <meta property='og:image:alt' content={icon_alt} />
+    <link rel='icon' type='image/svg+xml' href=`${import.meta.env.BASE_URL}/favicon.svg` />
+    <meta name='generator' content={Astro.generator} />
+    <title>{title}</title>
+    <noscript>
+      <style>
+        .text-justify {
+          text-align: left !important;
+        }
+      </style>
+    </noscript>
+  </head>
+  <script is:inline src=`${import.meta.env.BASE_URL}/scripts/justifyLinebreak.js`></script>
+  <body class='flex flex-col min-h-screen'>
+    <header class='text-center p-5 border-b border-nia-primary'>
+      <h1 class='text-4xl'>
+        <a href={import.meta.env.BASE_URL}>ao3downloader (a script by nianeyna)</a>
+      </h1>
+      <div class='pt-3 text-sm'>
+        these are just the installation instructions! you can find more information
+        <a class='underline' href='https://github.com/nianeyna/ao3downloader'>on github</a>
+      </div>
+    </header>
+    <main class='flex-1'>
+      <slot />
+    </main>
+    <footer class='text-center p-3 border-t border-nia-primary'>
+      <img class='w-10 h-10 mx-auto mb-1 rounded-full' src={icon_src} alt={icon_alt} />
+      <div class='text-sm'>© {year} — nianeyna</div>
+    </footer>
+  </body>
+</html>

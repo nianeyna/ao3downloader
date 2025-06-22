@@ -16,9 +16,10 @@ install_package() {
     fi
 }
 
+install_package curl
+
 if ! command -v uv &>/dev/null; then
     echo "uv is required but is not installed. installing uv..."
-    install_package curl
     curl -LsSf https://astral.sh/uv/install.sh | sh
     export PATH="$HOME/.local/bin:$PATH"
 fi

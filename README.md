@@ -1,3 +1,5 @@
+# 🧹 Undergoing maintenance! The instructions here might not work as expected right now. You may want to check back later. 🧹
+
 ## What is this?
 
 This is a program intended to help you download fanfiction from the [Archive of Our Own](https://archiveofourown.org/) in bulk. This program is primarily intended to work with links to the Archive of Our Own itself, but has a secondary function of downloading any [Pinboard](https://pinboard.in/) bookmarks that link to the Archive of Our Own. You can ignore the Pinboard functionality if you don't know what Pinboard is or don't use Pinboard.
@@ -5,7 +7,7 @@ This is a program intended to help you download fanfiction from the [Archive of 
 ## Table of Contents
 
 - [Announcements](#announcements): List of changes that may be of note for returning users (not a complete changelog).
-- [Instructions](#instructions): Complete instructions for downloading and starting ao3downloader on Windows, Mac, and Linux.
+- [Instructions](#instructions): How to install and run ao3downloader.
 - [Menu Options](#menu-options-explanation): Explanation of the options you will see when you start ao3downloader and what they do. Note that most of these options will in turn present you with a series of prompts. These should largely be self-explanatory, however, if you are confused by any of the prompts your question may be answered in the [notes](#notes).
 - [Notes](#notes): Explanation of some of ao3downloader's features and quirks that may not be immediately obvious. I recommend reading this.
 - [Known Issues](#known-issues): List of bugs that I know about but haven't yet been able to fix. If you encounter strange behavior, there may be a workaround here.
@@ -18,33 +20,19 @@ New, easier installation instructions are here! You no longer need to install py
 
 ## Instructions
 
-### Windows
+### Install Automatically
 
-1. Download ao3downloader-windows.ps1
-2. Place it either in an empty folder or, if you already have a folder with an ao3downloader instance that you would like to keep, place it in that folder.
-3. Double-click on it.
-4. This will install ao3downloader's dependencies (if they are not already installed) and start the program.
-5. Any time you want to run ao3downloader again, just double-click that same file again.
+For the easiest experience, click on one of these links based on your operating system:
 
-### Mac and Linux
+[Windows](https://nianeyna.github.io/ao3downloader/windows)
 
-1. Download ao3downloader-mac-linux.sh
-2. Place it either in an empty folder or, if you already have a folder with an ao3downloader instance that you would like to keep, place it in that folder.
-3. Open a terminal window pointed to the folder containing ao3downloader-mac-linux.sh
-  - If you don't already know how to do that, follow these steps:
-    - Open the terminal application on your computer.
-    - Type "cd" and then a space into the terminal window (don't hit enter yet).
-    - Drag the folder containing ao3downloader-mac-linux.sh to the terminal to copy the folder path.
-    - Press enter.
-4. Type or paste into the terminal window `chmod +x ao3downloader-mac-linux.sh` and then hit enter to make the script executable.
-  - This step is only necessary the first time you run the script.
-5. Type or paste into the terminal window `./ao3downloader-mac-linux.sh` and hit enter.
-6. This will install ao3downloader's dependencies (if they are not already installed) and start the program.
-7. Any time you want to run ao3downloader again, use the above instructions to run the command `./ao3downloader-mac-linux.sh` again.
+[Mac or Linux](https://nianeyna.github.io/ao3downloader/mac-linux)
 
-### PyPi
+This will take you to a page that contains a downloadable installation script and some instructions for how to use it. (They're very simple instructions, I promise.)
 
-If you know what you're about and don't care for install scripts, you can go directly to the ao3downloader PyPi package which is available [here](https://test.pypi.org/project/ao3downloader/).
+### Install With PyPi
+
+If you know what you're about and don't care for install scripts, you can go directly to the ao3downloader PyPi package which is available [here](https://pypi.org/project/ao3downloader/).
 
 ## Menu Options Explanation
 
@@ -61,9 +49,9 @@ If you know what you're about and don't care for install scripts, you can go dir
 
 ## Notes
 
-- **IMPORTANT**: some of your input choices are saved in a file called <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME--> (in the same folder as ao3downloader.py). In some cases you will not be able to change these choices unless you clear your settings by deleting <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME--> (or editing it, if you are comfortable with json). In addition, please note that saved settings include passwords and keys and are saved in plain text. **Use appropriate caution with this file.**
-- You may change certain behaviors of the script by editing the file <!--CHECK-->settings.ini<!--INI_FILE_NAME-->. Some of the current configurable options are:
-  - Whether the script should save your password - if set to 'false', you will need to re-enter your password every time you log in via the script. By default, this is set to 'false'.
+- **IMPORTANT**: some of your input choices are saved in a file called <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME-->. In some cases you will not be able to change these choices unless you clear your settings by deleting <!--CHECK-->settings.json<!--SETTINGS_FILE_NAME--> (or editing it, if you are comfortable with json). In addition, please note that saved settings include passwords and keys and are saved in plain text. **Use appropriate caution with this file.**
+- **You may change certain behaviors of the script** by editing the file <!--CHECK-->settings.ini<!--INI_FILE_NAME-->. Some of the current configurable options are:
+  - Whether the script should save your password - if set to 'false', you will need to re-enter your password every time you log in via the script. (Defaults to false.)
   - How many seconds to pause between requests to Ao3 - the default is 0 seconds, which means that pauses will only be initiated when Ao3 requests them. Normally you should not need to adjust this, but it can be useful if you are running into odd behavior related to the rate limit.
   - The file naming pattern to use. For most people ao3downloader's default file names should work fine, but if you don't like them, you can change that here.
 - **The purpose of entering your ao3 login information** is to download archive-locked works or anything else that is not visible when you are not logged in. If you don't care about that, there is no need to enter your login information.
@@ -83,6 +71,7 @@ If you know what you're about and don't care for install scripts, you can go dir
   - Most methods of avoiding repeat downloads rely on a file called <!--CHECK-->log.jsonl<!--LOG_FILE_NAME--> which is generated by the script. Make sure not to move, delete, or modify <!--CHECK-->log.jsonl<!--LOG_FILE_NAME--> if you want these features to work. (Using the option to generate the log visualization file is fine.)
 - **When checking for incomplete fics,** the code makes certain assumptions about how fic files are formatted. I have tried to make this logic as flexible as possible, but there is still some possibility that not all incomplete fics will be properly identified by the updater, especially if the files are old (since ao3 may have made changes to how they format fics for download over time) or have been edited.
 - **Custom work skins** are not preserved in downloaded files. I don't currently have a way around that, however, when a work is downloaded the log entry for the download will contain a column (called 'workskin') indicating whether the work had a custom skin or not, so you can at least know which fics are in danger of looking garbled.
+- **The reason the installation instructions are on a separate site** is because I didn't want to have to explain how to download the install scripts from github. The install scripts themselves (as well as the complete source code for the instructions site) are hosted in this repository. You can find them at `site/public/install`.
 
 ## Known Issues
 
