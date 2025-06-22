@@ -3,7 +3,7 @@ set -euo pipefail
 
 get_new_version() {
     local api_url="$1"
-    local version_format="^([0-9]{4})\.([0-9]{1,2})\.([0-9]+)"
+    local version_format="^([0-9]{1,4})\.([0-9]{1,2})\.([0-9]+)"
 
     echo "Getting current repository version" >&2
     local version=$(uv version --short)
