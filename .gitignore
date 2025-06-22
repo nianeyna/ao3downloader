@@ -4,6 +4,6 @@ __pycache__/
 *.pyc
 /downloads/
 /logs/
-/settings.json
+/data.json
 /settings.ini
 /ignorelist.txt

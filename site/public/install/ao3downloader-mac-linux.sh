@@ -27,15 +27,15 @@ fi
 install_package jq
 
 current_version=$(uv tool list | grep 'ao3downloader v' | awk '{print $2}' | sed 's/[^0-9.]*//g')
-latest_version=$(curl -s https://test.pypi.org/pypi/ao3downloader/json | jq -r '.info.version')
+latest_version=$(curl -s https://pypi.org/pypi/ao3downloader/json | jq -r '.info.version')
 
 if [[ -z "$current_version" ]]; then
     echo "ao3downloader is not installed. installing latest version..."
-    uv tool install --python 3.12 --force --index https://test.pypi.org/simple/ --index-strategy unsafe-best-match ao3downloader@latest
+    uv tool install --python 3.12 --force ao3downloader@latest
 elif [[ "$current_version" != "$latest_version" ]]; then
     read -p "a new version of ao3downloader is available ($latest_version, you have $current_version). install the latest version? (y/n): " choice
     if [[ "$choice" =~ ^[Yy]$ ]]; then
-        uv tool install --python 3.12 --force --index https://test.pypi.org/simple/ --index-strategy unsafe-best-match ao3downloader@latest
+        uv tool install --python 3.12 --force ao3downloader@latest
     fi
 fi
 
