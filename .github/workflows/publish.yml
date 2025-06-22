@@ -27,4 +27,4 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: run script
-        run: bash dev/publish.sh "v" "${{ github.event.inputs.release_description }}" "main"
+        run: bash dev/publish.sh "v" "${{ github.event.inputs.release_description }}" "main" "false"
