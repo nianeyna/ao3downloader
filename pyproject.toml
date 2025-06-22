@@ -1,6 +1,6 @@
 [project]
 name = "ao3downloader"
-version = "0.0.0"
+version = "2025.6.0"
 description = "Utility for downloading fanfiction in bulk from the Archive of Our Own"
 readme = "README.md"
 license = "GPL-3.0-only"
