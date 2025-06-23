@@ -1,4 +1,28 @@
 #!/bin/bash
+set -e
+
+install_homebrew() {
+    if command -v brew &>/dev/null; then
+        return
+    fi
+    echo "could not find a supported package manager already installed. installing homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    if [[ $? -ne 0 ]]; then
+        echo "failed to install homebrew automatically. please go to https://brew.sh/ and install homebrew manually before trying again."
+        exit 1
+    fi
+    if [ -d /opt/homebrew/bin ]; then
+        export PATH="/opt/homebrew/bin:$PATH"
+    elif [ -d /usr/local/bin ]; then
+        export PATH="/usr/local/bin:$PATH"
+    elif [ -d "$HOME/.linuxbrew/bin" ]; then
+        export PATH="$HOME/.linuxbrew/bin:$PATH"
+    fi
+    if ! command -v brew &>/dev/null; then
+        echo "failed to install homebrew automatically. please go to https://brew.sh/ and install homebrew manually before trying again."
+        exit 1
+    fi
+}
 
 install_package() {
     if command -v "$1" &>/dev/null; then
@@ -10,9 +34,8 @@ install_package() {
     elif command -v dnf &>/dev/null; then
         sudo dnf install -y "$1"
     else
-        echo "could not install $1 automatically."
-        echo "please install $1 manually and try again."
-        exit 1
+        install_homebrew
+        brew install "$1"
     fi
 }
 
