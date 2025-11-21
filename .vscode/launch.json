@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "uv debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/ao3downloader/main.py",
+            "console": "integratedTerminal",
+            "preLaunchTask": "uv sync"
+        }
+    ]
+}
