@@ -36,6 +36,22 @@ This will take you to a page that contains a downloadable installation script an
 
 If you know what you're about and don't care for install scripts, you can go directly to the ao3downloader PyPi package which is available [here](https://pypi.org/project/ao3downloader/).
 
+### Install with uv
+
+This is basically what the install script does, but broken out into manual steps in case you're having trouble running the install script for whatever reason:
+
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
+2. Open a command prompt, power shell, or terminal window **pointed at the folder where you want your downloads to be saved**
+3. Enter the following command: 
+    ```
+    uv tool install --python 3.12 --force ao3downloader@latest
+    ```
+4. Enter the following command:
+    ```
+    uv run ao3downloader
+    ```
+5. Anytime you want to run ao3downloader again, repeat steps 2 and 4. If you would like to update your ao3downloader version, repeat step 3.
+
 ## Menu Options Explanation
 
 - **'<!--CHECK-->download from ao3 link<!--ACTION_DESCRIPTION_AO3-->'** - this works for most links to [ao3](https://archiveofourown.org/). for example, you can use this to download a single work, a series, or any ao3 page that contains links to works or series (such as your bookmarks or an author's works). the program will download multiple pages automatically without the need to enter the next page link manually.
@@ -84,8 +100,8 @@ If you know what you're about and don't care for install scripts, you can go dir
 
 ## Troubleshooting
 
+- If the install script just pops up a black window for a second and then immediately closes, and you are on Windows, look for a setting on your computer called "Allow local PowerShell scripts to run without being signed" and enable it (you should be able to find this setting using the start menu search bar). Then try running the install script again.
 - If you are able to create <!--CHECK-->logvisualization.html<!--VISUALIZATION_FILE_NAME--> (menu option 'v'), take a look through the logs to see if there are any helpful error messages.
-- There's nothing else here right now! The new install process is so new that I don't yet know in which exciting ways it might break. If you encounter problems, please see below for how to send me a bug report.
 
 ## Questions? Comments? Bug reports?
 

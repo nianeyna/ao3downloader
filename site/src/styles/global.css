@@ -51,6 +51,13 @@
     url('/ao3downloader/fonts/P22MackinacProBold/font.woff') format('woff');
 }
 
+@font-face {
+  font-family: 'Victor Mono';
+  src:
+    url('/ao3downloader/fonts/VictorMono/VictorMono-Regular.woff2') format('woff2'),
+    url('/ao3downloader/fonts/VictorMono/VictorMono-Regular.woff') format('woff');
+}
+
 html {
   font-size: 16pt;
 
