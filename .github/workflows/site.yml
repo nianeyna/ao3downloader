@@ -16,14 +16,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: build
         uses: withastro/action@v3
         with:
+          package-manager: pnpm
           path: ./site
 
       - name: deploy
