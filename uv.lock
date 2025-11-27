@@ -1,10 +1,10 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.9, <3.13"
 
 [[package]]
 name = "ao3downloader"
-version = "2025.6.1"
+version = "2025.11.0"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
