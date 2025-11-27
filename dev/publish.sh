@@ -47,13 +47,19 @@ get_new_version() {
 
     local new_version_prefix=$(date -u +%Y.%-m)
     echo "The current UTC date is $new_version_prefix" >&2
-
+    IFS='.' read -r new_year new_month <<< "$new_version_prefix"
+    
     local new_version
-    if [[ "${max_version_prefix}" > "${new_version_prefix}" ]]; then
+
+    if (( 10#$max_year > 10#$new_year )); then
         echo "ERROR: The current UTC date (${new_version_prefix}) is less" \
              "than the maximum existing version date (${max_version_prefix})" >&2
         exit 1
-    elif [[ "${max_version_prefix}" == "${new_version_prefix}" ]]; then
+    elif (( 10#$max_year == 10#$new_year )) && (( 10#$max_month > 10#$new_month )); then
+        echo "ERROR: The current UTC date (${new_version_prefix}) is less" \
+             "than the maximum existing version date (${max_version_prefix})" >&2
+        exit 1
+    elif (( 10#$max_year == 10#$new_year )) && (( 10#$max_month == 10#$new_month )); then
         echo "The current UTC date (${new_version_prefix}) is equal to" \
              "the maximum existing version date (${max_version_prefix})" >&2
         echo "Incrementing the patch version" >&2
