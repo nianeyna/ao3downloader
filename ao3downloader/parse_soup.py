@@ -59,12 +59,42 @@ def get_series_mobi(soup: BeautifulSoup) -> list[str]:
     return series
 
 
-def get_token(soup: BeautifulSoup) -> str:
+def get_login_token(soup: BeautifulSoup) -> str:
     """Get authentication token for logging in to ao3."""
 
-    token = (soup.find('form', class_='new_user')
-                 .find('input', attrs={'name': 'authenticity_token'})
-                 .get('value'))
+    form = soup.find('form', id='new_user')
+    if not form:
+        title = soup.title.string if soup.title else 'undefined'
+        raise Exception(strings.ERROR_FAILED_LOGIN.format(strings.FAILED_LOGIN_NO_FORM.format(title)))
+    
+    field = form.find('input', attrs={'name': 'authenticity_token'})
+    if not field:
+        raise Exception(strings.ERROR_FAILED_LOGIN.format(strings.FAILED_LOGIN_NO_TOKEN))
+    
+    token = field.get('value')
+
+    if not token:
+        raise Exception(strings.ERROR_FAILED_LOGIN.format(strings.FAILED_LOGIN_NO_TOKEN_VALUE))
+
+    return token
+
+
+def get_mark_read_token(soup: BeautifulSoup) -> str | None:
+    """Get token for marking a work as read."""
+
+    actions = soup.find('ul', class_='work navigation actions')
+    if not actions: return None
+
+    mark_read = actions.find('li', class_='mark')
+    if not mark_read: return None
+
+    form = mark_read.find('form')
+    if not form: return None
+
+    field = form.find('input', attrs={'name': 'authenticity_token'})
+    if not field: return None
+
+    token = field.get('value')
     return token
 
 

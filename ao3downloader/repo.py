@@ -126,13 +126,37 @@ class Repository:
         """Login to ao3."""
 
         soup = self.get_soup(strings.AO3_LOGIN_URL)
-        token = parse_soup.get_token(soup)
+        if not soup: raise Exception(strings.ERROR_FAILED_LOGIN.format(strings.FAILED_LOGIN_NOT_FOUND))
+        token = parse_soup.get_login_token(soup)
         payload = parse_text.get_payload(username, password, token)
         response = self.my_request('POST', strings.AO3_LOGIN_URL, payload)
         soup = BeautifulSoup(response.text, 'html.parser')
-        if not soup: raise Exception(strings.ERROR_FAILED_LOGIN) # raise normal exception type
+        if not soup: raise Exception(strings.ERROR_FAILED_LOGIN.format(strings.FAILED_LOGIN_NO_RESPONSE))
         if parse_soup.is_failed_login(soup): # raise exception type that indicates we should clear username and password data
-            raise exceptions.LoginException(strings.ERROR_FAILED_LOGIN)
+            raise exceptions.LoginException(strings.ERROR_FAILED_LOGIN.format(strings.FAILED_LOGIN_INVALID_CREDENTIALS))
+        
+
+    def mark_work_as_read(self, soup: BeautifulSoup, work_url: str):
+        """Mark a work as read on ao3."""
+
+        work_id = parse_text.get_work_number(work_url)
+        link = strings.AO3_MARK_READ_URL.format(work_id)
+        token = parse_soup.get_mark_read_token(soup)
+        if not token:
+            self.fileops.write_log({'link': link, 'message': strings.ERROR_MARK_READ_SKIP, 'success': False})
+            return
+        payload = {'authenticity_token': token}
+        try:
+            response = self.my_request('PATCH', link, payload)
+            if response.status_code != codes['ok']:
+                log = {'link': link, 'message': strings.ERROR_MARK_READ, 'error': 
+                       strings.ERROR_INVALID_STATUS_CODE.format(response.status_code), 'success': False}
+                self.fileops.write_log(log)
+        except Exception as e:
+            log = {'link': link, 'message': strings.ERROR_MARK_READ, 'error': str(e), 'success': False}
+            if not isinstance(e, exceptions.Ao3DownloaderException):
+                log['stacktrace'] = ''.join(traceback.TracebackException.from_exception(e).format())
+            self.fileops.write_log(log)
 
 
     def get_delay(self, attempt: int) -> float:

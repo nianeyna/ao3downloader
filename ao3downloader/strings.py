@@ -146,8 +146,9 @@ MESSAGE_INI_REMOVED_SECTION = '\'{}\' section has been removed.\n'
 # region ao3 scraping
 
 AO3_DOMAIN = 'archiveofourown.org'
-AO3_BASE_URL = 'https://archiveofourown.org'
-AO3_LOGIN_URL = 'https://archiveofourown.org/users/login'
+AO3_BASE_URL = 'https://' + AO3_DOMAIN
+AO3_LOGIN_URL = AO3_BASE_URL + '/users/login'
+AO3_MARK_READ_URL = AO3_BASE_URL + '/works/{}/mark_as_read'
 
 AO3_FAILED_LOGIN = 'The password or user name you entered doesn\'t match our records.'
 AO3_PROCEED = 'Yes, Continue'
@@ -168,7 +169,7 @@ TIMESTAMP_URL = '{}-{}-{}T00:00:00Z'
 ERROR_INVALID_LINK = 'Not an ao3 link'
 ERROR_LOCKED = 'Locked'
 ERROR_DELETED = 'Deleted'
-ERROR_FAILED_LOGIN = 'Failed login'
+ERROR_FAILED_LOGIN = 'Failed login: {}'
 ERROR_PROCEED_LINK = 'Problem getting proceed link'
 ERROR_DOWNLOAD_LINK = 'Problem getting download link'
 ERROR_LOG_FILE = 'Problem parsing log file during initial setup'
@@ -180,5 +181,14 @@ ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be 
 ERROR_HTTP_REQUEST = 'Unrecoverable error encountered while making web request'
 ERROR_INVALID_STATUS_CODE = 'Request failed with status code {}'
 ERROR_TIMEOUT = 'Request exceeded the timeout limit of {} seconds'
+ERROR_MARK_READ = 'Problem marking work as read'
+ERROR_MARK_READ_SKIP = 'Skipping marking work as read; could not find form input.'
+
+FAILED_LOGIN_NOT_FOUND = 'could not retrieve login page'
+FAILED_LOGIN_NO_RESPONSE = 'could not get a response from login request'
+FAILED_LOGIN_INVALID_CREDENTIALS = 'invalid username or password'
+FAILED_LOGIN_NO_FORM = 'could not find login form. page title was: {}'
+FAILED_LOGIN_NO_TOKEN = 'could not find authenticity token field in login form'
+FAILED_LOGIN_NO_TOKEN_VALUE = 'authenticity token field was empty'
 
 # endregion

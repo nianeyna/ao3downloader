@@ -215,8 +215,7 @@ class Ao3:
                         'img': img, 'error': str(e), 'stacktrace': traceback.format_exc()})
 
         if self.mark:
-            marklink = parse_soup.get_mark_as_read_link(thesoup)
-            if marklink: self.repo.my_request('GET', marklink)
+            self.repo.mark_work_as_read(thesoup, work_url)
 
         return True
 
