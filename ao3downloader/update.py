@@ -98,7 +98,6 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
     if href is None: return None # if this isn't a work from ao3, return
     
     # if we don't care whether the fic is incomplete, just return the work link
-    # TODO: check why this is the case; it might be easier and faster to return nothing here
     if not update: return {'link': href}
 
     # if this is a series update, return the series links if any were found
@@ -116,11 +115,11 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
     totalchap = parse_text.get_total_chapters(stats, index)
     currentchap = parse_text.get_current_chapters(stats, index)
 
-    # if the work is incomplete, return the info
+    # if the work is incomplete, return the link and the number of chapters we already have downloaded
     if currentchap != totalchap:
         return {'link': href, 'chapters': currentchap}
 
-    # we shouldn't make it here in the function, but just to be safe:
+    # we shouldn't make it to here in the function, but just to be safe:
     return None
 
 
