@@ -11,11 +11,11 @@ from ao3downloader import parse_pdf, parse_soup, parse_text, parse_xml, strings
 
 
 def process_file(path: str, filetype: str, update: bool=True, update_series: bool=False) -> dict:
-    '''add url of work to list if current version of work is incomplete'''
+    '''determines whether the input work is incomplete, and returns the work link if it is'''
 
     if filetype == 'EPUB':
         xml = get_epub_preface(path)
-        # if the preface is not found at the expected location, we assume this is not an AO3 epub
+        # if the preface is not found at the expected location, we assume this is not an AO3 epub and skip it
         if xml is None: return None 
         href = parse_xml.get_work_link_epub(xml)
         stats = parse_xml.get_stats_epub(xml)
@@ -100,6 +100,7 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
 
 
 def get_epub_preface(path: str) -> ET.Element:
+    '''retrieve the story's preface from the epub file and return the file's root element for later use'''
     try:
         with zipfile.ZipFile(path, 'r') as zf:
             with zf.open('content.opf') as of: 
