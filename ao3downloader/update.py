@@ -11,7 +11,10 @@ from ao3downloader import parse_pdf, parse_soup, parse_text, parse_xml, strings
 
 
 def process_file(path: str, filetype: str, update: bool=True, update_series: bool=False) -> dict:
-    '''determines whether the input work is incomplete, and returns the work link if it is'''
+    """
+    given an input work, checks if it's incomplete, then returns the work link if it is
+    in the case of series updates, the function instead returns the series link(s) that the input work is in
+    """
 
     if filetype == 'EPUB':
         xml = get_epub_preface(path)
@@ -98,9 +101,12 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
     if currentchap != totalchap:
         return {'link': href, 'chapters': currentchap}
 
+    # we shouldn't make it here in the function, but just to be safe:
+    return None
+
 
 def get_epub_preface(path: str) -> ET.Element:
-    '''retrieve the story's preface from the epub file and return the file's root element for later use'''
+    """retrieve the story's preface from the epub file and return the file's root element for later use"""
     try:
         with zipfile.ZipFile(path, 'r') as zf:
             with zf.open('content.opf') as of: 
