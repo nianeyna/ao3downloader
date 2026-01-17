@@ -98,12 +98,18 @@ def get_next_page(link: str) -> str:
     """
 
     index = str.find(link, 'page=')
+
+    # if 'page=' isn't already in the link, we need to add it
+    # we can assume that this means we're on the first page, and so we always add 'page=2'
     if index == -1:
+        # if there's no querystring, add one with 'page=' as the first element
         if str.find(link, '?') == -1:
             newlink = link + '?page=2'
+        # if the querystring already exists, add the 'page=' element at the end
         else:
             newlink = link + '&page=2'
     else:
+        # we already have a 'page=' element, so we need to increment it by one
         i = index + 5
         page = get_num_from_link(link, i)
         nextpage = int(page) + 1
