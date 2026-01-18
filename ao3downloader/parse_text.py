@@ -123,9 +123,11 @@ def get_page_number(link: str) -> int:
     """
 
     index = str.find(link, 'page=')
+    # there's no 'page=' element in the link, so we have to be on the first page
     if index == -1:
         return 1
     else:
+        # our index starts after 'page=' so increment by five
         i = index + 5
         page = get_num_from_link(link, i)
         return int(page)
@@ -137,6 +139,7 @@ def get_num_from_link(link: str, start: int) -> str:
     """
 
     end = start
+    #iterate through the string until we hit a non-digit character
     while end < len(link) and str.isdigit(link[start:end+1]):
         end = end + 1
     return link[start:end]
@@ -176,7 +179,7 @@ def get_current_chapters(text: str, index: int) -> str:
 
 def get_payload(username: str, password: str, token: str) -> dict[str, str]:
     """
-    Get payload for ao3 login.
+    creates a payload for ao3 login.
     """
 
     payload = {
@@ -198,6 +201,7 @@ def get_title_dict(logs: list[dict]) -> dict[str, list[str]]:
     titles = filter(lambda x: 'title' in x and 'link' in x, logs)
     for obj in list(titles):
         link = obj['link']
+        # make sure we don't include duplicates in our dict
         if link not in dictionary:
             title = obj['title']
             if not isinstance(title, list): title = [title]
@@ -208,13 +212,14 @@ def get_title_dict(logs: list[dict]) -> dict[str, list[str]]:
 def get_unsuccessful_downloads(logs: list[dict]) -> list[str]:
     """
     checks the logs for any unsuccessful downloads
-    if these exist, the function returns a list of links to those works
+    if these exist, the function returns a list of links to those works (otherwise it returns an empty list)
     """
 
     links = []
     errors = filter(lambda x:'link' in x and 'success' in x and x['success'] == False, logs)
     for error in errors:
         link = error['link']
+        # check if the work link is already in the list
         if link not in links: 
             links.append(link)
     return links
