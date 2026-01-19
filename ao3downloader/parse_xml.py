@@ -49,6 +49,7 @@ def get_work_link_epub(xml: ET.Element) -> str:
     # assumption: the xml does not contain any links to other works than the one we are interested in. 
     # since this file should not include user-generated html (such as summary) this should be safe
     # so long as ao3 doesn't change their preface formatting dramatically.
+    # that's a lot of shoulds but we'll let it go because I said so.
     for a in xml.iter('{http://www.w3.org/1999/xhtml}a'):
         href = a.get('href')
         if href and 'archiveofourown.org/works/' in href:
