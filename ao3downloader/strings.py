@@ -147,6 +147,8 @@ MESSAGE_INI_REMOVED_SECTION = '\'{}\' section has been removed.\n'
 
 AO3_DOMAIN = 'archiveofourown.org'
 AO3_BASE_URL = 'https://' + AO3_DOMAIN
+AO3_WORKS_URL = AO3_BASE_URL + '/work/'
+AO3_SERIES_URL = AO3_BASE_URL + '/series/'
 AO3_LOGIN_URL = AO3_BASE_URL + '/users/login'
 AO3_MARK_READ_URL = AO3_BASE_URL + '/works/{}/mark_as_read'
 

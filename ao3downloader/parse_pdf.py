@@ -42,5 +42,5 @@ def get_stats_pdf(pdf: pdfquery.PDFQuery) -> str:
 
 def get_series_pdf(pdf: pdfquery.PDFQuery) -> list[str]:
     links = map(lambda x: x.attrib['URI'] if 'URI' in x.attrib else '', pdf.pq('Annot'))
-    series = filter(lambda x: 'archiveofourown.org/series/' in x, links)
+    series = filter(lambda x: strings.AO3_SERIES_URL in x, links)
     return list(series)
