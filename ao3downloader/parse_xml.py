@@ -7,7 +7,7 @@ from ao3downloader import parse_text
 
 def get_bookmark_list(bookmark_xml: ET.Element, exclude_toread: bool) -> list[dict[str, str]]:
     """
-    produces a list of work/series attributes from a given xml element tree
+    produces a list of work/series links from a given xml element tree
     """
 
     bookmark_list = []
