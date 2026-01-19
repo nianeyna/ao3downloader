@@ -28,7 +28,7 @@ def get_series_html(soup: BeautifulSoup) -> list[str]:
     links = soup.select('#preface .meta .tags dd a')
     for link in links:
         href = link.get('href')
-        if href and 'archiveofourown.org/series/' in href:
+        if href and strings.AO3_SERIES_URL in href:
             series.append(href)
     return series
 
