@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 
 from urllib.parse import urlparse
 
-from ao3downloader import parse_text
+from ao3downloader import parse_text, strings
 
 
 def get_bookmark_list(bookmark_xml: ET.Element, exclude_toread: bool) -> list[dict[str, str]]:
@@ -38,7 +38,7 @@ def get_work_link_epub(xml: ET.Element) -> str:
     # that's a lot of shoulds but we'll let it go because I said so.
     for a in xml.iter('{http://www.w3.org/1999/xhtml}a'):
         href = a.get('href')
-        if href and 'archiveofourown.org/works/' in href:
+        if href and strings.AO3_WORKS_URL in href:
             return href
     return None
 
@@ -56,6 +56,6 @@ def get_series_epub(xml: ET.Element) -> list[str]:
     series = []
     for a in xml.iter('{http://www.w3.org/1999/xhtml}a'):
         href = a.get('href')
-        if href and 'archiveofourown.org/series/' in href:
+        if href and strings.AO3_SERIES_URL in href:
             series.append(href)
     return series
