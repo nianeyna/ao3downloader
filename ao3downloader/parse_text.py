@@ -33,6 +33,7 @@ def get_valid_filename(filename: list[str], maximum: int) -> str:
 def get_valid_filepath(filename: str, maximum: int) -> str:
     """
     removes any invalid filename characters and leading/trailing whitespace from an input string
+    the output will also be trimmed to the provided maximum amount of characters if maximum is greater than 0
     """
 
     valid_name = filename.translate({ord(i):None for i in strings.INVALID_FILENAME_CHARACTERS})
@@ -82,12 +83,15 @@ def is_series(link: str) -> bool:
 
 def get_digits_after(test: str, url: str) -> str:
     """
-    retrieves the contents of a given url after a test string. This should (ideally) be a number
-    if the test string doesn't exist in the input, the function returns None
+    retrieves all consecutive numerical digits in a url after a given test string.
+    if the test string doesn't exist or there are no numbers found, the function returns None
     """
+
     index = str.find(url, test)
+    #make sure that the test string is actually in our url
     if index == -1: return None
     digits = get_num_from_link(url, index + len(test))
+    #check if we have a number to return
     if not digits or len(digits) == 0: return None
     return digits
 
@@ -179,7 +183,7 @@ def get_current_chapters(text: str, index: int) -> str:
 
 def get_payload(username: str, password: str, token: str) -> dict[str, str]:
     """
-    creates a payload for ao3 login.
+    constructs a payload for ao3 login.
     """
 
     payload = {
