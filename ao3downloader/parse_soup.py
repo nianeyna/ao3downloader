@@ -28,7 +28,7 @@ def get_series_html(soup: BeautifulSoup) -> list[str]:
     links = soup.select('#preface .meta .tags dd a')
     for link in links:
         href = link.get('href')
-        if href and 'archiveofourown.org/series/' in href:
+        if href and strings.AO3_SERIES_URL in href:
             series.append(href)
     return series
 
@@ -36,7 +36,7 @@ def get_series_html(soup: BeautifulSoup) -> list[str]:
 def get_work_link_mobi(soup: BeautifulSoup) -> str:
     # it's ok if there are other work links in the file, because the relevant one will always be the first to appear
     # can't use a more specific selector because the html that comes out of the mobi parser is poorly formatted rip me
-    link = soup.find('a', href=lambda x: x and 'archiveofourown.org/works/' in x)
+    link = soup.find('a', href=lambda x: x and strings.AO3_WORKS_URL in x)
     if link: return link.get('href')
     return None
 
@@ -53,7 +53,7 @@ def get_series_mobi(soup: BeautifulSoup) -> list[str]:
     if tag:
         block = tag.find_next_sibling('blockquote')
         if block:
-            links = block.find_all('a', href=lambda x: x and 'archiveofourown.org/series/' in x)
+            links = block.find_all('a', href=lambda x: x and strings.AO3_SERIES_URL in x)
             for link in links:
                 series.append(link.get('href'))
     return series
@@ -123,7 +123,7 @@ def get_full_work_url(url: str) -> str:
     """Get full ao3 work url from partial url"""
 
     work_number = parse_text.get_work_number(url)
-    return strings.AO3_BASE_URL + '/works/' + work_number
+    return strings.AO3_WORKS_URL + work_number
 
 
 def get_series_urls(soup: BeautifulSoup, get_all: bool) -> list[str]:
@@ -155,7 +155,7 @@ def get_full_series_url(url: str) -> str:
     """Get full ao3 series url from partial url"""
 
     series_number = parse_text.get_series_number(url)
-    return strings.AO3_BASE_URL + '/series/' + series_number
+    return strings.AO3_SERIES_URL + series_number
 
 
 def get_work_and_series_urls(soup: BeautifulSoup, get_all: bool=False) -> list[str]:
