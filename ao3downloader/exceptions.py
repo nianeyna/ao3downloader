@@ -35,3 +35,7 @@ class InvalidLinkException(Ao3DownloaderException):
 
 class InvalidStatusCodeException(Ao3DownloaderException):
     pass
+
+
+class CloudflareException(Ao3DownloaderException):
+    pass

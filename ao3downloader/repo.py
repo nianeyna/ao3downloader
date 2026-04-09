@@ -87,16 +87,11 @@ class Repository:
                     raise
 
             if response.status_code in self.retry_statuses:
-                if should_retry:
+                if self.retry_or_raise(should_retry, attempt, method, url, retry_delay,
+                        str(response.status_code),
+                        exceptions.InvalidStatusCodeException(strings.ERROR_INVALID_STATUS_CODE.format(response.status_code))):
                     attempt += 1
-                    if self.debug:
-                        self.fileops.write_log(
-                            {'link': url, 'message': strings.MESSAGE_RETRY.format(method, attempt, retry_delay),
-                             'error': str(response.status_code), 'level': 'debug'})
-                    sleep(retry_delay)
                     continue
-                else:
-                    raise exceptions.InvalidStatusCodeException(strings.ERROR_INVALID_STATUS_CODE.format(response.status_code))
 
             if response.status_code == codes['too_many_requests']:
                 try:
@@ -112,13 +107,22 @@ class Repository:
                 print(strings.MESSAGE_RESUMING)
                 continue
 
+            # this check follows the retry-after check because a cloudflare response that is also 
+            # a 429 can happen, and should be handled with pause logic rather than retry logic
+            if self.is_cloudflare_response(response):
+                if self.retry_or_raise(should_retry, attempt, method, url, retry_delay,
+                        strings.ERROR_CLOUDFLARE,
+                        exceptions.CloudflareException(strings.ERROR_CLOUDFLARE)):
+                    attempt += 1
+                    continue
+
             if self.extra_wait > 0: sleep(self.extra_wait)
 
             if self.debug:
                 self.fileops.write_log(
-                    {'link': url, 'message': strings.MESSAGE_SUCCESS.format(method, response.status_code), 
+                    {'link': url, 'message': strings.MESSAGE_SUCCESS.format(method, response.status_code),
                      'level': 'debug'})
-                
+
             return response
 
 
@@ -157,6 +161,45 @@ class Repository:
             if not isinstance(e, exceptions.Ao3DownloaderException):
                 log['stacktrace'] = ''.join(traceback.TracebackException.from_exception(e).format())
             self.fileops.write_log(log)
+
+
+    def retry_or_raise(self, should_retry: bool, attempt: int, method: str, url: str,
+                       retry_delay: float, error: str, exc: Exception) -> bool:
+        """Retry the request if possible, otherwise raise the given exception.
+        Returns True if the caller should continue the retry loop."""
+        if should_retry:
+            if self.debug:
+                self.fileops.write_log(
+                    {'link': url, 'message': strings.MESSAGE_RETRY.format(method, attempt + 1, retry_delay),
+                     'error': error, 'level': 'debug'})
+            sleep(retry_delay)
+            return True
+        raise exc
+
+
+    @staticmethod
+    def is_cloudflare_response(response: requests.Response) -> bool:
+        server = response.headers.get('Server', '').lower()
+        if 'cloudflare' not in server:
+            return False
+        content_type = response.headers.get('Content-Type', '').lower()
+        if content_type.startswith('text/html'):
+            snippet = response.text[:2048].lower()
+            cloudflare_markers = [
+                # common generic cloudflare page titles. unlikely, since ao3 uses their own branding, 
+                # but worth checking for. shouldn't false positive on works with titles that happen 
+                # to match the strings - a legitimate ao3 title will include "| Archive of Our Own"
+                '<title>just a moment...</title>',
+                '<title>attention required!</title>',
+                '<title>access denied</title>',
+                # checking for suspicious javascript variables. these *will* false positive if a user
+                # includes them in the title, but the chances of that are very very low, I hope. 
+                'cf-browser-verification',
+                'id="cf-wrapper"',
+                '_cf_chl_opt',
+            ]
+            return any(marker in snippet for marker in cloudflare_markers)
+        return False
 
 
     def get_delay(self, attempt: int) -> float:

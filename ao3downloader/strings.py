@@ -181,6 +181,7 @@ ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be 
 ERROR_HTTP_REQUEST = 'Unrecoverable error encountered while making web request'
 ERROR_INVALID_STATUS_CODE = 'Request failed with status code {}'
 ERROR_TIMEOUT = 'Request exceeded the timeout limit of {} seconds'
+ERROR_CLOUDFLARE = 'Cloudflare challenge or error page detected'
 ERROR_MARK_READ = 'Problem marking work as read'
 ERROR_MARK_READ_SKIP = 'Skipping marking work as read; could not find form input.'
 
