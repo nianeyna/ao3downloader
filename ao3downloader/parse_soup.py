@@ -320,12 +320,5 @@ def is_explicit(soup: BeautifulSoup) -> bool:
     return soup.find('p', class_='caution') is not None
 
 
-def is_failed_login(soup: BeautifulSoup) -> bool:
-    return string_exists(soup, strings.AO3_FAILED_LOGIN)
-
-
-def string_exists(soup: BeautifulSoup, string: str) -> bool:
-    pattern = string
-    expression = re.compile(pattern)
-    match = soup.find_all(text=expression)
-    return len(match) > 0
+def is_logged_in(soup: BeautifulSoup) -> bool:
+    return soup.find('body', class_='logged-in') is not None

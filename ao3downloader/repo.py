@@ -136,7 +136,7 @@ class Repository:
         response = self.my_request('POST', strings.AO3_LOGIN_URL, payload)
         soup = BeautifulSoup(response.text, 'html.parser')
         if not soup: raise Exception(strings.ERROR_FAILED_LOGIN.format(strings.FAILED_LOGIN_NO_RESPONSE))
-        if parse_soup.is_failed_login(soup): # raise exception type that indicates we should clear username and password data
+        if not parse_soup.is_logged_in(soup): # raise exception type that indicates we should clear username and password data
             raise exceptions.LoginException(strings.ERROR_FAILED_LOGIN.format(strings.FAILED_LOGIN_INVALID_CREDENTIALS))
         
 

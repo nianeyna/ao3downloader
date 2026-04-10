@@ -165,6 +165,7 @@ def ao3_login(repo: Repository, fileops: FileOps, force: bool=False) -> None:
         except exceptions.LoginException:
             fileops.save_setting(strings.SETTING_USERNAME, None)
             fileops.save_setting(strings.SETTING_PASSWORD, None)
+            print(strings.MESSAGE_LOGIN_RESET)
             raise
 
 

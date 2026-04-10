@@ -140,6 +140,7 @@ MESSAGE_INI_ADDED_KEY = 'added \'{}\' to \'{}\' section.\n'
 MESSAGE_INI_REMOVED_KEY = 'removed \'{}\' from \'{}\' section.\n'
 MESSAGE_INI_ADDED_SECTION = '\'{}\' section has been added.\n'
 MESSAGE_INI_REMOVED_SECTION = '\'{}\' section has been removed.\n'
+MESSAGE_LOGIN_RESET = 'login details have been reset; please try again'
 
 # endregion
 
@@ -150,7 +151,6 @@ AO3_BASE_URL = 'https://' + AO3_DOMAIN
 AO3_LOGIN_URL = AO3_BASE_URL + '/users/login'
 AO3_MARK_READ_URL = AO3_BASE_URL + '/works/{}/mark_as_read'
 
-AO3_FAILED_LOGIN = 'The password or user name you entered doesn\'t match our records.'
 AO3_PROCEED = 'Yes, Continue'
 AO3_MARK_READ = 'Mark as Read'
 
