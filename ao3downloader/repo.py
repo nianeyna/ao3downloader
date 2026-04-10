@@ -184,7 +184,6 @@ class Repository:
             return False
         content_type = response.headers.get('Content-Type', '').lower()
         if content_type.startswith('text/html'):
-            snippet = response.text[:2048].lower()
             cloudflare_markers = [
                 # common generic cloudflare page titles. unlikely, since ao3 uses their own branding, 
                 # but worth checking for. shouldn't false positive on works with titles that happen 
@@ -198,7 +197,7 @@ class Repository:
                 'id="cf-wrapper"',
                 '_cf_chl_opt',
             ]
-            return any(marker in snippet for marker in cloudflare_markers)
+            return any(marker in response.text.lower() for marker in cloudflare_markers)
         return False
 
 
