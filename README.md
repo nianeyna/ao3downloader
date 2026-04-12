@@ -93,7 +93,6 @@ This is basically what the install script does, but broken out into manual steps
 
 ## Known Issues
 
-- The script will enter an infinite loop if you give it a link to an ao3 page that contains links to works or series, but does not support multiple pages of results. The most common example of this is user dashboard pages. (To download an author's works, make sure to put in the link to their "works" page, and not their "dashboard" page.) If you get into an infinite loop, you can simply close the window to get out of it.
 - When downloading missing fics from series, if you are logged in, and the downloader finds a link to a series that is inaccessible because you do not have permission to access the series page, the downloader will download all of the works linked on your user dashboard page, instead. Yes... really.
 - Links containing more than 4095 characters may cause issues on Mac and Linux. To work around this (on Mac and Linux only!) enter `stty -icanon` into your terminal before running ao3downloader. When you are finished running ao3downloader, enter `stty icanon` to restore the default behavior. H/t github user verotheelf for this workaround.
 - Links containing more than 8191 characters will cause problems on Windows. There is no workaround, other than using a different link. Thankfully, it is unlikely you will run into this problem, as 8191 characters is quite a lot.

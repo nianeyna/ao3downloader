@@ -83,6 +83,40 @@ def test_get_title_multiple_series(snapshot):
     assert parse_soup.get_title(soup, link, pattern) == snapshot
 
 
+def test_get_total_pages():
+    soup = get_soup_from_fixture('bookmarks')
+    assert parse_soup.get_total_pages(soup) == 7
+
+
+def test_get_total_pages_no_pagination():
+    soup = get_soup_from_fixture('unlockedWork')
+    assert parse_soup.get_total_pages(soup) is None
+
+
+def test_get_total_pages_empty_pagination():
+    soup = BeautifulSoup('<ol class="pagination"></ol>', 'html.parser')
+    assert parse_soup.get_total_pages(soup) is None
+
+
+def test_get_total_pages_only_prev_next():
+    soup = BeautifulSoup(
+        '<ol class="pagination">'
+        '<li><a rel="previous">← Previous</a></li>'
+        '<li><a rel="next">Next →</a></li>'
+        '</ol>',
+        'html.parser')
+    assert parse_soup.get_total_pages(soup) is None
+
+
+def test_get_total_pages_single_page():
+    soup = BeautifulSoup(
+        '<ol class="pagination">'
+        '<li><em class="current">1</em></li>'
+        '</ol>',
+        'html.parser')
+    assert parse_soup.get_total_pages(soup) == 1
+
+
 def get_soup_from_fixture(filename: str) -> BeautifulSoup:
     fixture_path = os.path.join(os.path.dirname(__file__), 'fixtures', filename + '.html')
     with open(fixture_path) as f:

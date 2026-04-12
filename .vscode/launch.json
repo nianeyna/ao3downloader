@@ -8,6 +8,14 @@
             "program": "${workspaceFolder}/ao3downloader/main.py",
             "console": "integratedTerminal",
             "preLaunchTask": "uv sync"
+        },
+        {
+            "name": "pytest debug",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "console": "integratedTerminal",
+            "preLaunchTask": "uv sync"
         }
     ]
 }

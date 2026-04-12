@@ -166,6 +166,21 @@ def get_work_and_series_urls(soup: BeautifulSoup, get_all: bool=False) -> list[s
     return work_urls + series_urls
 
 
+def get_total_pages(soup: BeautifulSoup) -> int | None:
+    """Get total page count from pagination element, or None if no pagination exists."""
+
+    pagination = soup.select_one('ol.pagination')
+    if not pagination:
+        return None
+    page_numbers = []
+    for li in pagination.find_all('li'):
+        digits = re.sub(r'\D', '', li.get_text())
+        if not digits:
+            continue # ignore non-numeric ('previous' and 'next')
+        page_numbers.append(int(digits))
+    return max(page_numbers) if page_numbers else None
+
+
 def get_proceed_link(soup: BeautifulSoup) -> str:
     """Get link to proceed through explicit work agreement."""
 
