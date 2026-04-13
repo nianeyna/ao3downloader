@@ -36,14 +36,22 @@ MAX_RETRIES = 3
 
 
 def make_request(session, url):
-    """Make a request with retry logic for 5xx, 429, and cloudflare responses."""
+    """Make a request with retry logic for errors, 5xx, 429, and cloudflare responses."""
 
     for attempt in range(MAX_RETRIES + 1):
-        response = session.get(url, headers={"user-agent": USER_AGENT}, timeout=TIMEOUT)
+        delay = 0.1 * (2 ** attempt)
+
+        try:
+            response = session.get(url, headers={"user-agent": USER_AGENT}, timeout=TIMEOUT)
+        except requests.RequestException as e:
+            if attempt < MAX_RETRIES:
+                print(f"  {e.__class__.__name__}, retrying in {delay:.1f}s...")
+                sleep(delay)
+                continue
+            raise
 
         if response.status_code in Repository.retry_statuses:
             if attempt < MAX_RETRIES:
-                delay = 0.1 * (2 ** attempt)
                 print(f"  got {response.status_code}, retrying in {delay:.1f}s...")
                 sleep(delay)
                 continue
@@ -62,7 +70,6 @@ def make_request(session, url):
 
         if Repository.is_cloudflare_response(response):
             if attempt < MAX_RETRIES:
-                delay = 0.1 * (2 ** attempt)
                 print(f"  cloudflare response, retrying in {delay:.1f}s...")
                 sleep(delay)
                 continue
