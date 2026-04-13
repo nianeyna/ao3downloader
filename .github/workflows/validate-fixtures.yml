@@ -1,0 +1,151 @@
+name: validate ao3 fixtures
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'  # Sunday 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate:
+    name: validate fixtures against live ao3
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup
+        uses: astral-sh/setup-uv@v5
+
+      - name: refresh fixtures
+        run: uv run python dev/refresh_fixtures.py
+
+      - name: check for changes
+        id: changes
+        run: |
+          if git diff --quiet test/fixtures/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: run tests
+        if: steps.changes.outputs.changed == 'true'
+        id: initial-tests
+        continue-on-error: true
+        run: uv run python -m pytest test/ -v
+
+      - name: update snapshots
+        if: steps.initial-tests.outcome == 'failure'
+        run: uv run python -m pytest test/ --snapshot-update
+
+      - name: verify after snapshot update
+        if: steps.initial-tests.outcome == 'failure'
+        id: updated-tests
+        continue-on-error: true
+        run: uv run python -m pytest test/ -v
+
+      - name: create branch and commit
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b automated/refresh-ao3-fixtures
+          git add test/fixtures/ test/__snapshots__/
+          git commit -m "Update AO3 test fixtures (automated)"
+          git push --force origin automated/refresh-ao3-fixtures
+
+      - name: create or update success pr
+        if: >-
+          steps.changes.outputs.changed == 'true' &&
+          (steps.initial-tests.outcome == 'success' || steps.updated-tests.outcome == 'success')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing_issue=$(gh issue list --label "ao3-fixtures" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing_issue" ]; then
+            gh issue close "$existing_issue" --comment "Resolved by updated fixtures."
+          fi
+
+          existing_pr=$(gh pr list --head "automated/refresh-ao3-fixtures" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing_pr" ]; then
+            gh pr edit "$existing_pr" --body "$(cat <<'EOF'
+          ## Summary
+          - Weekly fixture refresh detected changes in AO3's HTML
+          - All tests pass (snapshots updated if needed)
+          - Please review the fixture diffs before merging
+
+          *Automated by validate-fixtures workflow*
+          EOF
+          )"
+          else
+            gh pr create \
+              --title "Update AO3 test fixtures" \
+              --label "ao3-fixtures" \
+              --body "$(cat <<'EOF'
+          ## Summary
+          - Weekly fixture refresh detected changes in AO3's HTML
+          - All tests pass (snapshots updated if needed)
+          - Please review the fixture diffs before merging
+
+          *Automated by validate-fixtures workflow*
+          EOF
+          )"
+          fi
+
+      - name: create or update failure pr and issue
+        if: >-
+          steps.changes.outputs.changed == 'true' &&
+          steps.updated-tests.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing_pr=$(gh pr list --head "automated/refresh-ao3-fixtures" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing_pr" ]; then
+            gh pr edit "$existing_pr" --title "Update AO3 test fixtures (FAILING)" --body "$(cat <<'EOF'
+          ## Summary
+          - Weekly fixture refresh detected changes in AO3's HTML
+          - **Tests are failing** even after snapshot update — parsing logic may need to be fixed
+          - See the workflow run for details
+
+          *Automated by validate-fixtures workflow*
+          EOF
+          )"
+          else
+            gh pr create \
+              --title "Update AO3 test fixtures (FAILING)" \
+              --label "ao3-fixtures" \
+              --body "$(cat <<'EOF'
+          ## Summary
+          - Weekly fixture refresh detected changes in AO3's HTML
+          - **Tests are failing** even after snapshot update — parsing logic may need to be fixed
+          - See the workflow run for details
+
+          *Automated by validate-fixtures workflow*
+          EOF
+          )"
+          fi
+
+          existing_issue=$(gh issue list --label "ao3-fixtures" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing_issue" ]; then
+            gh issue comment "$existing_issue" --body "Still failing as of workflow run ${{ github.run_id }}"
+          else
+            gh issue create \
+              --title "AO3 HTML structure change detected" \
+              --label "ao3-fixtures" \
+              --body "$(cat <<'EOF'
+          The weekly fixture refresh detected changes in AO3's HTML that break parsing logic.
+
+          Tests are still failing after automatic snapshot update — this likely means AO3 changed
+          the structure of elements that parse_soup.py relies on.
+
+          Check the validate-fixtures workflow runs for details.
+          EOF
+          )"
+          fi

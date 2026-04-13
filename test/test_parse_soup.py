@@ -83,9 +83,9 @@ def test_get_title_multiple_series(snapshot):
     assert parse_soup.get_title(soup, link, pattern) == snapshot
 
 
-def test_get_total_pages():
+def test_get_total_pages(snapshot):
     soup = get_soup_from_fixture('bookmarks')
-    assert parse_soup.get_total_pages(soup) == 7
+    assert parse_soup.get_total_pages(soup) == snapshot
 
 
 def test_get_total_pages_no_pagination():
