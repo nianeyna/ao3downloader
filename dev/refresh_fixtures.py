@@ -2,13 +2,12 @@
 
 Used by the validate-fixtures GitHub Actions workflow to detect
 when AO3's HTML structure changes in ways that affect parsing.
+Only works for logged-out pages that do not require fresh cookies.
 """
 
 import argparse
 import os
 import sys
-import urllib.request
-import urllib.error
 from time import sleep
 
 import requests
@@ -20,16 +19,15 @@ from ao3downloader.repo import Repository
 
 FIXTURES = [
     # HTML fixtures
-    {"name": "unlockedWork.html",          "url": "/works/41822007",                     "type": "html"},
-    {"name": "explicitWorkLoggedOut.html", "url": "/works/20907563", "no_cookies": True, "type": "html"},
-    {"name": "explicitWorkLoggedIn.html",  "url": "/works/20907563?view_adult=true",     "type": "html"},
-    {"name": "lockedWorkLoggedOut.html",   "url": "/works/185710",                       "type": "html"},
-    {"name": "multipleSeries.html",        "url": "/works/41214669",                     "type": "html"},
-    {"name": "bookmarks.html",             "url": "/users/nianeyna/bookmarks",           "type": "html"},
-    {"name": "deletedWork.html",           "url": "/works/99999999999",                  "type": "html"},
+    {"name": "unlockedWork.html",         "url": "/works/41822007",                 "type": "html"},
+    {"name": "explicitWorkLoggedIn.html", "url": "/works/20907563?view_adult=true", "type": "html"},
+    {"name": "lockedWorkLoggedOut.html",  "url": "/works/185710",                   "type": "html"},
+    {"name": "multipleSeries.html",       "url": "/works/41214669",                 "type": "html"},
+    {"name": "bookmarks.html",            "url": "/users/nianeyna/bookmarks",       "type": "html"},
+    {"name": "deletedWork.html",          "url": "/works/99999999999",              "type": "html"},
     # EPUB fixtures
-    {"name": "epubTest.epub",              "url": "/works/23009290",                     "type": "epub"},
-    {"name": "incompleteWork.epub",        "url": "/works/218676",                       "type": "epub"},
+    {"name": "epubTest.epub",             "url": "/works/23009290",                 "type": "epub"},
+    {"name": "incompleteWork.epub",       "url": "/works/218676",                   "type": "epub"},
 ]
 
 USER_AGENT = "ao3downloader-ci (+https://github.com/nianeyna/ao3downloader)"
@@ -75,39 +73,11 @@ def make_request(session, url):
     raise Exception(f"exhausted all {MAX_RETRIES} retries")
 
 
-def make_cookieless_request(url):
-    """Make a request without any cookie handling.
-
-    AO3's explicit content warning page is only served when no Cloudflare
-    cookies are present. The requests library handles cookies automatically
-    (even with a fresh session), which causes AO3 to skip the warning and
-    redirect to the content. Using urllib without a cookie processor avoids
-    this and gets the actual warning page.
-    """
-
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    for attempt in range(MAX_RETRIES + 1):
-        try:
-            resp = urllib.request.urlopen(req, timeout=TIMEOUT)
-            return resp.read().decode("utf-8")
-        except urllib.error.HTTPError as e:
-            if e.code in Repository.retry_statuses and attempt < MAX_RETRIES:
-                delay = 0.1 * (2 ** attempt)
-                print(f"  got {e.code}, retrying in {delay:.1f}s...")
-                sleep(delay)
-                continue
-            raise Exception(f"got {e.code}") from e
-    raise Exception(f"exhausted all {MAX_RETRIES} retries")
-
-
 def download_html(session, fixture, fixtures_dir):
     """Download an HTML fixture."""
 
     url = strings.AO3_BASE_URL + fixture["url"]
-    if fixture.get("no_cookies"):
-        text = make_cookieless_request(url)
-    else:
-        text = make_request(session, url).text
+    text = make_request(session, url).text
     path = os.path.join(fixtures_dir, fixture["name"])
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)

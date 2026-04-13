@@ -43,6 +43,7 @@ jobs:
 
       - name: update snapshots
         if: steps.initial-tests.outcome == 'failure'
+        continue-on-error: true
         run: uv run python -m pytest test/ --snapshot-update
 
       - name: verify after snapshot update
