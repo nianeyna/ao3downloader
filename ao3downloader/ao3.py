@@ -221,7 +221,7 @@ class Ao3:
             counter = 0
             imagelinks = parse_soup.get_image_links(thesoup)
             for img in imagelinks:
-                if str.startswith(img, '/'): break
+                if str.startswith(img, '/'): continue
                 try:
                     ext = os.path.splitext(img)[1]
                     if '?' in ext: ext = ext[:ext.index('?')]

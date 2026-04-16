@@ -15,7 +15,8 @@
             "request": "launch",
             "module": "pytest",
             "console": "integratedTerminal",
-            "preLaunchTask": "uv sync"
+            "preLaunchTask": "uv sync",
+            "args": ["--cov=ao3downloader", "--cov-report", "term", "--cov-report", "xml:cov.xml"]
         }
     ]
 }
