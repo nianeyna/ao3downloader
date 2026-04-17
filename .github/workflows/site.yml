@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: build
-        uses: withastro/action@v3
+        uses: withastro/action@v6
         with:
           package-manager: pnpm
           path: ./site
