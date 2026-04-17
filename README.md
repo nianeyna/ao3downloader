@@ -99,7 +99,6 @@ This is basically what the install script does, but broken out into manual steps
 
 ## Troubleshooting
 
-- If the install script just pops up a black window for a second and then immediately closes, and you are on Windows, look for a setting on your computer called "Allow local PowerShell scripts to run without being signed" and enable it (you should be able to find this setting using the start menu search bar). Then try running the install script again.
 - If you are able to create <!--CHECK-->logvisualization.html<!--VISUALIZATION_FILE_NAME--> (menu option 'v'), take a look through the logs to see if there are any helpful error messages.
 
 ## Questions? Comments? Bug reports?

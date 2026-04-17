@@ -11,9 +11,19 @@ import Layout from '../layouts/layout.astro';
       <li class='py-1'>Click the above button to download the installation script for Windows.</li>
       <li class='py-1'>Place the file you just downloaded in either an empty folder or, if you already have a folder with an ao3downloader instance that you would like to keep, place it in that folder.</li>
       <li class='py-1'>Double-click on it.</li>
-      <li class='py-1'>If that just opens a file with some nonsense-looking text instead of running anything, close that and try right-clicking the installer file and choosing “Run with PowerShell”.</li>
-      <li class='py-1'>This will install ao3downloader’s dependencies (if they are not already installed) and start the program.</li>
-      <li class='py-1'>Any time you want to run ao3downloader again, just double-click (or right-click and run) that same file again.</li>
+      <li class='py-1'>This should install ao3downloader’s dependencies (if they are not already installed) and start the program.</li>
+      <li class='py-1'>If something else happens besides the program starting, see below for troubleshooting steps.</li>
+      <li class='py-1'>Any time you want to run ao3downloader again, just re-run the install script the same way.</li>
     </ol>
+    <h2 class='text-center text-2xl my-8'>Troubleshooting PowerShell Issues</h2>
+    <p class='w-full py-1 italic'>Follow the below steps in order until you are able to reach the ao3downloader main menu.</p>
+    <ol class='list-decimal w-full'>
+      <li class='py-1'>If the install script opens an editable file with some nonsense-looking text instead of running anything, close that and try right-clicking the installer file and choosing “Run with PowerShell”.</li>
+      <li class='py-1'>If the install script pops up a black window for a second and then immediately closes, look for a setting on your computer called “Allow local PowerShell scripts to run without being signed” and enable it (you should be able to find this setting using the start menu search bar). Then try running the install script again (double-click, or right-click <code class='text-sm'>-></code> Run with PowerShell if double-clicking opens it in an editor).</li>
+      <li class='py-1'>If step 2 had no effect, restart your computer and try running the install script one more time.</li>
+      <li class='py-1'>If step 3 had no effect, click on the “PowerShell Policy Workaround” button below to download <code class='text-sm'>ao3downloader-windows-bypass.cmd</code>, then place it in the same folder as the install script and double-click on it.</li>
+      <li class='py-1'>If none of the above steps worked, see the project's <a class='underline' href='https://github.com/nianeyna/ao3downloader'>github page</a> for how to send me a bug report.</li>
+    </ol>
+    <a class='rounded my-8 p-3 bg-nia-primary italic' download href=`${import.meta.env.BASE_URL}/install/ao3downloader-windows-bypass.cmd`>PowerShell Policy Workaround</a>
   </div>
 </Layout>
