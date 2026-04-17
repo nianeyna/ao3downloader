@@ -32,7 +32,7 @@ FIXTURES = [
 
 USER_AGENT = "ao3downloader-ci (+https://github.com/nianeyna/ao3downloader)"
 TIMEOUT = 60
-MAX_RETRIES = 3
+MAX_RETRIES = 10
 
 
 def make_request(session, url):
