@@ -65,6 +65,11 @@ class Repository:
     def my_request(self, method: str, url: str, data: dict[str, str] = None) -> requests.Response:
         """Get response from a url."""
 
+        # normalize http -> https for ao3 links. older downloaded works may contain http
+        # links in their embedded metadata, and the resulting redirect trips cloudflare.
+        if strings.AO3_DOMAIN in url.lower() and url.lower().startswith('http://'):
+            url = 'https://' + url[len('http://'):]
+
         attempt = 0
 
         while True:
