@@ -91,14 +91,35 @@ def api_token(fileops: FileOps) -> str:
             strings.SETTING_API_TOKEN)
 
 
+def normalize_path_input(folder: str) -> str:
+    """For file or folder path inputs. Strips enclosing quotes and leading and trailing whitespace."""
+    if not folder:
+        return folder
+    folder = folder.strip()
+    if len(folder) >= 2 and folder[0] == folder[-1] and folder[0] in ('"', "'"):
+        folder = folder[1:-1].strip()
+    return folder
+
+
+def links_file() -> str:
+    while True:
+        print(strings.AO3_PROMPT_FILE_INPUT)
+        path = normalize_path_input(input())
+        if os.path.exists(path):
+            break
+        else:
+            print(strings.INFO_NO_FILE.format(path))
+    return path
+
+
 def redownload_folder() -> str:
     while True:
         print(strings.REDOWNLOAD_PROMPT_FOLDER)
-        folder = input()
-        if os.path.exists(folder): 
+        folder = normalize_path_input(input())
+        if os.path.isdir(folder):
             break
         else:
-            print(strings.INFO_NO_FOLDER)
+            print(strings.INFO_NO_FOLDER.format(folder))
     return folder
 
 
@@ -210,23 +231,31 @@ def update_types(fileops: FileOps) -> list[str]:
 
 
 def update_folder(fileops: FileOps) -> str:
-    folder = fileops.get_setting(strings.SETTING_UPDATE_FOLDER)
-    if folder:
-        print(strings.UPDATE_PROMPT_USE_SAVED_FOLDER)
-        if input() == strings.PROMPT_YES: 
-            return folder
+    saved = fileops.get_setting(strings.SETTING_UPDATE_FOLDER)
+    if saved:
+        normalized = normalize_path_input(saved)
+        if os.path.isdir(normalized):
+            print(strings.UPDATE_PROMPT_USE_SAVED_FOLDER)
+            if input() == strings.PROMPT_YES:
+                return normalized
         else:
-            fileops.save_setting(
-                strings.SETTING_UPDATE_FOLDER, 
-                None)
-    folder = fileops.setting(
-        strings.UPDATE_PROMPT_INPUT,
-        strings.SETTING_UPDATE_FOLDER)
-    return folder
+            print(strings.INFO_SAVED_FOLDER_MISSING.format(saved))
+        fileops.save_setting(strings.SETTING_UPDATE_FOLDER, None)
+    while True:
+        print(strings.UPDATE_PROMPT_INPUT)
+        folder = normalize_path_input(input())
+        if os.path.isdir(folder):
+            fileops.save_setting(strings.SETTING_UPDATE_FOLDER, folder)
+            return folder
+        print(strings.INFO_NO_FOLDER.format(folder))
 
 
 def get_files_of_type(folder: str, filetypes: list[str]) -> list[dict[str, str]]:
     print(strings.UPDATE_INFO_FILES)
+    if not os.path.isdir(folder):
+        print(strings.INFO_NO_FOLDER.format(folder))
+        print(strings.UPDATE_INFO_NUM_RETURNED.format(0))
+        return []
     results = []
     for subdir, dirs, files in os.walk(folder):
         for file in files:

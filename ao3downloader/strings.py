@@ -116,7 +116,9 @@ IGNORELIST_INFO_INITIALIZED = f'{IGNORELIST_FILE_NAME} has been added to the mai
 IGNORELIST_PROMPT_CHECK_DELETED = 'do you want to check the log file for deleted links and add them to the ignore list automatically? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
 
 INFO_NO_LOG_FILE = 'no log file'
-INFO_NO_FOLDER = 'folder does not exist'
+INFO_NO_FILE = 'file does not exist: {}'
+INFO_NO_FOLDER = 'folder does not exist: {}'
+INFO_SAVED_FOLDER_MISSING = 'previously saved folder no longer exists: {}'
 INFO_EXCLUDING_WORKS = 'filtering out works that are already in the downloads folder'
 INFO_STARTING_PAGE = 'starting page'
 INFO_FINISHED_PAGE = 'finished getting page {}. starting page {} of {}'

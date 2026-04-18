@@ -12,9 +12,8 @@ def action():
 
         filetypes = shared.download_types(fileops)
         images = shared.images()
-
-        print(strings.AO3_PROMPT_FILE_INPUT)
-        path = input()
+        path = shared.links_file()
+        
         with open(path) as f:
             links = f.readlines()
 
