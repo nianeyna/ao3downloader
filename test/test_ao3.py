@@ -72,6 +72,13 @@ def test_proceed_deleted_raises() -> None:
         ao3.proceed(soup)
 
 
+def test_proceed_hidden_raises() -> None:
+    ao3, _, _ = make_ao3()
+    soup = get_soup_from_fixture('hiddenWork')
+    with pytest.raises(exceptions.HiddenException, match=strings.ERROR_HIDDEN):
+        ao3.proceed(soup)
+
+
 def test_proceed_explicit_follows_proceed_link() -> None:
     ao3, repo, _ = make_ao3()
     soup = get_soup_from_fixture('explicitWorkLoggedOut')

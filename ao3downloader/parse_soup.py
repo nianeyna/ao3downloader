@@ -2,7 +2,7 @@ import re
 import traceback
 from typing import Any
 
-from bs4 import BeautifulSoup, ResultSet
+from bs4 import BeautifulSoup, ResultSet, Tag
 
 from ao3downloader import parse_text, strings
 from ao3downloader.exceptions import DownloadException, ProceedException
@@ -329,6 +329,13 @@ def is_locked(soup: BeautifulSoup) -> bool:
 
 def is_deleted(soup: BeautifulSoup) -> bool:
     return soup.find('div', id='main', class_='error-404') is not None
+
+
+def is_hidden(soup: BeautifulSoup) -> bool:
+    notice = soup.find('p', class_='notice')
+    if not notice or not isinstance(notice, Tag):
+        return False
+    return notice.find('a', href=lambda x: bool(x and x.startswith('/collections/'))) is not None
 
 
 def is_explicit(soup: BeautifulSoup) -> bool:

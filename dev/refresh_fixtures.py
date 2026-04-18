@@ -25,6 +25,7 @@ FIXTURES = [
     {"name": "multipleSeries.html",       "url": "/works/41214669",                 "type": "html"},
     {"name": "bookmarks.html",            "url": "/users/nianeyna/bookmarks",       "type": "html"},
     {"name": "deletedWork.html",          "url": "/works/99999999999",              "type": "html"},
+    {"name": "hiddenWork.html",           "url": "/works/47308798",                 "type": "html"},
     # EPUB fixtures
     {"name": "epubTest.epub",             "url": "/works/23009290",                 "type": "epub"},
     {"name": "incompleteWork.epub",       "url": "/works/218676",                   "type": "epub"},

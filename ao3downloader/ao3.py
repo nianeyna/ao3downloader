@@ -247,6 +247,8 @@ class Ao3:
             raise exceptions.LockedException(strings.ERROR_LOCKED)
         if parse_soup.is_deleted(thesoup):
             raise exceptions.DeletedException(strings.ERROR_DELETED)
+        if parse_soup.is_hidden(thesoup):
+            raise exceptions.HiddenException(strings.ERROR_HIDDEN)
         if parse_soup.is_explicit(thesoup):
             proceed_url = parse_soup.get_proceed_link(thesoup)
             thesoup = self.repo.get_soup(proceed_url)

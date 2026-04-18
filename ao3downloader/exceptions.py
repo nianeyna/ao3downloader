@@ -17,6 +17,10 @@ class DeletedException(Ao3DownloaderException):
     pass
 
 
+class HiddenException(Ao3DownloaderException):
+    pass
+
+
 class ProceedException(Ao3DownloaderException):
     pass
 
