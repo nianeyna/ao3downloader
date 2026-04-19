@@ -31,6 +31,19 @@ FIXTURES = [
     {"name": "incompleteWork.epub",       "url": "/works/218676",                   "type": "epub"},
 ]
 
+IGNORED_SELECTORS = [
+    '[name="csrf-token"]',
+    '[name="authenticity_token"]',
+    '[aria-hidden="true"]', # odd hidden link that looked cloudflare-related
+    '#site_search_tooltip',
+    '.kudos',
+    '.hits',
+    '.bookmarks',
+    '.status',
+    '.stats',
+    'script',
+]
+
 USER_AGENT = "ao3downloader-ci (+https://github.com/nianeyna/ao3downloader)"
 TIMEOUT = 60
 MAX_RETRIES = 10
@@ -87,8 +100,29 @@ def download_html(session, fixture, fixtures_dir):
     url = strings.AO3_BASE_URL + fixture["url"]
     text = make_request(session, url).text
     path = os.path.join(fixtures_dir, fixture["name"])
+    if (fixture['type'] == 'html' and not meaningful_change(text, path)):
+        print(f'no meaningful changes in {fixture["name"]}, skipping')
+        return
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
+
+
+def meaningful_change(text, path):
+    if not os.path.exists(path):
+        return True
+    with open(path, 'r', encoding='utf-8') as f:
+        existing = f.read()
+    old_soup = BeautifulSoup(existing, 'html.parser')
+    new_soup = BeautifulSoup(text, 'html.parser')
+
+    def strip(soup):
+        for selector in IGNORED_SELECTORS:
+            for element in soup.select(selector):
+                element.decompose()
+
+    strip(old_soup)
+    strip(new_soup)
+    return str(old_soup) != str(new_soup)
 
 
 def download_epub(session, fixture, fixtures_dir):
