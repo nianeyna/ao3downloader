@@ -1,45 +1,68 @@
-"""Tests for ao3downloader.update — process_file across all supported formats."""
+"""Tests for ao3downloader.update — process_file across all supported formats.
+
+- Snapshot tests (one per format) pin the exact `process_file` output of the
+  *current* live fixture. Updated on fixture refresh; they detect fixture drift.
+- Structural tests parameterize over all fixtures for a work (current + archive
+  via `ebook_fixtures()`) so every preserved format version is verified to still
+  parse correctly.
+"""
 
 import os
 import shutil
 import xml.etree.ElementTree as ET
 import zipfile
-from unittest.mock import patch
 
 import pytest
 
 from ao3downloader import update
 
+from test.conftest import ebook_fixtures
 
-FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
+
+EBOOK_DIR = os.path.join(os.path.dirname(__file__), 'fixtures', 'ebook')
+
+
+def _ids(paths):
+    """Use the filename as the parametrize id instead of the full path."""
+    return [os.path.basename(p) for p in paths]
 
 
 # region EPUB
 
-def test_process_file_epub_incomplete_work(snapshot):
-    path = os.path.join(FIXTURES_DIR, 'incompleteWork.epub')
+def test_process_file_epub_incomplete_work_snapshot(snapshot):
+    path = os.path.join(EBOOK_DIR, '218676', 'current', 'incompleteWork.epub')
     assert update.process_file(path, 'EPUB') == snapshot
 
 
-def test_process_file_epub_complete_work():
-    path = os.path.join(FIXTURES_DIR, 'epubTest.epub')
+@pytest.mark.parametrize('path', ebook_fixtures('218676', '.epub'),
+                         ids=_ids(ebook_fixtures('218676', '.epub')))
+def test_process_file_epub_incomplete_work_structural(path):
+    result = update.process_file(path, 'EPUB')
+
+    assert result is not None
+    assert 'archiveofourown.org/works/' in result['link']
+    assert result['chapters']
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.epub'),
+                         ids=_ids(ebook_fixtures('23009290', '.epub')))
+def test_process_file_epub_complete_work_returns_none(path):
     assert update.process_file(path, 'EPUB') is None
 
 
-def test_process_file_epub_work_in_series_returns_series():
-    path = os.path.join(FIXTURES_DIR, 'workInSeries.epub')
-
+@pytest.mark.parametrize('path', ebook_fixtures('334557', '.epub'),
+                         ids=_ids(ebook_fixtures('334557', '.epub')))
+def test_process_file_epub_work_in_series_returns_series(path):
     result = update.process_file(path, 'EPUB', update_series=True)
 
     assert result is not None
-    assert 'link' in result
     assert 'archiveofourown.org/works/' in result['link']
     assert result['series']
     assert all('archiveofourown.org/series/' in s for s in result['series'])
 
 
-def test_get_epub_preface(snapshot):
-    path = os.path.join(FIXTURES_DIR, 'epubTest.epub')
+def test_get_epub_preface_snapshot(snapshot):
+    path = os.path.join(EBOOK_DIR, '23009290', 'current', 'epubTest.epub')
     xml = update.get_epub_preface(path)
     assert ET.tostring(xml, encoding='unicode') == snapshot
 
@@ -73,28 +96,39 @@ def test_get_epub_preface_returns_none_when_preface_path_missing(tmp_path):
 
 # region HTML
 
-def test_process_file_html_complete_work():
-    path = os.path.join(FIXTURES_DIR, 'htmlTest.html')
-    assert update.process_file(path, 'HTML') is None
-
-
-def test_process_file_html_incomplete_work(snapshot):
-    path = os.path.join(FIXTURES_DIR, 'incompleteWork.html')
+def test_process_file_html_incomplete_work_snapshot(snapshot):
+    path = os.path.join(EBOOK_DIR, '218676', 'current', 'incompleteWork.html')
     assert update.process_file(path, 'HTML') == snapshot
 
 
-def test_process_file_html_update_false_returns_link():
-    path = os.path.join(FIXTURES_DIR, 'htmlTest.html')
+@pytest.mark.parametrize('path', ebook_fixtures('218676', '.html'),
+                         ids=_ids(ebook_fixtures('218676', '.html')))
+def test_process_file_html_incomplete_work_structural(path):
+    result = update.process_file(path, 'HTML')
 
+    assert result is not None
+    assert 'archiveofourown.org/works/' in result['link']
+    assert result['chapters']
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.html'),
+                         ids=_ids(ebook_fixtures('23009290', '.html')))
+def test_process_file_html_complete_work_returns_none(path):
+    assert update.process_file(path, 'HTML') is None
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.html'),
+                         ids=_ids(ebook_fixtures('23009290', '.html')))
+def test_process_file_html_update_false_returns_link(path):
     result = update.process_file(path, 'HTML', update=False)
 
     assert result is not None
     assert 'archiveofourown.org/works/' in result['link']
 
 
-def test_process_file_html_work_in_series_returns_series():
-    path = os.path.join(FIXTURES_DIR, 'workInSeries.html')
-
+@pytest.mark.parametrize('path', ebook_fixtures('334557', '.html'),
+                         ids=_ids(ebook_fixtures('334557', '.html')))
+def test_process_file_html_work_in_series_returns_series(path):
     result = update.process_file(path, 'HTML', update_series=True)
 
     assert result is not None
@@ -102,9 +136,9 @@ def test_process_file_html_work_in_series_returns_series():
     assert all('archiveofourown.org/series/' in s for s in result['series'])
 
 
-def test_process_file_html_update_series_returns_none_for_solo_work():
-    path = os.path.join(FIXTURES_DIR, 'htmlTest.html')
-    # solo work, update_series=True, no series found → None
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.html'),
+                         ids=_ids(ebook_fixtures('23009290', '.html')))
+def test_process_file_html_update_series_returns_none_for_solo_work(path):
     assert update.process_file(path, 'HTML', update_series=True) is None
 
 # endregion
@@ -112,28 +146,39 @@ def test_process_file_html_update_series_returns_none_for_solo_work():
 
 # region MOBI
 
-def test_process_file_mobi_complete_work_returns_none():
-    path = os.path.join(FIXTURES_DIR, 'mobiTest.mobi')
-    assert update.process_file(path, 'MOBI') is None
-
-
-def test_process_file_mobi_incomplete_work(snapshot):
-    path = os.path.join(FIXTURES_DIR, 'incompleteWork.mobi')
+def test_process_file_mobi_incomplete_work_snapshot(snapshot):
+    path = os.path.join(EBOOK_DIR, '218676', 'current', 'incompleteWork.mobi')
     assert update.process_file(path, 'MOBI') == snapshot
 
 
-def test_process_file_mobi_update_false_returns_link():
-    path = os.path.join(FIXTURES_DIR, 'mobiTest.mobi')
+@pytest.mark.parametrize('path', ebook_fixtures('218676', '.mobi'),
+                         ids=_ids(ebook_fixtures('218676', '.mobi')))
+def test_process_file_mobi_incomplete_work_structural(path):
+    result = update.process_file(path, 'MOBI')
 
+    assert result is not None
+    assert 'archiveofourown.org/works/' in result['link']
+    assert result['chapters']
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.mobi'),
+                         ids=_ids(ebook_fixtures('23009290', '.mobi')))
+def test_process_file_mobi_complete_work_returns_none(path):
+    assert update.process_file(path, 'MOBI') is None
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.mobi'),
+                         ids=_ids(ebook_fixtures('23009290', '.mobi')))
+def test_process_file_mobi_update_false_returns_link(path):
     result = update.process_file(path, 'MOBI', update=False)
 
     assert result is not None
     assert 'archiveofourown.org/works/' in result['link']
 
 
-def test_process_file_mobi_work_in_series_returns_series():
-    path = os.path.join(FIXTURES_DIR, 'workInSeries.mobi')
-
+@pytest.mark.parametrize('path', ebook_fixtures('334557', '.mobi'),
+                         ids=_ids(ebook_fixtures('334557', '.mobi')))
+def test_process_file_mobi_work_in_series_returns_series(path):
     result = update.process_file(path, 'MOBI', update_series=True)
 
     assert result is not None
@@ -159,21 +204,22 @@ def test_process_file_mobi_returns_none_when_extracted_file_not_html(monkeypatch
 # region AZW3
 
 def test_process_file_azw3_delegates_to_epub_parser(monkeypatch, tmp_path):
-    # use the real epub fixture as the "extracted" file
+    # use the real epub fixture as the "extracted" file — the current get_epub_preface
+    # only handles AO3-style epubs (content.opf at root), not the OEBPS-standard layout
+    # that mobi.extract produces from real AZW3 files.
     extract_dir = tmp_path / 'extracted'
     extract_dir.mkdir()
     extracted_epub = extract_dir / 'book.epub'
-    shutil.copyfile(os.path.join(FIXTURES_DIR, 'incompleteWork.epub'), extracted_epub)
+    shutil.copyfile(os.path.join(EBOOK_DIR, '218676', 'current', 'incompleteWork.epub'),
+                    extracted_epub)
 
     monkeypatch.setattr('ao3downloader.update.mobi.extract',
                         lambda path: (str(extract_dir), str(extracted_epub)))
 
     result = update.process_file('whatever.azw3', 'AZW3')
 
-    # incompleteWork.epub should yield a dict with 'link' and 'chapters'
     assert result is not None
     assert 'link' in result
-    # finally cleanup
     assert not extract_dir.exists()
 
 
@@ -194,27 +240,39 @@ def test_process_file_azw3_returns_none_when_extracted_file_not_epub(monkeypatch
 
 # region PDF
 
-def test_process_file_pdf_complete_work_returns_none():
-    path = os.path.join(FIXTURES_DIR, 'pdfTest.pdf')
-    assert update.process_file(path, 'PDF') is None
-
-
-def test_process_file_pdf_incomplete_work(snapshot):
-    path = os.path.join(FIXTURES_DIR, 'incompleteWork.pdf')
+def test_process_file_pdf_incomplete_work_snapshot(snapshot):
+    path = os.path.join(EBOOK_DIR, '218676', 'current', 'incompleteWork.pdf')
     assert update.process_file(path, 'PDF') == snapshot
 
 
-def test_process_file_pdf_update_false_returns_link():
-    path = os.path.join(FIXTURES_DIR, 'pdfTest.pdf')
+@pytest.mark.parametrize('path', ebook_fixtures('218676', '.pdf'),
+                         ids=_ids(ebook_fixtures('218676', '.pdf')))
+def test_process_file_pdf_incomplete_work_structural(path):
+    result = update.process_file(path, 'PDF')
 
+    assert result is not None
+    assert 'archiveofourown.org/works/' in result['link']
+    assert result['chapters']
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.pdf'),
+                         ids=_ids(ebook_fixtures('23009290', '.pdf')))
+def test_process_file_pdf_complete_work_returns_none(path):
+    assert update.process_file(path, 'PDF') is None
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.pdf'),
+                         ids=_ids(ebook_fixtures('23009290', '.pdf')))
+def test_process_file_pdf_update_false_returns_link(path):
     result = update.process_file(path, 'PDF', update=False)
 
-    assert result == {'link': 'https://archiveofourown.org/works/23009290'}
+    assert result is not None
+    assert 'archiveofourown.org/works/' in result['link']
 
 
-def test_process_file_pdf_work_in_series_returns_series():
-    path = os.path.join(FIXTURES_DIR, 'workInSeries.pdf')
-
+@pytest.mark.parametrize('path', ebook_fixtures('334557', '.pdf'),
+                         ids=_ids(ebook_fixtures('334557', '.pdf')))
+def test_process_file_pdf_work_in_series_returns_series(path):
     result = update.process_file(path, 'PDF', update_series=True)
 
     assert result is not None

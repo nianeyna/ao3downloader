@@ -8,11 +8,11 @@ import pytest
 
 from ao3downloader import parse_xml
 
+from test.conftest import ebook_fixtures
+
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 PINBOARD_PATH = os.path.join(FIXTURES_DIR, 'pinboard.xml')
-EPUB_PATH = os.path.join(FIXTURES_DIR, 'epubTest.epub')
-WORK_IN_SERIES_EPUB_PATH = os.path.join(FIXTURES_DIR, 'workInSeries.epub')
 
 OPF_NS = '{http://www.idpf.org/2007/opf}'
 XHTML_NS = '{http://www.w3.org/1999/xhtml}'
@@ -28,14 +28,8 @@ def _load_epub_preface(epub_path: str) -> ET.Element:
             return ET.parse(pf).getroot()
 
 
-@pytest.fixture(scope='module')
-def epub_test_preface() -> ET.Element:
-    return _load_epub_preface(EPUB_PATH)
-
-
-@pytest.fixture(scope='module')
-def work_in_series_preface() -> ET.Element:
-    return _load_epub_preface(WORK_IN_SERIES_EPUB_PATH)
+def _ids(paths):
+    return [os.path.basename(p) for p in paths]
 
 
 # region get_bookmark_list
@@ -134,24 +128,28 @@ def test_get_preface_path_epub_returns_none_when_no_xhtml_items():
     assert parse_xml.get_preface_path_epub(xml) is None
 
 
-def test_get_preface_path_epub_on_real_fixture():
-    with zipfile.ZipFile(EPUB_PATH) as zf:
-        # find the opf file in the zip
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.epub'),
+                         ids=_ids(ebook_fixtures('23009290', '.epub')))
+def test_get_preface_path_epub_on_real_fixture(path):
+    with zipfile.ZipFile(path) as zf:
         opf_name = next(n for n in zf.namelist() if n.endswith('.opf'))
         with zf.open(opf_name) as f:
             opf_xml = ET.parse(f).getroot()
 
-    path = parse_xml.get_preface_path_epub(opf_xml)
-    assert path is not None
-    assert path.endswith('.xhtml') or path.endswith('.html')
+    preface = parse_xml.get_preface_path_epub(opf_xml)
+    assert preface is not None
+    assert preface.endswith('.xhtml') or preface.endswith('.html')
 
 # endregion
 
 
 # region get_work_link_epub
 
-def test_get_work_link_epub_on_real_fixture(epub_test_preface):
-    link = parse_xml.get_work_link_epub(epub_test_preface)
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.epub'),
+                         ids=_ids(ebook_fixtures('23009290', '.epub')))
+def test_get_work_link_epub_on_real_fixture(path):
+    preface = _load_epub_preface(path)
+    link = parse_xml.get_work_link_epub(preface)
 
     assert link is not None
     assert 'archiveofourown.org/works/' in link
@@ -182,8 +180,11 @@ def test_get_work_link_epub_returns_first_match():
 
 # region get_stats_epub
 
-def test_get_stats_epub_on_real_fixture(epub_test_preface):
-    stats = parse_xml.get_stats_epub(epub_test_preface)
+@pytest.mark.parametrize('path', ebook_fixtures('218676', '.epub'),
+                         ids=_ids(ebook_fixtures('218676', '.epub')))
+def test_get_stats_epub_on_real_fixture(path):
+    preface = _load_epub_preface(path)
+    stats = parse_xml.get_stats_epub(preface)
 
     assert stats is not None
     assert 'Chapters:' in stats
@@ -203,15 +204,21 @@ def test_get_stats_epub_returns_none_when_missing():
 
 # region get_series_epub
 
-def test_get_series_epub_returns_series_from_work_in_series(work_in_series_preface):
-    series = parse_xml.get_series_epub(work_in_series_preface)
+@pytest.mark.parametrize('path', ebook_fixtures('334557', '.epub'),
+                         ids=_ids(ebook_fixtures('334557', '.epub')))
+def test_get_series_epub_returns_series_from_work_in_series(path):
+    preface = _load_epub_preface(path)
+    series = parse_xml.get_series_epub(preface)
 
     assert series
     assert all('archiveofourown.org/series/' in s for s in series)
 
 
-def test_get_series_epub_returns_empty_on_work_with_no_series(epub_test_preface):
-    assert parse_xml.get_series_epub(epub_test_preface) == []
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.epub'),
+                         ids=_ids(ebook_fixtures('23009290', '.epub')))
+def test_get_series_epub_returns_empty_on_work_with_no_series(path):
+    preface = _load_epub_preface(path)
+    assert parse_xml.get_series_epub(preface) == []
 
 
 def test_get_series_epub_returns_empty_list_on_minimal_xml():

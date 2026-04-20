@@ -15,6 +15,7 @@ from bs4 import BeautifulSoup
 
 from ao3downloader import parse_soup, strings
 from ao3downloader.repo import Repository
+from ao3downloader.parse_text import get_work_number
 
 
 FIXTURES = [
@@ -130,6 +131,13 @@ def download_html(session, fixture, fixtures_dir, only_new, page_cache: dict[str
         f.write(text)
 
 
+def ebook_current_path(fixtures_dir: str, fixture: dict) -> str:
+    """Compute the current-file path for an ebook fixture: ebook/<work_id>/current/<name>."""
+
+    return os.path.join(fixtures_dir, 'ebook', get_work_number(fixture['url']),
+                        'current', fixture['name'])
+
+
 def meaningful_change(text, path):
     if not os.path.exists(path):
         return True
@@ -151,9 +159,15 @@ def meaningful_change(text, path):
 def download_book(session, fixture, fixtures_dir, only_new,
                   page_cache: dict[str, requests.Response],
                   soup_cache: dict[str, BeautifulSoup]):
-    """Download an ebook fixture by fetching the work page and following the download link."""
+    """Download an ebook fixture by fetching the work page and following the download link.
 
-    path = os.path.join(fixtures_dir, fixture["name"])
+    Ebook fixtures live in `ebook/<work_id>/current/<name>`. If the freshly-downloaded
+    bytes match the existing current file, skip writing (keeps git diff clean for
+    byte-identical refreshes). On meaningful changes the CI workflow decides whether
+    to archive the prior version — this function only writes the new `current/` file.
+    """
+
+    path = ebook_current_path(fixtures_dir, fixture)
     if only_new and os.path.exists(path):
         print('fixture already exists, skipping')
         return
@@ -165,8 +179,16 @@ def download_book(session, fixture, fixtures_dir, only_new,
     ext = os.path.splitext(fixture['name'])[1].upper()[1:]
     download_url = parse_soup.get_download_link(soup, ext)
     book_response = make_request(session, download_url)
+    new_bytes = book_response.content
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            existing_bytes = f.read()
+        if existing_bytes == new_bytes:
+            print(f'no changes in {fixture["name"]}, skipping')
+            return
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
-        f.write(book_response.content)
+        f.write(new_bytes)
 
 
 def main():

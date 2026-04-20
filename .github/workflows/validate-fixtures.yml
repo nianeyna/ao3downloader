@@ -2,8 +2,9 @@ name: validate ao3 fixtures
 
 on:
   schedule:
-    - cron: '0 2 * * 0'  # Sunday 02:00 UTC
-  workflow_dispatch:
+    # midnight every friday (utc - equals afternoon on thursday pacific)
+    # according to 2025 stats thursday and friday have the lowest traffic
+    - cron: '0 0 * * FRI' 
 
 permissions:
   contents: write
@@ -35,22 +36,50 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: run tests
+      # region pass 1 — verify the newly-refreshed live fixtures still parse on their own.
+      # AO3_FIXTURE_MODE=current_only hides archived versions, so test failures here
+      # mean a freshly-downloaded file broke something — either snapshot drift (fixed
+      # by --snapshot-update) or a real format change (requires parser fix + archive).
+
+      - name: pass 1 — live fixtures only
         if: steps.changes.outputs.changed == 'true'
-        id: initial-tests
+        id: pass1
         continue-on-error: true
+        env:
+          AO3_FIXTURE_MODE: current_only
         run: uv run python -m pytest test/ -v
 
       - name: update snapshots
-        if: steps.initial-tests.outcome == 'failure'
+        if: steps.pass1.outcome == 'failure'
         continue-on-error: true
         run: uv run python -m pytest test/ --snapshot-update
 
-      - name: verify after snapshot update
-        if: steps.initial-tests.outcome == 'failure'
-        id: updated-tests
+      - name: pass 1 — retry after snapshot update
+        if: steps.pass1.outcome == 'failure'
+        id: pass1-retry
+        continue-on-error: true
+        env:
+          AO3_FIXTURE_MODE: current_only
+        run: uv run python -m pytest test/ -v
+
+      # endregion
+
+      # region pass 2 - archive old ebook versions on structural break.
+      # pass 1 failed even after snapshot update -> the live format changed in a way
+      # the parser cannot handle. preserve the pre-refresh (working) ebooks under
+      # archive/ so the human fix can be regression-tested against them.
+
+      - name: archive pre-refresh ebook fixtures
+        if: steps.pass1.outcome == 'failure' && steps.pass1-retry.outcome == 'failure'
+        run: uv run python dev/archive_old_fixtures.py
+
+      - name: pass 2 — full suite (current + archive)
+        if: steps.pass1.outcome == 'failure' && steps.pass1-retry.outcome == 'failure'
+        id: pass2
         continue-on-error: true
         run: uv run python -m pytest test/ -v
+
+      # endregion
 
       - name: create branch and commit
         if: steps.changes.outputs.changed == 'true'
@@ -65,7 +94,7 @@ jobs:
       - name: create or update success pr
         if: >-
           steps.changes.outputs.changed == 'true' &&
-          (steps.initial-tests.outcome == 'success' || steps.updated-tests.outcome == 'success')
+          (steps.pass1.outcome == 'success' || steps.pass1-retry.outcome == 'success')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -103,7 +132,7 @@ jobs:
       - name: create or update failure pr and issue
         if: >-
           steps.changes.outputs.changed == 'true' &&
-          steps.updated-tests.outcome == 'failure'
+          steps.pass1-retry.outcome == 'failure'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -112,7 +141,9 @@ jobs:
             gh pr edit "$existing_pr" --title "Update AO3 test fixtures (FAILING)" --body "$(cat <<'EOF'
           ## Summary
           - Weekly fixture refresh detected changes in AO3's HTML
-          - **Tests are failing** even after snapshot update — parsing logic may need to be fixed
+          - **Tests are failing** even after snapshot update — parser likely needs to be fixed
+          - Pre-refresh ebook versions have been preserved under `test/fixtures/ebook/*/archive/`
+            so the fix can be regression-tested against them
           - See the workflow run for details
 
           *Automated by validate-fixtures workflow*
@@ -125,7 +156,9 @@ jobs:
               --body "$(cat <<'EOF'
           ## Summary
           - Weekly fixture refresh detected changes in AO3's HTML
-          - **Tests are failing** even after snapshot update — parsing logic may need to be fixed
+          - **Tests are failing** even after snapshot update — parser likely needs to be fixed
+          - Pre-refresh ebook versions have been preserved under `test/fixtures/ebook/*/archive/`
+            so the fix can be regression-tested against them
           - See the workflow run for details
 
           *Automated by validate-fixtures workflow*
@@ -138,13 +171,18 @@ jobs:
             gh issue comment "$existing_issue" --body "Still failing as of workflow run ${{ github.run_id }}"
           else
             gh issue create \
-              --title "AO3 HTML structure change detected" \
+              --title "AO3 HTML/ebook structure change detected" \
               --label "ao3-fixtures" \
               --body "$(cat <<'EOF'
-          The weekly fixture refresh detected changes in AO3's HTML that break parsing logic.
+          The weekly fixture refresh detected changes in AO3 output that break parsing logic.
 
           Tests are still failing after automatic snapshot update — this likely means AO3 changed
-          the structure of elements that parse_soup.py relies on.
+          the structure of HTML pages or ebook format output that the parsers depend on.
+
+          If the failing test is an ebook structural test, the prior (working) version of each
+          affected ebook fixture has been copied to `test/fixtures/ebook/<work_id>/archive/`
+          with a content-hash filename. The archived version should continue to pass after the
+          parser is updated — this guards against regressions on users' older downloads.
 
           Check the validate-fixtures workflow runs for details.
           EOF

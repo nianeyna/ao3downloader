@@ -1,5 +1,5 @@
 # serializer version: 1
-# name: test_get_epub_preface
+# name: test_get_epub_preface_snapshot
   '''
   <html:html xmlns:html="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
     <html:head>
@@ -52,25 +52,25 @@
   </html:body></html:html>
   '''
 # ---
-# name: test_process_file_epub_incomplete_work
+# name: test_process_file_epub_incomplete_work_snapshot
   dict({
     'chapters': '3',
     'link': 'https://archiveofourown.org/works/218676',
   })
 # ---
-# name: test_process_file_html_incomplete_work
+# name: test_process_file_html_incomplete_work_snapshot
   dict({
     'chapters': '3',
     'link': 'https://archiveofourown.org/works/218676',
   })
 # ---
-# name: test_process_file_mobi_incomplete_work
+# name: test_process_file_mobi_incomplete_work_snapshot
   dict({
     'chapters': '3',
     'link': 'https://archiveofourown.org/works/218676',
   })
 # ---
-# name: test_process_file_pdf_incomplete_work
+# name: test_process_file_pdf_incomplete_work_snapshot
   dict({
     'chapters': '3',
     'link': 'https://archiveofourown.org/works/218676',

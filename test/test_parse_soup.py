@@ -1,5 +1,6 @@
 import os
 import shutil
+from contextlib import contextmanager
 
 import mobi
 import pytest
@@ -8,14 +9,21 @@ from bs4 import BeautifulSoup
 import ao3downloader.parse_soup as parse_soup
 from ao3downloader import strings
 
+from test.conftest import ebook_fixtures
+
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
+EBOOK_DIR = os.path.join(FIXTURES_DIR, 'ebook')
 
 
-@pytest.fixture(scope='module')
-def mobi_test_soup():
-    """Extract mobiTest.mobi once per module and return the parsed HTML soup."""
-    tempdir, filepath = mobi.extract(os.path.join(FIXTURES_DIR, 'mobiTest.mobi'))
+def _ids(paths):
+    return [os.path.basename(p) for p in paths]
+
+
+@contextmanager
+def _extracted_mobi_soup(path: str):
+    """Context manager that extracts a mobi and yields its html as BeautifulSoup."""
+    tempdir, filepath = mobi.extract(path)
     try:
         with open(filepath, encoding='utf-8') as f:
             yield BeautifulSoup(f, 'html.parser')
@@ -23,15 +31,9 @@ def mobi_test_soup():
         shutil.rmtree(tempdir)
 
 
-@pytest.fixture(scope='module')
-def work_in_series_mobi_soup():
-    """Extract workInSeries.mobi once per module and return the parsed HTML soup."""
-    tempdir, filepath = mobi.extract(os.path.join(FIXTURES_DIR, 'workInSeries.mobi'))
-    try:
-        with open(filepath, encoding='utf-8') as f:
-            yield BeautifulSoup(f, 'html.parser')
-    finally:
-        shutil.rmtree(tempdir)
+def _load_ebook_html(path: str) -> BeautifulSoup:
+    with open(path, encoding='utf-8') as f:
+        return BeautifulSoup(f, 'html.parser')
 
 
 def test_get_work_urls(fixture_soup, snapshot):
@@ -316,8 +318,10 @@ def test_is_hidden_false(fixture_soup):
 
 # region HTML format helpers
 
-def test_get_work_link_html_on_real_fixture(fixture_soup):
-    link = parse_soup.get_work_link_html(fixture_soup('htmlTest'))
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.html'),
+                         ids=_ids(ebook_fixtures('23009290', '.html')))
+def test_get_work_link_html_on_real_fixture(path):
+    link = parse_soup.get_work_link_html(_load_ebook_html(path))
 
     assert link is not None
     assert 'archiveofourown.org/works/' in link
@@ -335,8 +339,10 @@ def test_get_work_link_html_returns_none_when_not_two_links():
     assert parse_soup.get_work_link_html(soup) is None
 
 
-def test_get_stats_html_on_real_fixture(fixture_soup):
-    stats = parse_soup.get_stats_html(fixture_soup('htmlTest'))
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.html'),
+                         ids=_ids(ebook_fixtures('23009290', '.html')))
+def test_get_stats_html_on_real_fixture(path):
+    stats = parse_soup.get_stats_html(_load_ebook_html(path))
 
     assert stats is not None
     assert 'Chapters:' in stats
@@ -353,23 +359,30 @@ def test_get_stats_html_returns_none_when_not_found():
     assert parse_soup.get_stats_html(soup) is None
 
 
-def test_get_series_html_on_work_in_series(fixture_soup):
-    series = parse_soup.get_series_html(fixture_soup('workInSeries'))
+@pytest.mark.parametrize('path', ebook_fixtures('334557', '.html'),
+                         ids=_ids(ebook_fixtures('334557', '.html')))
+def test_get_series_html_on_work_in_series(path):
+    series = parse_soup.get_series_html(_load_ebook_html(path))
 
     assert series
     assert all('archiveofourown.org/series/' in s for s in series)
 
 
-def test_get_series_html_returns_empty_on_work_with_no_series(fixture_soup):
-    assert parse_soup.get_series_html(fixture_soup('htmlTest')) == []
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.html'),
+                         ids=_ids(ebook_fixtures('23009290', '.html')))
+def test_get_series_html_returns_empty_on_work_with_no_series(path):
+    assert parse_soup.get_series_html(_load_ebook_html(path)) == []
 
 # endregion
 
 
 # region MOBI format helpers
 
-def test_get_work_link_mobi_finds_archiveofourown_works_link(mobi_test_soup):
-    link = parse_soup.get_work_link_mobi(mobi_test_soup)
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.mobi'),
+                         ids=_ids(ebook_fixtures('23009290', '.mobi')))
+def test_get_work_link_mobi_finds_archiveofourown_works_link(path):
+    with _extracted_mobi_soup(path) as soup:
+        link = parse_soup.get_work_link_mobi(soup)
 
     assert link is not None
     assert 'archiveofourown.org/works/' in link
@@ -380,8 +393,11 @@ def test_get_work_link_mobi_returns_none_when_no_match():
     assert parse_soup.get_work_link_mobi(soup) is None
 
 
-def test_get_stats_mobi_finds_blockquote_chapters(mobi_test_soup):
-    stats = parse_soup.get_stats_mobi(mobi_test_soup)
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.mobi'),
+                         ids=_ids(ebook_fixtures('23009290', '.mobi')))
+def test_get_stats_mobi_finds_blockquote_chapters(path):
+    with _extracted_mobi_soup(path) as soup:
+        stats = parse_soup.get_stats_mobi(soup)
 
     assert stats is not None
     assert 'Chapters:' in stats
@@ -392,15 +408,22 @@ def test_get_stats_mobi_returns_none_when_missing():
     assert parse_soup.get_stats_mobi(soup) is None
 
 
-def test_get_series_mobi_returns_series_from_work_in_series(work_in_series_mobi_soup):
-    series = parse_soup.get_series_mobi(work_in_series_mobi_soup)
+@pytest.mark.parametrize('path', ebook_fixtures('334557', '.mobi'),
+                         ids=_ids(ebook_fixtures('334557', '.mobi')))
+def test_get_series_mobi_returns_series_from_work_in_series(path):
+    with _extracted_mobi_soup(path) as soup:
+        series = parse_soup.get_series_mobi(soup)
 
     assert series
     assert all('archiveofourown.org/series/' in s for s in series)
 
 
-def test_get_series_mobi_returns_empty_when_work_has_no_series(mobi_test_soup):
-    assert parse_soup.get_series_mobi(mobi_test_soup) == []
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.mobi'),
+                         ids=_ids(ebook_fixtures('23009290', '.mobi')))
+def test_get_series_mobi_returns_empty_when_work_has_no_series(path):
+    # mobiTest.mobi is of a solo work with no series
+    with _extracted_mobi_soup(path) as soup:
+        assert parse_soup.get_series_mobi(soup) == []
 
 
 def test_get_series_mobi_returns_empty_when_label_missing():
