@@ -72,65 +72,40 @@ def test_get_epub_preface_returns_none_when_preface_path_missing(tmp_path):
 
 
 # region HTML
-# todo real fixtures
 
-_HTML_PREFACE_TEMPLATE = '''<html><body>
-<div id="preface">
-  <p class="message">
-    <a href="https://example.com/other">other</a>
-    <a href="{link}">work link</a>
-  </p>
-  <div class="meta">
-    <dl class="tags">
-      <dd>Published: 2024-01-01</dd>
-      <dd>Chapters: {chapters}</dd>
-      <dd>Series: <a href="https://archiveofourown.org/series/10">series one</a></dd>
-    </dl>
-  </div>
-</div>
-</body></html>'''
-
-
-def _write_html(tmp_path, link: str, chapters: str) -> str:
-    path = tmp_path / 'work.html'
-    path.write_text(
-        _HTML_PREFACE_TEMPLATE.format(link=link, chapters=chapters),
-        encoding='utf-8',
-    )
-    return str(path)
-
-
-def test_process_file_html_incomplete_work(tmp_path):
-    path = _write_html(tmp_path, 'https://archiveofourown.org/works/1', '3/10')
-
-    result = update.process_file(path, 'HTML')
-
-    assert result == {'link': 'https://archiveofourown.org/works/1', 'chapters': '3'}
-
-
-def test_process_file_html_complete_work(tmp_path):
-    path = _write_html(tmp_path, 'https://archiveofourown.org/works/1', '10/10')
-
+def test_process_file_html_complete_work():
+    path = os.path.join(FIXTURES_DIR, 'htmlTest.html')
     assert update.process_file(path, 'HTML') is None
 
 
-def test_process_file_html_update_false_returns_link_without_chapter_check(tmp_path):
-    path = _write_html(tmp_path, 'https://archiveofourown.org/works/7', '3/10')
+def test_process_file_html_incomplete_work(snapshot):
+    path = os.path.join(FIXTURES_DIR, 'incompleteWork.html')
+    assert update.process_file(path, 'HTML') == snapshot
+
+
+def test_process_file_html_update_false_returns_link():
+    path = os.path.join(FIXTURES_DIR, 'htmlTest.html')
 
     result = update.process_file(path, 'HTML', update=False)
 
-    assert result == {'link': 'https://archiveofourown.org/works/7'}
+    assert result is not None
+    assert 'archiveofourown.org/works/' in result['link']
 
 
-def test_process_file_html_update_series_returns_series_when_found(tmp_path):
-    path = _write_html(tmp_path, 'https://archiveofourown.org/works/1', '3/10')
+def test_process_file_html_work_in_series_returns_series():
+    path = os.path.join(FIXTURES_DIR, 'workInSeries.html')
 
     result = update.process_file(path, 'HTML', update_series=True)
 
-    assert result == {
-        'link': 'https://archiveofourown.org/works/1',
-        'series': ['https://archiveofourown.org/series/10'],
-    }
+    assert result is not None
+    assert result['series']
+    assert all('archiveofourown.org/series/' in s for s in result['series'])
+
+
+def test_process_file_html_update_series_returns_none_for_solo_work():
+    path = os.path.join(FIXTURES_DIR, 'htmlTest.html')
+    # solo work, update_series=True, no series found → None
+    assert update.process_file(path, 'HTML', update_series=True) is None
 
 # endregion
 

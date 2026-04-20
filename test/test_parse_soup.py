@@ -315,19 +315,12 @@ def test_is_hidden_false(fixture_soup):
 
 
 # region HTML format helpers
-# todo: real fixtures
 
-def test_get_work_link_html_returns_second_preface_link():
-    html = (
-        '<div id="preface">'
-        '<p class="message">'
-        '<a href="https://example.com/other">first</a>'
-        '<a href="https://archiveofourown.org/works/42">second</a>'
-        '</p></div>'
-    )
-    soup = BeautifulSoup(html, 'html.parser')
+def test_get_work_link_html_on_real_fixture(fixture_soup):
+    link = parse_soup.get_work_link_html(fixture_soup('htmlTest'))
 
-    assert parse_soup.get_work_link_html(soup) == 'https://archiveofourown.org/works/42'
+    assert link is not None
+    assert 'archiveofourown.org/works/' in link
 
 
 def test_get_work_link_html_returns_none_when_not_two_links():
@@ -342,16 +335,11 @@ def test_get_work_link_html_returns_none_when_not_two_links():
     assert parse_soup.get_work_link_html(soup) is None
 
 
-def test_get_stats_html_finds_chapters_dd():
-    html = (
-        '<div id="preface"><div class="meta"><dl class="tags">'
-        '<dd>Published: 2024</dd>'
-        '<dd>Chapters: 3/10</dd>'
-        '</dl></div></div>'
-    )
-    soup = BeautifulSoup(html, 'html.parser')
+def test_get_stats_html_on_real_fixture(fixture_soup):
+    stats = parse_soup.get_stats_html(fixture_soup('htmlTest'))
 
-    assert 'Chapters: 3/10' in parse_soup.get_stats_html(soup)
+    assert stats is not None
+    assert 'Chapters:' in stats
 
 
 def test_get_stats_html_returns_none_when_not_found():
@@ -365,27 +353,15 @@ def test_get_stats_html_returns_none_when_not_found():
     assert parse_soup.get_stats_html(soup) is None
 
 
-def test_get_series_html_returns_series_links():
-    html = (
-        '<div id="preface"><div class="meta"><dl class="tags">'
-        '<dd><a href="https://archiveofourown.org/series/1">one</a></dd>'
-        '<dd><a href="https://archiveofourown.org/works/999">work</a></dd>'
-        '<dd><a href="https://archiveofourown.org/series/2">two</a></dd>'
-        '</dl></div></div>'
-    )
-    soup = BeautifulSoup(html, 'html.parser')
+def test_get_series_html_on_work_in_series(fixture_soup):
+    series = parse_soup.get_series_html(fixture_soup('workInSeries'))
 
-    assert parse_soup.get_series_html(soup) == [
-        'https://archiveofourown.org/series/1',
-        'https://archiveofourown.org/series/2',
-    ]
+    assert series
+    assert all('archiveofourown.org/series/' in s for s in series)
 
 
-def test_get_series_html_returns_empty_when_no_series():
-    html = '<div id="preface"><div class="meta"><dl class="tags"></dl></div></div>'
-    soup = BeautifulSoup(html, 'html.parser')
-
-    assert parse_soup.get_series_html(soup) == []
+def test_get_series_html_returns_empty_on_work_with_no_series(fixture_soup):
+    assert parse_soup.get_series_html(fixture_soup('htmlTest')) == []
 
 # endregion
 

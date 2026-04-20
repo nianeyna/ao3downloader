@@ -18,35 +18,36 @@ from ao3downloader.repo import Repository
 
 
 FIXTURES = [
-    # # html fixtures
-    {"name": "unlockedWork.html",         "url": "/works/41822007",                 "type": "html"},
-    {"name": "unlockedWorkNoSkin.html",   "url": "/works/23009290",                 "type": "html"},
-    {"name": "explicitWorkLoggedIn.html", "url": "/works/20907563?view_adult=true", "type": "html"},
-    {"name": "lockedWorkLoggedOut.html",  "url": "/works/185710",                   "type": "html"},
-    {"name": "multipleSeries.html",       "url": "/works/41214669",                 "type": "html"},
-    {"name": "bookmarks.html",            "url": "/users/nianeyna/bookmarks",       "type": "html"},
-    {"name": "deletedWork.html",          "url": "/works/99999999999",              "type": "html"},
-    {"name": "hiddenWork.html",           "url": "/works/47308798",                 "type": "html"},
-    # ebook fixtures
-    {"name": "epubTest.epub",             "url": "/works/23009290",                 "type": "epub"},
-    {"name": "pdfTest.pdf",               "url": "/works/23009290",                 "type": "pdf"},
-    {"name": "mobiTest.mobi",             "url": "/works/23009290",                 "type": "mobi"},
-    {"name": "azw3Test.azw3",             "url": "/works/23009290",                 "type": "azw3"},
-    {"name": "incompleteWork.epub",       "url": "/works/218676",                   "type": "epub"},
-    {"name": "incompleteWork.pdf",        "url": "/works/218676",                   "type": "pdf"},
-    {"name": "incompleteWork.mobi",       "url": "/works/218676",                   "type": "mobi"},
-    {"name": "incompleteWork.azw3",       "url": "/works/218676",                   "type": "azw3"},
-    {"name": "workInSeries.epub",         "url": "/works/334557",                   "type": "epub"},
-    {"name": "workInSeries.pdf",          "url": "/works/334557",                   "type": "pdf"},
-    {"name": "workInSeries.mobi",         "url": "/works/334557",                   "type": "mobi"},
-    {"name": "workInSeries.azw3",         "url": "/works/334557",                   "type": "azw3"},
-    {"name": "tagWall.pdf",               "url": "/works/20907563?view_adult=true", "type": "pdf"},
+    {"name": "unlockedWork.html",         "url": "/works/41822007",                 "type": "page"},
+    {"name": "unlockedWorkNoSkin.html",   "url": "/works/23009290",                 "type": "page"},
+    {"name": "explicitWorkLoggedIn.html", "url": "/works/20907563?view_adult=true", "type": "page"},
+    {"name": "lockedWorkLoggedOut.html",  "url": "/works/185710",                   "type": "page"},
+    {"name": "multipleSeries.html",       "url": "/works/41214669",                 "type": "page"},
+    {"name": "bookmarks.html",            "url": "/users/nianeyna/bookmarks",       "type": "page"},
+    {"name": "deletedWork.html",          "url": "/works/99999999999",              "type": "page"},
+    {"name": "hiddenWork.html",           "url": "/works/47308798",                 "type": "page"},
+    {"name": "epubTest.epub",             "url": "/works/23009290",                 "type": "book"},
+    {"name": "pdfTest.pdf",               "url": "/works/23009290",                 "type": "book"},
+    {"name": "mobiTest.mobi",             "url": "/works/23009290",                 "type": "book"},
+    {"name": "azw3Test.azw3",             "url": "/works/23009290",                 "type": "book"},
+    {"name": "htmlTest.html",             "url": "/works/23009290",                 "type": "book"},
+    {"name": "incompleteWork.epub",       "url": "/works/218676",                   "type": "book"},
+    {"name": "incompleteWork.pdf",        "url": "/works/218676",                   "type": "book"},
+    {"name": "incompleteWork.mobi",       "url": "/works/218676",                   "type": "book"},
+    {"name": "incompleteWork.azw3",       "url": "/works/218676",                   "type": "book"},
+    {"name": "incompleteWork.html",       "url": "/works/218676",                   "type": "book"},
+    {"name": "workInSeries.epub",         "url": "/works/334557",                   "type": "book"},
+    {"name": "workInSeries.pdf",          "url": "/works/334557",                   "type": "book"},
+    {"name": "workInSeries.mobi",         "url": "/works/334557",                   "type": "book"},
+    {"name": "workInSeries.azw3",         "url": "/works/334557",                   "type": "book"},
+    {"name": "workInSeries.html",         "url": "/works/334557",                   "type": "book"},
+    {"name": "tagWall.pdf",               "url": "/works/20907563?view_adult=true", "type": "book"},
 ]
 
 IGNORED_SELECTORS = [
     '[name="csrf-token"]',
     '[name="authenticity_token"]',
-    '[aria-hidden="true"]', # odd hidden link that looked cloudflare-related
+    '[aria-hidden="true"]',
     '#site_search_tooltip',
     '.kudos',
     '.hits',
@@ -106,13 +107,23 @@ def make_request(session, url):
     raise Exception(f"exhausted all {MAX_RETRIES} retries")
 
 
-def download_html(session, fixture, fixtures_dir):
+def fetch_work_page(session, url_path: str, cache: dict[str, requests.Response]) -> requests.Response:
+    """Fetch a work page, caching the response so each unique URL is fetched at most once."""
+
+    if url_path not in cache:
+        cache[url_path] = make_request(session, strings.AO3_BASE_URL + url_path)
+    return cache[url_path]
+
+
+def download_html(session, fixture, fixtures_dir, only_new, page_cache: dict[str, requests.Response]):
     """Download an HTML fixture."""
 
-    url = strings.AO3_BASE_URL + fixture["url"]
-    text = make_request(session, url).text
     path = os.path.join(fixtures_dir, fixture["name"])
-    if (fixture['type'] == 'html' and not meaningful_change(text, path)):
+    if only_new and os.path.exists(path):
+        print('fixture already exists, skipping')
+        return
+    text = fetch_work_page(session, fixture["url"], page_cache).text
+    if (fixture['type'] == 'page' and not meaningful_change(text, path)):
         print(f'no meaningful changes in {fixture["name"]}, skipping')
         return
     with open(path, "w", encoding="utf-8") as f:
@@ -137,16 +148,23 @@ def meaningful_change(text, path):
     return str(old_soup) != str(new_soup)
 
 
-def download_book(session, fixture, fixtures_dir):
+def download_book(session, fixture, fixtures_dir, only_new,
+                  page_cache: dict[str, requests.Response],
+                  soup_cache: dict[str, BeautifulSoup]):
     """Download an ebook fixture by fetching the work page and following the download link."""
 
-    work_url = strings.AO3_BASE_URL + fixture["url"]
-    response = make_request(session, work_url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    ext = fixture['type'].upper()
+    path = os.path.join(fixtures_dir, fixture["name"])
+    if only_new and os.path.exists(path):
+        print('fixture already exists, skipping')
+        return
+    url_path = fixture["url"]
+    if url_path not in soup_cache:
+        response = fetch_work_page(session, url_path, page_cache)
+        soup_cache[url_path] = BeautifulSoup(response.text, "html.parser")
+    soup = soup_cache[url_path]
+    ext = os.path.splitext(fixture['name'])[1].upper()[1:]
     download_url = parse_soup.get_download_link(soup, ext)
     book_response = make_request(session, download_url)
-    path = os.path.join(fixtures_dir, fixture["name"])
     with open(path, "wb") as f:
         f.write(book_response.content)
 
@@ -157,11 +175,15 @@ def main():
                         help="directory to write fixtures to (default: test/fixtures)")
     parser.add_argument("--delay", type=int, default=5,
                         help="seconds to wait between requests (default: 5)")
+    parser.add_argument("--only-new", type=bool, default=False,
+                        help="whether to only download fixtures that don't exist yet (default: false)")
     args = parser.parse_args()
 
     os.makedirs(args.fixtures_dir, exist_ok=True)
 
     session = requests.Session()
+    page_cache: dict[str, requests.Response] = {}
+    soup_cache: dict[str, BeautifulSoup] = {}
     failed = []
     succeeded = []
 
@@ -170,10 +192,10 @@ def main():
         print(f"[{i + 1}/{len(FIXTURES)}] {name}...")
 
         try:
-            if fixture["type"] == "html":
-                download_html(session, fixture, args.fixtures_dir)
+            if fixture["type"] == "page":
+                download_html(session, fixture, args.fixtures_dir, args.only_new, page_cache)
             else:
-                download_book(session, fixture, args.fixtures_dir)
+                download_book(session, fixture, args.fixtures_dir, args.only_new, page_cache, soup_cache)
             succeeded.append(name)
             print(f"  ok")
         except Exception as e:

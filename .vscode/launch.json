@@ -19,6 +19,15 @@
             "args": ["--cov=ao3downloader", "--cov-report", "term", "--cov-report", "xml:cov.xml"]
         },
         {
+            "name": "fixture update",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/dev/refresh_fixtures.py",
+            "console": "integratedTerminal",
+            "preLaunchTask": "uv sync",
+            "args": ["--only-new", "true"]
+        },
+        {
             "name": "fixture refresh",
             "type": "debugpy",
             "request": "launch",
