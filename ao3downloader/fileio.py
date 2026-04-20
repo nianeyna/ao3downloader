@@ -52,11 +52,11 @@ class FileOps:
     def ini_differences_str(self, local: dict[str, set[str]], remote: dict[str, set[str]]) -> str:
         if local == remote: return None
         message = strings.MESSAGE_INI_DIFFERENCES
-        for section in local:
+        for section in list(local):
             if section not in remote:
                 message += strings.MESSAGE_INI_REMOVED_SECTION.format(section)
                 local.pop(section, None)
-        for section in remote:
+        for section in list(remote):
             if section not in local:
                 message += strings.MESSAGE_INI_ADDED_SECTION.format(section)
                 remote.pop(section, None)

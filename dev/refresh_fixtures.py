@@ -18,17 +18,29 @@ from ao3downloader.repo import Repository
 
 
 FIXTURES = [
-    # HTML fixtures
+    # # html fixtures
     {"name": "unlockedWork.html",         "url": "/works/41822007",                 "type": "html"},
+    {"name": "unlockedWorkNoSkin.html",   "url": "/works/23009290",                 "type": "html"},
     {"name": "explicitWorkLoggedIn.html", "url": "/works/20907563?view_adult=true", "type": "html"},
     {"name": "lockedWorkLoggedOut.html",  "url": "/works/185710",                   "type": "html"},
     {"name": "multipleSeries.html",       "url": "/works/41214669",                 "type": "html"},
     {"name": "bookmarks.html",            "url": "/users/nianeyna/bookmarks",       "type": "html"},
     {"name": "deletedWork.html",          "url": "/works/99999999999",              "type": "html"},
     {"name": "hiddenWork.html",           "url": "/works/47308798",                 "type": "html"},
-    # EPUB fixtures
+    # ebook fixtures
     {"name": "epubTest.epub",             "url": "/works/23009290",                 "type": "epub"},
+    {"name": "pdfTest.pdf",               "url": "/works/23009290",                 "type": "pdf"},
+    {"name": "mobiTest.mobi",             "url": "/works/23009290",                 "type": "mobi"},
+    {"name": "azw3Test.azw3",             "url": "/works/23009290",                 "type": "azw3"},
     {"name": "incompleteWork.epub",       "url": "/works/218676",                   "type": "epub"},
+    {"name": "incompleteWork.pdf",        "url": "/works/218676",                   "type": "pdf"},
+    {"name": "incompleteWork.mobi",       "url": "/works/218676",                   "type": "mobi"},
+    {"name": "incompleteWork.azw3",       "url": "/works/218676",                   "type": "azw3"},
+    {"name": "workInSeries.epub",         "url": "/works/334557",                   "type": "epub"},
+    {"name": "workInSeries.pdf",          "url": "/works/334557",                   "type": "pdf"},
+    {"name": "workInSeries.mobi",         "url": "/works/334557",                   "type": "mobi"},
+    {"name": "workInSeries.azw3",         "url": "/works/334557",                   "type": "azw3"},
+    {"name": "tagWall.pdf",               "url": "/works/20907563?view_adult=true", "type": "pdf"},
 ]
 
 IGNORED_SELECTORS = [
@@ -125,17 +137,18 @@ def meaningful_change(text, path):
     return str(old_soup) != str(new_soup)
 
 
-def download_epub(session, fixture, fixtures_dir):
-    """Download an EPUB fixture by fetching the work page and following the download link."""
+def download_book(session, fixture, fixtures_dir):
+    """Download an ebook fixture by fetching the work page and following the download link."""
 
     work_url = strings.AO3_BASE_URL + fixture["url"]
     response = make_request(session, work_url)
     soup = BeautifulSoup(response.text, "html.parser")
-    download_url = parse_soup.get_download_link(soup, "EPUB")
-    epub_response = make_request(session, download_url)
+    ext = fixture['type'].upper()
+    download_url = parse_soup.get_download_link(soup, ext)
+    book_response = make_request(session, download_url)
     path = os.path.join(fixtures_dir, fixture["name"])
     with open(path, "wb") as f:
-        f.write(epub_response.content)
+        f.write(book_response.content)
 
 
 def main():
@@ -159,8 +172,8 @@ def main():
         try:
             if fixture["type"] == "html":
                 download_html(session, fixture, args.fixtures_dir)
-            elif fixture["type"] == "epub":
-                download_epub(session, fixture, args.fixtures_dir)
+            else:
+                download_book(session, fixture, args.fixtures_dir)
             succeeded.append(name)
             print(f"  ok")
         except Exception as e:

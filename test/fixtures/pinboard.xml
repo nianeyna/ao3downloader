@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<posts user="test_user">
+  <post href="https://archiveofourown.org/works/111" description="Work One" tags="ao3" time="2025-01-01T00:00:00Z" extended=""/>
+  <post href="https://archiveofourown.org/works/222" description="Unread Work" tags="ao3" time="2025-01-02T00:00:00Z" extended="" toread="yes"/>
+  <post href="https://archiveofourown.org/series/333" description="Series One" tags="ao3,series" time="2025-01-03T00:00:00Z" extended=""/>
+  <post href="https://archiveofourown.org/users/someuser" description="User Page" tags="ao3" time="2025-01-04T00:00:00Z" extended=""/>
+  <post href="https://fanfiction.net/s/123/1/Fic" description="FFN Fic" tags="ffn" time="2025-01-05T00:00:00Z" extended=""/>
+  <post href="https://archiveofourown.org/works/444" description="Unread Work Two" tags="ao3" time="2025-01-06T00:00:00Z" extended="" toread="yes"/>
+</posts>

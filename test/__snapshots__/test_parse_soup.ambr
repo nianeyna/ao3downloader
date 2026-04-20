@@ -30,6 +30,25 @@
 # name: test_get_total_pages
   6
 # ---
+# name: test_get_work_metadata_from_work_returns_expected_keys
+  dict({
+    'author': 'oriflamme',
+    'category': 'Gen',
+    'chapters': '1',
+    'fandom': 'The Locked Tomb Series | Gideon the Ninth Series - Tamsyn Muir',
+    'language': 'English',
+    'pairing': '',
+    'published': '2022-09-20',
+    'rating': 'Teen And Up Audiences',
+    'series_index': '3',
+    'series_title': "it's about the bones 👌",
+    'title': 'so I open the window to hear sounds of people',
+    'updated': '',
+    'warning': 'No Archive Warnings Apply',
+    'words': '5688',
+    'worknum': '12345678',
+  })
+# ---
 # name: test_get_work_urls
   list([
     'https://archiveofourown.org/works/66326125',

@@ -58,3 +58,15 @@
     'link': 'https://archiveofourown.org/works/218676',
   })
 # ---
+# name: test_process_file_mobi_incomplete_work
+  dict({
+    'chapters': '3',
+    'link': 'https://archiveofourown.org/works/218676',
+  })
+# ---
+# name: test_process_file_pdf_incomplete_work
+  dict({
+    'chapters': '3',
+    'link': 'https://archiveofourown.org/works/218676',
+  })
+# ---

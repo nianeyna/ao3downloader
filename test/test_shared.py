@@ -167,3 +167,123 @@ def test_redownload_folder_reprompts_on_invalid(tmp_path, monkeypatch) -> None:
     assert shared.redownload_folder() == str(tmp_path)
 
 # endregion
+
+
+# region yes/no prompts
+
+@pytest.mark.parametrize('answer, expected', [
+    (strings.PROMPT_YES, True),
+    (strings.PROMPT_NO, False),
+    ('', False),
+])
+def test_series_returns_expected_bool(answer, expected, monkeypatch, capsys) -> None:
+    monkeypatch.setattr('builtins.input', lambda: answer)
+    assert shared.series() is expected
+
+
+@pytest.mark.parametrize('answer, expected', [
+    (strings.PROMPT_YES, True),
+    (strings.PROMPT_NO, False),
+])
+def test_images_returns_expected_bool(answer, expected, monkeypatch, capsys) -> None:
+    monkeypatch.setattr('builtins.input', lambda: answer)
+    assert shared.images() is expected
+
+
+@pytest.mark.parametrize('answer, expected', [
+    (strings.PROMPT_YES, True),
+    (strings.PROMPT_NO, False),
+])
+def test_metadata_returns_expected_bool(answer, expected, monkeypatch, capsys) -> None:
+    monkeypatch.setattr('builtins.input', lambda: answer)
+    assert shared.metadata() is expected
+
+
+@pytest.mark.parametrize('answer, expected_exclude', [
+    # pinboard_exclude has inverted logic — 'yes include unread' means don't exclude
+    (strings.PROMPT_YES, False),
+    (strings.PROMPT_NO, True),
+])
+def test_pinboard_exclude_inverts_input(answer, expected_exclude, monkeypatch, capsys) -> None:
+    monkeypatch.setattr('builtins.input', lambda: answer)
+    assert shared.pinboard_exclude() is expected_exclude
+
+# endregion
+
+
+# region pages
+
+@pytest.mark.parametrize('answer, expected', [
+    ('5', 5),
+    ('0', None),
+    ('-1', None),
+    ('abc', None),
+    ('', None),
+])
+def test_pages_parses_int_with_fallback(answer, expected, monkeypatch, capsys) -> None:
+    monkeypatch.setattr('builtins.input', lambda: answer)
+    assert shared.pages() == expected
+
+# endregion
+
+
+# region pinboard_date
+
+def test_pinboard_date_returns_none_when_no(monkeypatch, capsys) -> None:
+    monkeypatch.setattr('builtins.input', lambda: strings.PROMPT_NO)
+    assert shared.pinboard_date() is None
+
+
+def test_pinboard_date_parses_entered_date(monkeypatch, capsys) -> None:
+    import datetime
+    inputs = iter([strings.PROMPT_YES, '03/15/2024'])
+    monkeypatch.setattr('builtins.input', lambda: next(inputs))
+
+    result = shared.pinboard_date()
+
+    assert result == datetime.datetime(2024, 3, 15)
+
+# endregion
+
+
+# region visited
+
+def _prepare_fileops(tmp_path):
+    from ao3downloader.fileio import FileOps
+
+    fo = FileOps()
+    fo.logfile = str(tmp_path / 'log.jsonl')
+    fo.inifile = str(tmp_path / 'settings.ini')
+    fo.settingsfile = str(tmp_path / 'data.json')
+    fo.downloadfolder = str(tmp_path / 'downloads')
+    os.makedirs(fo.downloadfolder, exist_ok=True)
+    return fo
+
+
+def test_visited_returns_files_from_log_that_exist_on_disk(tmp_path, monkeypatch) -> None:
+    """visited should return only work ids whose files exist on disk."""
+    fo = _prepare_fileops(tmp_path)
+
+    # write two works to the log
+    fo.write_log({'link': 'https://a/works/1', 'title': 'one'})
+    fo.write_log({'link': 'https://a/works/2', 'title': 'two'})
+
+    # only create the file for work 1
+    with open(os.path.join(fo.downloadfolder, 'one.epub'), 'wb') as f:
+        f.write(b'')
+
+    monkeypatch.chdir(tmp_path)  # IGNORELIST_FILE_NAME uses relative path
+
+    result = shared.visited(fo, ['EPUB'])
+
+    assert 'https://a/works/1' in result
+    assert 'https://a/works/2' not in result
+
+
+def test_visited_returns_empty_when_no_log_and_no_ignorelist(tmp_path, monkeypatch) -> None:
+    fo = _prepare_fileops(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    assert shared.visited(fo, ['EPUB']) == []
+
+# endregion
