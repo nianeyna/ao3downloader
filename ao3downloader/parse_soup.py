@@ -188,7 +188,7 @@ def get_proceed_link(soup: BeautifulSoup) -> str:
         link = (soup.find('div', class_='works-show region')
                     .find('ul', class_='actions')
                     .find('li')
-                    .find('a', text=strings.AO3_PROCEED)
+                    .find('a', string=strings.AO3_PROCEED)
                     .get('href'))
     except AttributeError as e:
         raise ProceedException(strings.ERROR_PROCEED_LINK) from e
@@ -200,7 +200,7 @@ def get_download_link(soup: BeautifulSoup, download_type: str) -> str:
 
     try:
         link = (soup.find('li', class_='download')
-                    .find('a', text=download_type)
+                    .find('a', string=download_type)
                     .get('href'))
     except AttributeError as e:
         raise DownloadException(strings.ERROR_DOWNLOAD_LINK) from e
