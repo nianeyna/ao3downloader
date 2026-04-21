@@ -7,11 +7,13 @@ def get_text() -> str:
     with open('README.md') as f:
         return f.read()
 
-def check_value(text: str, pos: int) -> str:
+def check_value(text: str, pos: int) -> str | None:
     start = re.search('<!--', text[pos:])
+    if not start: return None
     value = text[pos:pos+start.start()]
     pos = pos + start.end()
     end = re.search('-->', text[pos:])
+    if not end: return None
     variable = text[pos:pos+end.start()]
     try:
         realval = str(getattr(strings, variable)).replace('{', '').replace('}', '')
@@ -22,7 +24,7 @@ def check_value(text: str, pos: int) -> str:
     return None
 
 text = get_text()
-errors = list(filter(lambda e: e is not None, [check_value(text, x.end()) for x in re.finditer('<!--CHECK-->', text)]))
+errors: list[str] = [error for error in (check_value(text, x.end()) for x in re.finditer('<!--CHECK-->', text)) if error is not None]
 if errors:
     output = '; '.join(errors)
     print(output)

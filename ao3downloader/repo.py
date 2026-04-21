@@ -62,7 +62,7 @@ class Repository:
         return response
 
 
-    def my_request(self, method: str, url: str, data: dict[str, str] = None) -> requests.Response:
+    def my_request(self, method: str, url: str, data: dict[str, str] | None = None) -> requests.Response:
         """Get response from a url."""
 
         # normalize http -> https for ao3 links. older downloaded works may contain http

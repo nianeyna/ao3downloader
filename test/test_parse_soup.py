@@ -282,6 +282,23 @@ def test_get_work_metadata_from_list_returns_error_field_on_malformed_blurb():
 
     assert 'error' in result
 
+
+def test_get_work_metadata_from_list_does_not_leak_from_other_blurbs(fixture_soup):
+    # bookmarks.html contains many works; metadata must come from the requested
+    # blurb only, not from tags collected across the whole index page.
+    soup = fixture_soup('bookmarks')
+
+    result = parse_soup.get_work_metadata_from_list(soup, 'https://archiveofourown.org/works/66326125')
+
+    assert 'error' not in result
+    assert result['title'] == 'Being An Account of An Abduction, and Its Aftermath'
+    assert result['fandoms'] == ['Final Fantasy XIV']
+    assert result['relationships'] == ['Honoroit Banlardois/Emmanellain de Fortemps']
+    assert result['characters'] == ['Emmanellain de Fortemps', 'Honoroit Banlardois']
+    # Tags that belong to other bookmarks in the fixture must NOT leak in.
+    assert 'Pon Farr' not in result['tags']
+    assert 'Mind Meld' not in result['tags']
+
 # endregion
 
 

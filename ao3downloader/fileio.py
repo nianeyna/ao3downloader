@@ -5,6 +5,7 @@ import datetime
 import getpass
 import importlib
 import importlib.metadata
+import importlib.resources
 import json
 import os
 
@@ -39,7 +40,7 @@ class FileOps:
         if ini_differences: self.save_new_ini(ini_differences)
 
 
-    def ini_differences(self, local: str, remote: str) -> str:
+    def ini_differences(self, local: str, remote: str) -> str | None:
         local_config = configparser.ConfigParser()
         local_config.read_string(local)
         remote_config = configparser.ConfigParser()
@@ -49,7 +50,7 @@ class FileOps:
         return self.ini_differences_str(local_config_structure, remote_config_structure)
 
 
-    def ini_differences_str(self, local: dict[str, set[str]], remote: dict[str, set[str]]) -> str:
+    def ini_differences_str(self, local: dict[str, set[str]], remote: dict[str, set[str]]) -> str | None:
         if local == remote: return None
         message = strings.MESSAGE_INI_DIFFERENCES
         for section in list(local):
@@ -161,7 +162,7 @@ class FileOps:
         return True
 
 
-    def get_ini_value(self, key: str, fallback: str = None) -> str:
+    def get_ini_value(self, key: str, fallback: str) -> str:
         config = configparser.ConfigParser()
         config.read(self.inifile)
         return config.get(strings.INI_SECTION_NAME, key, fallback=fallback)

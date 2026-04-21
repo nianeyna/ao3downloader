@@ -26,7 +26,7 @@ def get_bookmark_list(bookmark_xml: ET.Element, exclude_toread: bool) -> list[di
     return bookmark_list
 
 
-def get_preface_path_epub(xml: ET.Element) -> str:
+def get_preface_path_epub(xml: ET.Element) -> str | None:
     """
     finds where the preface is in the collection of epub files that make up a work, and returns that location (if it exists)
     """
@@ -41,7 +41,7 @@ def get_preface_path_epub(xml: ET.Element) -> str:
             return item.attrib.get('href')
 
 
-def get_work_link_epub(xml: ET.Element) -> str:
+def get_work_link_epub(xml: ET.Element) -> str | None:
     """
     when given the preface xml file for a work, get the ao3 link that the work was originally posted at
     """
@@ -57,7 +57,7 @@ def get_work_link_epub(xml: ET.Element) -> str:
     return None
 
 
-def get_stats_epub(xml: ET.Element) -> str:
+def get_stats_epub(xml: ET.Element) -> str | None:
     """
     gets chapter infomation from an epub file element tree and returns it as a string
     unless ao3 changes its epub formatting, this information includes the publication date, wordcount, and chapter info

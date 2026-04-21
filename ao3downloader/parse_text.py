@@ -4,7 +4,7 @@ import os
 from ao3downloader import strings
 
 
-def get_pinboard_url(api_token: str, date: datetime.datetime) -> str:
+def get_pinboard_url(api_token: str, date: datetime.datetime | None) -> str:
     """
     correctly formats a pinboard url to include an api token and (optionally) a timestamp, then returns it as a string
     """
@@ -49,7 +49,7 @@ def get_file_type(filetype: str) -> str:
     return '.' + filetype.lower()
 
 
-def get_work_number(link: str) -> str:
+def get_work_number(link: str) -> str | None:
     """
     gets the work number from an ao3 work link
     """
@@ -57,7 +57,7 @@ def get_work_number(link: str) -> str:
     return get_digits_after('/works/', link)
 
 
-def get_series_number(link: str) -> str:
+def get_series_number(link: str) -> str | None:
     """
     gets the series number from an ao3 series link
     """
@@ -81,7 +81,7 @@ def is_series(link: str) -> bool:
     return get_series_number(link) != None
 
 
-def get_digits_after(test: str, url: str) -> str:
+def get_digits_after(test: str, url: str) -> str | None:
     """
     retrieves all consecutive numerical digits in a url after a given test string.
     if the test string doesn't exist or there are no numbers found, the function returns None

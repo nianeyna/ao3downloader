@@ -43,3 +43,11 @@ class InvalidStatusCodeException(Ao3DownloaderException):
 
 class CloudflareException(Ao3DownloaderException):
     pass
+
+
+class PdfParsingException(Ao3DownloaderException):
+    pass
+
+
+class SeriesLinkException(Ao3DownloaderException):
+    pass

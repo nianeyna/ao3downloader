@@ -11,7 +11,15 @@ from ao3downloader.repo import Repository
 
 
 class Ao3:
-    def __init__(self, repo: Repository, fileops: FileOps, filetypes: list[str], pages: int, series: bool, images: bool, mark: bool=False) -> None:
+    def __init__(
+            self, 
+            repo: Repository, 
+            fileops: FileOps, 
+            filetypes: list[str], 
+            pages: int | None, 
+            series: bool, 
+            images: bool, 
+            mark: bool = False) -> None:
         self.repo = repo
         self.fileops = fileops
         self.filetypes = filetypes
@@ -22,7 +30,7 @@ class Ao3:
         self.debug = fileops.get_ini_value_boolean(strings.INI_DEBUG_LOGGING, False)
 
 
-    def download(self, link: str, visited: list[str]=None) -> None:
+    def download(self, link: str, visited: list[str] | None = None) -> None:
 
         log = {}
         if not visited: visited = []
@@ -69,13 +77,19 @@ class Ao3:
         return links_list
 
 
-    def get_work_links_recursive(self, links_list: dict[str, dict], link: str, visited_series: list[str], metadata: bool, soup: BeautifulSoup=None) -> None:
+    def get_work_links_recursive(
+            self, 
+            links_list: dict[str, dict | None], 
+            link: str, 
+            visited_series: list[str], 
+            metadata: bool, 
+            soup: BeautifulSoup | None = None) -> None:
 
         if parse_text.is_work(link):
             if link not in links_list:
-                if metadata:
-                    metadata = parse_soup.get_work_metadata_from_list(soup, link)
-                    links_list[link] = metadata
+                if metadata and soup:
+                    work_metadata = parse_soup.get_work_metadata_from_list(soup, link)
+                    links_list[link] = work_metadata
                 else:
                     links_list[link] = None
         elif parse_text.is_series(link):
@@ -179,7 +193,7 @@ class Ao3:
             self.log_error(log, e)
 
 
-    def download_work(self, link: str, log: dict, chapters: str) -> None:
+    def download_work(self, link: str, log: dict, chapters: str | None) -> None:
         """Download a single work"""
 
         try:
@@ -193,7 +207,7 @@ class Ao3:
             self.fileops.write_log(log)
 
 
-    def try_download(self, work_url: str, log: dict, chapters: str) -> bool:
+    def try_download(self, work_url: str, log: dict, chapters: str | None) -> bool:
         """Main download logic"""
 
         thesoup = self.repo.get_soup(work_url)

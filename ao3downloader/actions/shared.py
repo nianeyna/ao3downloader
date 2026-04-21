@@ -21,7 +21,7 @@ def link(fileops: FileOps) -> str:
     return link
 
 
-def pages() -> int:
+def pages() -> int | None:
     print(strings.AO3_PROMPT_PAGES)
     pages = input()
 
@@ -66,7 +66,7 @@ def visited(fileops: FileOps, filetypes: list[str]) -> list[str]:
     return visited
 
 
-def pinboard_date() -> datetime.datetime:
+def pinboard_date() -> datetime.datetime | None:
     print(strings.PINBOARD_PROMPT_DATE)
     getdate = True if input() == strings.PROMPT_YES else False
     if getdate:
@@ -267,7 +267,7 @@ def get_files_of_type(folder: str, filetypes: list[str]) -> list[dict[str, str]]
     return results
 
 
-def get_last_page_downloaded(fileops: FileOps) -> str:
+def get_last_page_downloaded(fileops: FileOps) -> str | None:
     latest = None
     try:
         logs = fileops.load_logfile()

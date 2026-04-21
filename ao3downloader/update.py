@@ -7,11 +7,13 @@ import mobi
 import pdfquery
 from bs4 import BeautifulSoup
 
-from ao3downloader import parse_pdf, parse_soup, parse_text, parse_xml, strings
+from ao3downloader import exceptions, parse_pdf, parse_soup, parse_text, parse_xml, strings
 
 
-def process_file(path: str, filetype: str, update: bool=True, update_series: bool=False) -> dict:
+def process_file(path: str, filetype: str, update: bool=True, update_series: bool = False) -> dict | None:
     '''add url of work to list if current version of work is incomplete'''
+    
+    series = None
 
     if filetype == 'EPUB':
         xml = get_epub_preface(path)
@@ -69,9 +71,12 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
             pdf.load(0, 1, 2) # load the first 3 pages. please god no one has a longer tag wall than that.
         except StopIteration:
             pdf.load() # handle pdfs with fewer than 3 pages
-        href = parse_pdf.get_work_link_pdf(pdf)
-        stats = parse_pdf.get_stats_pdf(pdf)
-        if update_series: series = parse_pdf.get_series_pdf(pdf)
+        try:
+            href = parse_pdf.get_work_link_pdf(pdf)
+            stats = parse_pdf.get_stats_pdf(pdf)
+            if update_series: series = parse_pdf.get_series_pdf(pdf)
+        except exceptions.PdfParsingException:
+            return None
 
     else:
         raise ValueError('Invalid filetype argument: {}. Valid filetypes are '.format(filetype) + ','.join(strings.UPDATE_ACCEPTABLE_FILE_TYPES))

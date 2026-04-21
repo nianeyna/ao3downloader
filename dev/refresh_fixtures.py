@@ -131,11 +131,11 @@ def download_html(session, fixture, fixtures_dir, only_new, page_cache: dict[str
         f.write(text)
 
 
-def ebook_current_path(fixtures_dir: str, fixture: dict) -> str:
+def ebook_current_path(fixtures_dir: str, fixture: dict[str, str]) -> str:
     """Compute the current-file path for an ebook fixture: ebook/<work_id>/current/<name>."""
 
-    return os.path.join(fixtures_dir, 'ebook', get_work_number(fixture['url']),
-                        'current', fixture['name'])
+    work_id = str(get_work_number(fixture["url"]))
+    return os.path.join(fixtures_dir, "ebook", work_id, "current", fixture["name"])
 
 
 def meaningful_change(text, path):

@@ -20,7 +20,7 @@ def action():
 
         shared.ao3_login(repo, fileops)
 
-        ao3 = Ao3(repo, fileops, None, pages, series, False)
+        ao3 = Ao3(repo, fileops, [], pages, series, False)
         links = ao3.get_work_links(link, metatdata)
 
         if metatdata:
