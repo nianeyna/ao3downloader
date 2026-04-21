@@ -35,8 +35,11 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
                 # assuming all AO3 AZW3 files are packaged in the same way (why wouldn't they be?) 
                 # we can take this as an indication that the source of this file was not AO3
                 return None
-            # the extracted epub is formatted the same way as the regular epubs, yay
+            # older files: extracted epub file matches normal epub structure exactly
             xml = get_epub_preface(filepath)
+            # new files: extracted epub file has slightly different folder structure
+            if xml is None: xml = get_epub_preface_azw3(filepath)
+            # if we couldn't find the preface in either expected location, assume non-ao3
             if xml is None: return None
             href = parse_xml.get_work_link_epub(xml)
             stats = parse_xml.get_stats_epub(xml)
@@ -99,7 +102,7 @@ def process_file(path: str, filetype: str, update: bool=True, update_series: boo
         return {'link': href, 'chapters': currentchap}
 
 
-def get_epub_preface(path: str) -> ET.Element:
+def get_epub_preface(path: str) -> ET.Element | None:
     try:
         with zipfile.ZipFile(path, 'r') as zf:
             with zf.open('content.opf') as of: 
@@ -108,5 +111,20 @@ def get_epub_preface(path: str) -> ET.Element:
                 if preface_path is None: return None
                 with zf.open(preface_path) as doc: 
                     return ET.parse(doc).getroot()
-    except (zipfile.BadZipFile, FileNotFoundError):
+    except (zipfile.BadZipFile, FileNotFoundError, KeyError):
+        return None
+
+
+def get_epub_preface_azw3(path: str) -> ET.Element | None:
+    try:
+        with zipfile.ZipFile(path, 'r') as zf:
+            # zip archives always use "/" as the path separator per the spec,
+            # so don't use os.path.join here (would break on Windows)
+            with zf.open('OEBPS/content.opf') as of:
+                opf = ET.parse(of).getroot()
+                preface_path = parse_xml.get_preface_path_epub(opf)
+                if preface_path is None: return None
+                with zf.open('OEBPS/' + preface_path) as doc:
+                    return ET.parse(doc).getroot()
+    except (zipfile.BadZipFile, FileNotFoundError, KeyError):
         return None

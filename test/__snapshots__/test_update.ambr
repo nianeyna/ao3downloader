@@ -52,6 +52,12 @@
   </html:body></html:html>
   '''
 # ---
+# name: test_process_file_azw3_incomplete_work_snapshot
+  dict({
+    'chapters': '3',
+    'link': 'https://archiveofourown.org/works/218676',
+  })
+# ---
 # name: test_process_file_epub_incomplete_work_snapshot
   dict({
     'chapters': '3',

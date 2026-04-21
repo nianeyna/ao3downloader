@@ -91,6 +91,65 @@ def test_get_epub_preface_returns_none_when_preface_path_missing(tmp_path):
 
     assert update.get_epub_preface(str(zp)) is None
 
+
+def test_get_epub_preface_azw3_returns_none_on_bad_zip(tmp_path):
+    bogus = tmp_path / 'not-a-zip.epub'
+    bogus.write_bytes(b'not a zip file')
+
+    assert update.get_epub_preface_azw3(str(bogus)) is None
+
+
+def test_get_epub_preface_azw3_returns_none_on_missing_file(tmp_path):
+    assert update.get_epub_preface_azw3(str(tmp_path / 'missing.epub')) is None
+
+
+def test_get_epub_preface_azw3_returns_none_when_oebps_content_opf_missing(tmp_path):
+    # a flat-layout epub (content.opf at root) must NOT match the OEBPS probe —
+    # this is what makes the fallback pattern in process_file meaningful.
+    zp = tmp_path / 'flat_layout.epub'
+    with zipfile.ZipFile(zp, 'w') as zf:
+        zf.writestr(
+            'content.opf',
+            '<package xmlns="http://www.idpf.org/2007/opf"><manifest>'
+            '<item id="p" href="preface.xhtml" media-type="application/xhtml+xml"/>'
+            '</manifest></package>'
+        )
+        zf.writestr('preface.xhtml', '<html xmlns="http://www.w3.org/1999/xhtml"/>')
+
+    assert update.get_epub_preface_azw3(str(zp)) is None
+
+
+def test_get_epub_preface_azw3_returns_none_when_preface_path_missing(tmp_path):
+    # OEBPS/content.opf exists, but manifest has no xhtml item
+    zp = tmp_path / 'no_preface.epub'
+    with zipfile.ZipFile(zp, 'w') as zf:
+        zf.writestr(
+            'OEBPS/content.opf',
+            '<package xmlns="http://www.idpf.org/2007/opf"><manifest>'
+            '<item id="css" href="style.css" media-type="text/css"/>'
+            '</manifest></package>'
+        )
+
+    assert update.get_epub_preface_azw3(str(zp)) is None
+
+
+def test_oebps_layout_falls_through_from_flat_probe(tmp_path):
+    # pins the fallback contract without relying on mobi.extract: on an
+    # OEBPS-layout zip, the flat probe returns None and the OEBPS probe finds
+    # the preface. process_file relies on exactly this pair of behaviors.
+    zp = tmp_path / 'oebps_layout.epub'
+    with zipfile.ZipFile(zp, 'w') as zf:
+        zf.writestr(
+            'OEBPS/content.opf',
+            '<package xmlns="http://www.idpf.org/2007/opf"><manifest>'
+            '<item id="p" href="preface.xhtml" media-type="application/xhtml+xml"/>'
+            '</manifest></package>'
+        )
+        zf.writestr('OEBPS/preface.xhtml', '<html xmlns="http://www.w3.org/1999/xhtml"/>')
+
+    assert update.get_epub_preface(str(zp)) is None
+    assert update.get_epub_preface_azw3(str(zp)) is not None
+
 # endregion
 
 
@@ -203,10 +262,50 @@ def test_process_file_mobi_returns_none_when_extracted_file_not_html(monkeypatch
 
 # region AZW3
 
+def test_process_file_azw3_incomplete_work_snapshot(snapshot):
+    path = os.path.join(EBOOK_DIR, '218676', 'current', 'incompleteWork.azw3')
+    assert update.process_file(path, 'AZW3') == snapshot
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('218676', '.azw3'),
+                         ids=_ids(ebook_fixtures('218676', '.azw3')))
+def test_process_file_azw3_incomplete_work_structural(path):
+    result = update.process_file(path, 'AZW3')
+
+    assert result is not None
+    assert 'archiveofourown.org/works/' in result['link']
+    assert result['chapters']
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.azw3'),
+                         ids=_ids(ebook_fixtures('23009290', '.azw3')))
+def test_process_file_azw3_complete_work_returns_none(path):
+    assert update.process_file(path, 'AZW3') is None
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('23009290', '.azw3'),
+                         ids=_ids(ebook_fixtures('23009290', '.azw3')))
+def test_process_file_azw3_update_false_returns_link(path):
+    result = update.process_file(path, 'AZW3', update=False)
+
+    assert result is not None
+    assert 'archiveofourown.org/works/' in result['link']
+
+
+@pytest.mark.parametrize('path', ebook_fixtures('334557', '.azw3'),
+                         ids=_ids(ebook_fixtures('334557', '.azw3')))
+def test_process_file_azw3_work_in_series_returns_series(path):
+    result = update.process_file(path, 'AZW3', update_series=True)
+
+    assert result is not None
+    assert result['series']
+    assert all('archiveofourown.org/series/' in s for s in result['series'])
+
+
 def test_process_file_azw3_delegates_to_epub_parser(monkeypatch, tmp_path):
-    # use the real epub fixture as the "extracted" file — the current get_epub_preface
-    # only handles AO3-style epubs (content.opf at root), not the OEBPS-standard layout
-    # that mobi.extract produces from real AZW3 files.
+    # fast offline check of the delegation + tempdir cleanup path using a
+    # flat-layout epub fixture (content.opf at root). The OEBPS-layout fallback
+    # is exercised end-to-end by the real-AZW3 parameterized tests above.
     extract_dir = tmp_path / 'extracted'
     extract_dir.mkdir()
     extracted_epub = extract_dir / 'book.epub'
