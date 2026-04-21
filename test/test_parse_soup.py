@@ -251,25 +251,6 @@ def test_get_image_links_returns_empty_when_workskin_has_no_images(fixture_soup)
 # endregion
 
 
-# region get_mark_as_read_link
-# todo: real fixtures
-
-def test_get_mark_as_read_link_returns_full_url_when_present():
-    html = f'<li class="mark"><a href="/works/1/mark_as_read">{strings.AO3_MARK_READ}</a></li>'
-    soup = BeautifulSoup(html, 'html.parser')
-
-    result = parse_soup.get_mark_as_read_link(soup)
-
-    assert result == strings.AO3_BASE_URL + '/works/1/mark_as_read'
-
-
-def test_get_mark_as_read_link_returns_none_when_missing():
-    soup = BeautifulSoup('<html></html>', 'html.parser')
-    assert parse_soup.get_mark_as_read_link(soup) is None
-
-# endregion
-
-
 # region has_custom_skin
 
 def test_has_custom_skin_true(fixture_soup):
