@@ -41,6 +41,20 @@ def images() -> bool:
     return images
 
 
+def links_only() -> bool:
+    print(strings.PROMPT_LINKS_ONLY)
+    return True if input() == strings.PROMPT_YES else False
+
+
+def write_links_file(urls: list[str], prefix: str) -> str:
+    filename = f'{prefix}_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.txt'
+    path = os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename)
+    with open(path, 'w') as f:
+        for url in urls:
+            f.write(url + '\n')
+    return path
+
+
 def metadata() -> bool:
     print(strings.AO3_PROMPT_METADATA)
     return True if input() == strings.PROMPT_YES else False

@@ -14,10 +14,14 @@ def action():
 
         folder = shared.update_folder(fileops)
         update_filetypes = shared.update_types(fileops)
-        download_filetypes = shared.download_types(fileops)
-        images = shared.images()
-
-        shared.ao3_login(repo, fileops)
+        links_only = shared.links_only()
+        if not links_only:
+            download_filetypes = shared.download_types(fileops)
+            images = shared.images()
+            shared.ao3_login(repo, fileops)
+        else:
+            download_filetypes = []
+            images = False
 
         files = shared.get_files_of_type(folder, update_filetypes)
 
@@ -50,6 +54,15 @@ def action():
             if any('/series/' in x for x in unsuccessful):
                 print(strings.SERIES_INFO_FILTER)
                 series = {k: v for k, v in series.items() if k not in unsuccessful}
+
+        if links_only:
+            series_urls = list(series.keys())
+            if series_urls:
+                path = shared.write_links_file(series_urls, 'update_series_links')
+                print(strings.INFO_LINKS_FILE_WRITTEN.format(len(series_urls), path))
+            else:
+                print(strings.INFO_NO_LINKS_TO_WRITE)
+            return
 
         print(strings.SERIES_INFO_NUM.format(len(series)))
 

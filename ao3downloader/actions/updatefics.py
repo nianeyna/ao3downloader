@@ -15,10 +15,14 @@ def action():
 
         folder = shared.update_folder(fileops)
         update_filetypes = shared.update_types(fileops)
-        download_filetypes = shared.download_types(fileops)
-        images = shared.images()
-
-        shared.ao3_login(repo, fileops)    
+        links_only = shared.links_only()
+        if not links_only:
+            download_filetypes = shared.download_types(fileops)
+            images = shared.images()
+            shared.ao3_login(repo, fileops)
+        else:
+            download_filetypes = []
+            images = False
 
         fics = shared.get_files_of_type(folder, update_filetypes)
 
@@ -49,6 +53,15 @@ def action():
             if any('/works/' in x for x in unsuccessful):
                 print(strings.UPDATE_INFO_FILTER)
                 works_cleaned = list(filter(lambda x: x['link'] not in unsuccessful, works_cleaned))
+
+        if links_only:
+            urls = [w['link'] for w in works_cleaned]
+            if urls:
+                path = shared.write_links_file(urls, 'update_links')
+                print(strings.INFO_LINKS_FILE_WRITTEN.format(len(urls), path))
+            else:
+                print(strings.INFO_NO_LINKS_TO_WRITE)
+            return
 
         print(strings.UPDATE_INFO_DOWNLOADING)
 

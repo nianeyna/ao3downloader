@@ -15,9 +15,12 @@ def action():
         folder = shared.redownload_folder()
         oldtypes = shared.redownload_oldtypes()
         newtypes = shared.redownload_newtypes()
-        images = shared.images()
-
-        shared.ao3_login(repo, fileops)
+        links_only = shared.links_only()
+        if not links_only:
+            images = shared.images()
+            shared.ao3_login(repo, fileops)
+        else:
+            images = False
 
         fics = shared.get_files_of_type(folder, oldtypes)
 
@@ -43,10 +46,18 @@ def action():
             titles = parse_text.get_title_dict(logs)
             unsuccessful = parse_text.get_unsuccessful_downloads(logs)
             maximum = fileops.get_ini_value_integer(strings.INI_NAME_LENGTH, strings.INI_DEFAULT_NAME_LENGTH)
-            urls = list(filter(lambda x: 
+            urls = list(filter(lambda x:
                 not fileops.file_exists(x, titles, newtypes, maximum)
                 and x not in unsuccessful,
                 urls))
+
+        if links_only:
+            if urls:
+                path = shared.write_links_file(urls, 'redownload_links')
+                print(strings.INFO_LINKS_FILE_WRITTEN.format(len(urls), path))
+            else:
+                print(strings.INFO_NO_LINKS_TO_WRITE)
+            return
 
         print(strings.AO3_INFO_DOWNLOADING)
 

@@ -87,6 +87,10 @@ AO3_INFO_DOWNLOADING = 'downloading works'
 AO3_INFO_FILE_TYPE = 'added {} to list of download types'
 AO3_INFO_VISITED = 'generating list of work links that are already in the downloads folder (will be skipped)'
 
+PROMPT_LINKS_ONLY = 'save links to a file instead of downloading? ({}/{})'.format(PROMPT_YES, PROMPT_NO)
+INFO_LINKS_FILE_WRITTEN = 'wrote {} links to {}'
+INFO_NO_LINKS_TO_WRITE = 'no links to write'
+
 UPDATE_PROMPT_INPUT = 'input path to folder containing files you want to check for updates (also checks subfolders)'
 UPDATE_INFO_FILES = 'getting list of files'
 UPDATE_INFO_NUM_RETURNED = '{} files found'
