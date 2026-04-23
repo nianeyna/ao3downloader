@@ -1,4 +1,6 @@
 import os
+from collections.abc import Callable
+from typing import NamedTuple
 
 import ao3downloader.strings as strings
 from ao3downloader.fileio import FileOps
@@ -13,6 +15,11 @@ from ao3downloader.actions import getlinks
 from ao3downloader.actions import markedforlater
 from ao3downloader.actions import enterlinks
 from ao3downloader.actions import ignorelist
+
+
+class MenuAction(NamedTuple):
+    description: str
+    run: Callable[[], None]
 
 
 def ao3_download_action():
@@ -57,53 +64,38 @@ def ignorelist_action():
 
 def display_menu():
     print(strings.PROMPT_OPTIONS)
-    for key, value in actions.items():
-        try:
-            desc = value.description
-        except AttributeError:
-            desc = value.__name__
-        print(' {}: {}'.format(key, desc))
+    for key, action in actions.items():
+        print(' {}: {}'.format(key, action.description))
 
 
 def choose(choice):
     try:
-        function = actions[choice]
-        try:
-            function()
-        except Exception as e:
-            print(str(e))
-    except KeyError as e:
+        action = actions[choice]
+    except KeyError:
         print(strings.PROMPT_INVALID_ACTION)
+        return
+    try:
+        action.run()
+    except Exception as e:
+        print(str(e))
 
-
-display_menu.description = strings.ACTION_DESCRIPTION_DISPLAY_MENU
-ao3_download_action.description = strings.ACTION_DESCRIPTION_AO3
-update_epubs_action.description = strings.ACTION_DESCRIPTION_UPDATE
-pinboard_download_action.description = strings.ACTION_DESCRIPTION_PINBOARD
-log_visualization_action.description = strings.ACTION_DESCRIPTION_VISUALIZATION
-re_download_action.description = strings.ACTION_DESCRIPTION_REDOWNLOAD
-update_series_action.description = strings.ACTION_DESCRIPTION_UPDATE_SERIES
-links_only_action.description = strings.ACTION_DESCRIPTION_LINKS_ONLY
-marked_for_later_action.description = strings.ACTION_DESCRIPTION_MARKED_FOR_LATER
-file_input_action.description = strings.ACTION_DESCRIPTION_FILE_INPUT
-ignorelist_action.description = strings.ACTION_DESCRIPTION_CONFIGURE_IGNORELIST
 
 QUIT_ACTION = 'q'
 MENU_ACTION = 'd'
 
-actions = {
-    MENU_ACTION: display_menu,
-    'a': ao3_download_action,
-    'l': links_only_action,
-    'f': file_input_action,
-    'u': update_epubs_action,
-    's': update_series_action,
-    'r': re_download_action,
-    'm': marked_for_later_action,
-    'p': pinboard_download_action,
-    'v': log_visualization_action,
-    'i': ignorelist_action
-    }
+actions: dict[str, MenuAction] = {
+    MENU_ACTION: MenuAction(strings.ACTION_DESCRIPTION_DISPLAY_MENU, display_menu),
+    'a': MenuAction(strings.ACTION_DESCRIPTION_AO3, ao3_download_action),
+    'l': MenuAction(strings.ACTION_DESCRIPTION_LINKS_ONLY, links_only_action),
+    'f': MenuAction(strings.ACTION_DESCRIPTION_FILE_INPUT, file_input_action),
+    'u': MenuAction(strings.ACTION_DESCRIPTION_UPDATE, update_epubs_action),
+    's': MenuAction(strings.ACTION_DESCRIPTION_UPDATE_SERIES, update_series_action),
+    'r': MenuAction(strings.ACTION_DESCRIPTION_REDOWNLOAD, re_download_action),
+    'm': MenuAction(strings.ACTION_DESCRIPTION_MARKED_FOR_LATER, marked_for_later_action),
+    'p': MenuAction(strings.ACTION_DESCRIPTION_PINBOARD, pinboard_download_action),
+    'v': MenuAction(strings.ACTION_DESCRIPTION_VISUALIZATION, log_visualization_action),
+    'i': MenuAction(strings.ACTION_DESCRIPTION_CONFIGURE_IGNORELIST, ignorelist_action),
+}
 
 def ao3downloader():
     try:
