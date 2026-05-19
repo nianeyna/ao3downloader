@@ -1,20 +1,14 @@
 # serializer version: 1
 # name: test_get_series_urls_all
   list([
-    'https://archiveofourown.org/series/15213',
-    'https://archiveofourown.org/series/3738976',
     'https://archiveofourown.org/series/2627935',
     'https://archiveofourown.org/series/3108957',
-    'https://archiveofourown.org/series/3078150',
-    'https://archiveofourown.org/series/3078153',
-    'https://archiveofourown.org/series/3196530',
-    'https://archiveofourown.org/series/2643097',
+    'https://archiveofourown.org/series/15213',
   ])
 # ---
 # name: test_get_series_urls_bookmarks
   list([
     'https://archiveofourown.org/series/15213',
-    'https://archiveofourown.org/series/3738976',
   ])
 # ---
 # name: test_get_title
@@ -28,7 +22,7 @@
   ])
 # ---
 # name: test_get_total_pages
-  6
+  None
 # ---
 # name: test_get_work_metadata_from_work_returns_expected_keys
   dict({
@@ -52,22 +46,23 @@
 # name: test_get_work_urls
   list([
     'https://archiveofourown.org/works/66326125',
-    'https://archiveofourown.org/works/26742931',
-    'https://archiveofourown.org/works/23618077',
-    'https://archiveofourown.org/works/47611450',
-    'https://archiveofourown.org/works/34816549',
-    'https://archiveofourown.org/works/35778589',
-    'https://archiveofourown.org/works/41655369',
-    'https://archiveofourown.org/works/34763164',
-    'https://archiveofourown.org/works/41214669',
-    'https://archiveofourown.org/works/41822007',
-    'https://archiveofourown.org/works/342122',
-    'https://archiveofourown.org/works/33658237',
-    'https://archiveofourown.org/works/36398359',
-    'https://archiveofourown.org/works/34702543',
-    'https://archiveofourown.org/works/35369560',
     'https://archiveofourown.org/works/18623245',
-    'https://archiveofourown.org/works/34348333',
-    'https://archiveofourown.org/works/24412372',
+    'https://archiveofourown.org/works/34816549',
+    'https://archiveofourown.org/works/42461841',
+    'https://archiveofourown.org/works/42461502',
+    'https://archiveofourown.org/works/42461232',
+    'https://archiveofourown.org/works/42460935',
+    'https://archiveofourown.org/works/42460749',
+    'https://archiveofourown.org/works/42460338',
+    'https://archiveofourown.org/works/23009290',
+    'https://archiveofourown.org/works/17389052',
+    'https://archiveofourown.org/works/568141',
+    'https://archiveofourown.org/works/218699',
+    'https://archiveofourown.org/works/218655',
+    'https://archiveofourown.org/works/218660',
+    'https://archiveofourown.org/works/218671',
+    'https://archiveofourown.org/works/218646',
+    'https://archiveofourown.org/works/218676',
+    'https://archiveofourown.org/works/218635',
   ])
 # ---
