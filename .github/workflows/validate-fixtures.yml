@@ -4,7 +4,8 @@ on:
   schedule:
     # midnight every friday (utc - equals afternoon on thursday pacific)
     # according to 2025 stats thursday and friday have the lowest traffic
-    - cron: '0 0 * * FRI' 
+    - cron: '0 0 * * FRI'
+  workflow_dispatch:
 
 permissions:
   contents: write
