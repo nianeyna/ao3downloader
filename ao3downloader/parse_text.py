@@ -81,6 +81,16 @@ def is_series(link: str) -> bool:
     return get_series_number(link) != None
 
 
+def is_subscriptions(link: str) -> bool:
+    """
+    checks if a link is for an ao3 subscriptions page.
+    matches the url path regardless of username casing or query string.
+    """
+
+    path = link.split('?')[0].rstrip('/')
+    return path.endswith('/subscriptions')
+
+
 def get_digits_after(test: str, url: str) -> str | None:
     """
     retrieves all consecutive numerical digits in a url after a given test string.

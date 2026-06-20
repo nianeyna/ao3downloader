@@ -109,13 +109,16 @@ class Ao3:
                         break
                     link = parse_text.get_next_page(link)
         elif strings.AO3_BASE_URL in link:
+            # special case for subscriptions page - it doesn't have blurbs, so any series
+            # links encountered are directly subscribed to and should always be downloaded.
+            include_series = parse_text.is_subscriptions(link) or self.series
             total_pages = None
             while True:
                 self.fileops.write_log({'link': link, 'message': strings.INFO_STARTING_PAGE, 'level': 'debug'})
                 thesoup = self.repo.get_soup(link)
                 if total_pages is None:
                     total_pages = parse_soup.get_total_pages(thesoup)
-                urls = parse_soup.get_work_and_series_urls(thesoup, self.series)
+                urls = parse_soup.get_work_and_series_urls(thesoup, include_series)
                 for url in urls:
                     self.get_work_links_recursive(links_list, url, visited_series, metadata, thesoup)
                 pagenum = parse_text.get_page_number(link)
@@ -143,13 +146,16 @@ class Ao3:
             log = {}
             self.download_series(link, log, visited)        
         elif strings.AO3_BASE_URL in link:
+            # special case for subscriptions page - it doesn't have blurbs, so any series
+            # links encountered are directly subscribed to and should always be downloaded.
+            include_series = parse_text.is_subscriptions(link) or self.series
             total_pages = None
             while True:
                 self.fileops.write_log({'link': link, 'message': strings.INFO_STARTING_PAGE, 'level': 'debug'})
                 thesoup = self.repo.get_soup(link)
                 if total_pages is None:
                     total_pages = parse_soup.get_total_pages(thesoup)
-                urls = parse_soup.get_work_and_series_urls(thesoup, self.series)
+                urls = parse_soup.get_work_and_series_urls(thesoup, include_series)
                 for url in urls:
                     self.download_recursive(url, log, visited)
                 if not self.mark:

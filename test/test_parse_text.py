@@ -182,6 +182,28 @@ def test_is_series_false():
 # endregion
 
 
+# region is_subscriptions
+
+@pytest.mark.parametrize('link', [
+    'https://archiveofourown.org/users/SomeName/subscriptions',
+    'https://archiveofourown.org/users/somename/subscriptions', # casing is irrelevant
+    'https://archiveofourown.org/users/SomeName/subscriptions?type=series', # query string
+    'https://archiveofourown.org/users/SomeName/subscriptions/', # trailing slash
+])
+def test_is_subscriptions_true(link):
+    assert parse_text.is_subscriptions(link) is True
+
+
+@pytest.mark.parametrize('link', [
+    'https://archiveofourown.org/users/SomeName/bookmarks',
+    'https://archiveofourown.org/works/123',
+])
+def test_is_subscriptions_false(link):
+    assert parse_text.is_subscriptions(link) is False
+
+# endregion
+
+
 # region get_digits_after
 
 def test_get_digits_after_stops_at_non_digit():
