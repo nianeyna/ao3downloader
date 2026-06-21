@@ -23,6 +23,7 @@ INI_NAME_LENGTH = 'FileNameLength'
 INI_NAME_PATTERN = 'FileNamePattern'
 INI_DEBUG_LOGGING = 'EnableDebugLogging'
 INI_MAX_RETRIES = 'MaxRetries'
+INI_MAX_TIMEOUTS = 'MaxTimeouts'
 
 INI_DEFAULT_NAME_LENGTH = 50
 INI_DEFAULT_NAME_PATTERN = '{worknum} {title} - {author}'

@@ -29,6 +29,7 @@ class Repository:
         self.debug = fileops.get_ini_value_boolean(strings.INI_DEBUG_LOGGING, False)
         self.extra_wait = fileops.get_ini_value_integer(strings.INI_WAIT_TIME, 0)
         self.max_retries = fileops.get_ini_value_integer(strings.INI_MAX_RETRIES, 0)
+        self.max_timeouts = fileops.get_ini_value_integer(strings.INI_MAX_TIMEOUTS, 3)
 
 
     def __enter__(self):
@@ -71,6 +72,7 @@ class Repository:
             url = 'https://' + url[len('http://'):]
 
         attempt = 0
+        timeouts = 0
 
         while True:
             should_retry = strings.AO3_DOMAIN in url.lower() and (self.max_retries == 0 or attempt < self.max_retries)
@@ -82,7 +84,14 @@ class Repository:
                 except requests.exceptions.Timeout as e: # raw timeout exceptions are way too verbose
                     raise exceptions.TimeoutException(strings.ERROR_TIMEOUT.format(self.timeout)) from e
             except Exception as e:
-                if should_retry:
+                # a page that times out repeatedly is unlikely to recover, so give up after (consecutive) 
+                # timeouts reach the configured limit to avoid wasting a lot of time on a dead page.
+                if isinstance(e, exceptions.TimeoutException):
+                    timeouts += 1
+                else:
+                    timeouts = 0
+                timeout_capped = self.max_timeouts != 0 and timeouts >= self.max_timeouts
+                if should_retry and not timeout_capped:
                     attempt += 1
                     self.log_error(url, strings.MESSAGE_RETRY.format(method, attempt, retry_delay), e)
                     sleep(retry_delay)
@@ -90,6 +99,8 @@ class Repository:
                 else:
                     self.log_error(url, strings.ERROR_HTTP_REQUEST, e)
                     raise
+
+            timeouts = 0
 
             if response.status_code in self.retry_statuses:
                 if self.retry_or_raise(should_retry, attempt, method, url, retry_delay,

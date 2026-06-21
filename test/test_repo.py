@@ -276,6 +276,58 @@ def test_my_request_timeout_wraps_as_timeoutexception(mock_repo):
     assert isinstance(excinfo.value.__cause__, requests.exceptions.Timeout)
 
 
+def test_my_request_timeout_cuts_off_before_max_retries(mock_repo):
+    mock_repo.max_retries = 30
+    mock_repo.max_timeouts = 3
+    mock_repo.session.request.side_effect = requests.exceptions.Timeout('boom')
+
+    with pytest.raises(exceptions.TimeoutException):
+        mock_repo.my_request('GET', AO3_URL)
+
+    # gives up after 3 consecutive timeouts instead of grinding through all 30 retries
+    assert mock_repo.session.request.call_count == 3
+
+
+def test_my_request_timeout_cutoff_applies_with_unlimited_retries(mock_repo):
+    mock_repo.max_retries = 0  # unlimited — without the timeout cap this would hang forever
+    mock_repo.max_timeouts = 3
+    mock_repo.session.request.side_effect = requests.exceptions.Timeout('boom')
+
+    with pytest.raises(exceptions.TimeoutException):
+        mock_repo.my_request('GET', AO3_URL)
+
+    assert mock_repo.session.request.call_count == 3
+
+
+def test_my_request_timeout_streak_resets_on_response(mock_repo):
+    mock_repo.max_retries = 30
+    mock_repo.max_timeouts = 3
+    timeout = requests.exceptions.Timeout('boom')
+    interrupting = make_response(status_code=502)
+    succeeding = make_response(status_code=200, text='ok')
+    # 4 timeouts total, but the 502 response in the middle breaks the streak,
+    # so the consecutive-timeout cap of 3 is never reached
+    mock_repo.session.request.side_effect = [
+        timeout, timeout, interrupting, timeout, timeout, succeeding]
+
+    result = mock_repo.my_request('GET', AO3_URL)
+
+    assert result is succeeding
+    assert mock_repo.session.request.call_count == 6
+
+
+def test_my_request_max_timeouts_zero_disables_cutoff(mock_repo):
+    mock_repo.max_retries = 2
+    mock_repo.max_timeouts = 0  # early cutoff disabled — behavior governed by max_retries
+    mock_repo.session.request.side_effect = requests.exceptions.Timeout('boom')
+
+    with pytest.raises(exceptions.TimeoutException):
+        mock_repo.my_request('GET', AO3_URL)
+
+    # attempts 0, 1, 2 → 3 calls before max_retries is exhausted
+    assert mock_repo.session.request.call_count == 3
+
+
 def test_my_request_normalizes_http_to_https_for_ao3(mock_repo):
     mock_repo.session.request.return_value = make_response(status_code=200)
 
