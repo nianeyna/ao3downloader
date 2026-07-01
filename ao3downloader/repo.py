@@ -195,26 +195,24 @@ class Repository:
 
     @staticmethod
     def is_cloudflare_response(response: requests.Response) -> bool:
-        server = response.headers.get('Server', '').lower()
-        if 'cloudflare' not in server:
-            return False
         content_type = response.headers.get('Content-Type', '').lower()
-        if content_type.startswith('text/html'):
-            cloudflare_markers = [
-                # common generic cloudflare page titles. unlikely, since ao3 uses their own branding, 
-                # but worth checking for. shouldn't false positive on works with titles that happen 
-                # to match the strings - a legitimate ao3 title will include "| Archive of Our Own"
-                '<title>just a moment...</title>',
-                '<title>attention required!</title>',
-                '<title>access denied</title>',
-                # checking for suspicious javascript variables. these *will* false positive if a user
-                # includes them in the title, but the chances of that are very very low, I hope. 
-                'cf-browser-verification',
-                'id="cf-wrapper"',
-                '_cf_chl_opt',
-            ]
-            return any(marker in response.text.lower() for marker in cloudflare_markers)
-        return False
+        if not content_type.startswith('text/html'):
+            return False
+        cloudflare_markers = [
+            # common generic cloudflare page titles. unlikely, since ao3 uses their own branding, 
+            # but worth checking for. shouldn't false positive on works with titles that happen 
+            # to match the strings - a legitimate ao3 title will include "| Archive of Our Own"
+            '<title>just a moment...</title>',
+            '<title>attention required!</title>',
+            '<title>access denied</title>',
+            # checking for suspicious javascript variables. these *will* false positive if a user
+            # includes them in the work, but the chances of that are very very low, I hope. 
+            'cf-browser-verification',
+            'id="challenge-error-text"',
+            'id="cf-wrapper"',
+            '_cf_chl_opt',
+        ]
+        return any(marker in response.text.lower() for marker in cloudflare_markers)
 
 
     def get_delay(self, attempt: int) -> float:

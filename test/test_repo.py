@@ -12,6 +12,8 @@ from bs4 import BeautifulSoup
 from ao3downloader import exceptions, strings
 from ao3downloader.repo import Repository
 
+from test.conftest import ebook_fixtures
+
 
 AO3_URL = 'https://archiveofourown.org/works/123'
 NON_AO3_URL = 'https://example.com/whatever'
@@ -92,11 +94,11 @@ def test_normal_download():
     assert Repository.is_cloudflare_response(response) is False
 
 
-def test_no_server_header():
+def test_detected_without_server_header():
     response = make_response(
         server='',
         text='<html><head><title>Just a moment...</title></head></html>')
-    assert Repository.is_cloudflare_response(response) is False
+    assert Repository.is_cloudflare_response(response) is True
 
 
 def test_cloudflare_challenge_script():
@@ -105,6 +107,52 @@ def test_cloudflare_challenge_script():
         text='<html><head><title>Unknown Title</title></head>'
              '<body><script>window._cf_chl_opt = {cvId: "3"};</script></body></html>')
     assert Repository.is_cloudflare_response(response) is True
+
+
+def test_cloudflare_challenge_error_text_marker():
+    response = make_response(
+        server='',
+        text='<html><body><span id="challenge-error-text">'
+             'Enable JavaScript and cookies to continue</span></body></html>')
+    assert Repository.is_cloudflare_response(response) is True
+
+
+def test_cloudflare_marker_found_beyond_2048_bytes():
+    # ao3's interstitial buries its markers ~5 KB in, after a large inline svg logo and <style>
+    # block, so detection must scan the whole body. this guards against reintroducing a
+    # response.text[:N] truncation.
+    padding = '<!-- ' + 'x' * 5000 + ' -->'
+    response = make_response(
+        server='',
+        text='<html><head>' + padding + '<script>window._cf_chl_opt = {};</script></head></html>')
+    assert Repository.is_cloudflare_response(response) is True
+
+
+def test_binary_content_type_not_scanned():
+    # a real work file (epub/pdf/mobi/azw3) is never served as text/html; its bytes must not be
+    # scanned as text, even if a marker string happens to appear in them.
+    response = make_response(
+        server='cloudflare',
+        content_type='application/epub+zip',
+        text='PK\x03\x04 ... _cf_chl_opt ... binary noise')
+    assert Repository.is_cloudflare_response(response) is False
+
+
+_HTML_DOWNLOAD_FIXTURES = (
+    ebook_fixtures('23009290', '.html')
+    + ebook_fixtures('218676', '.html')
+    + ebook_fixtures('334557', '.html'))
+
+
+@pytest.mark.parametrize('path', _HTML_DOWNLOAD_FIXTURES,
+                         ids=[os.path.relpath(p, FIXTURES_DIR) for p in _HTML_DOWNLOAD_FIXTURES])
+def test_real_html_download_not_flagged(path):
+    # real AO3 HTML work downloads are text/html; now that detection no longer gates on the Server
+    # header, make sure a genuine download is never mistaken for a challenge page.
+    with open(path, encoding='utf-8') as f:
+        html = f.read()
+    response = make_response(server='', text=html)
+    assert Repository.is_cloudflare_response(response) is False
 
 # endregion
 
