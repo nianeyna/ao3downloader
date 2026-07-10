@@ -18,6 +18,10 @@ from test.conftest import ebook_fixtures
 AO3_URL = 'https://archiveofourown.org/works/123'
 NON_AO3_URL = 'https://example.com/whatever'
 
+# work id of the markedForLater fixture, used to derive the mark-as-read URL
+MARKED_FOR_LATER_WORK_ID = '66326125'
+MARKED_FOR_LATER_URL = strings.AO3_BASE_URL + '/works/' + MARKED_FOR_LATER_WORK_ID
+
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 
 
@@ -538,12 +542,12 @@ def test_mark_work_as_read_posts_patch_with_token(mock_repo):
     expected_token = parse_soup.get_mark_read_token(soup)
     mock_repo.session.request.return_value = make_response(status_code=200)
 
-    mock_repo.mark_work_as_read(soup, AO3_URL)
+    mock_repo.mark_work_as_read(soup, MARKED_FOR_LATER_URL)
 
     call = mock_repo.session.request.call_args
     method, url, data = call.args[0], call.args[1], call.args[2]
     assert method == 'PATCH'
-    assert url == strings.AO3_MARK_READ_URL.format('123')
+    assert url == strings.AO3_MARK_READ_URL.format(MARKED_FOR_LATER_WORK_ID)
     assert data == {'authenticity_token': expected_token}
 
 
@@ -551,7 +555,7 @@ def test_mark_work_as_read_logs_non_200_response(mock_repo, fake_fileops):
     soup = BeautifulSoup(_load_fixture('markedForLater'), 'html.parser')
     mock_repo.session.request.return_value = make_response(status_code=403)
 
-    mock_repo.mark_work_as_read(soup, AO3_URL)
+    mock_repo.mark_work_as_read(soup, MARKED_FOR_LATER_URL)
 
     with open(fake_fileops.logfile, encoding='utf-8') as f:
         entry = json.loads(f.readline())

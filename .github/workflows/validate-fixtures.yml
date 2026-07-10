@@ -26,7 +26,10 @@ jobs:
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
       - name: refresh fixtures
-        run: uv run python dev/refresh_fixtures.py
+        env:
+          AO3_USERNAME: ${{ secrets.AO3_USERNAME }}
+          AO3_PASSWORD: ${{ secrets.AO3_PASSWORD }}
+        run: uv run python dev/refresh_fixtures.py --require-login
 
       - name: check for changes
         id: changes

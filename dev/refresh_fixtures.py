@@ -2,7 +2,12 @@
 
 Used by the validate-fixtures GitHub Actions workflow to detect
 when AO3's HTML structure changes in ways that affect parsing.
-Only works for logged-out pages that do not require fresh cookies.
+
+Fixtures tagged "login": True are fetched in a second pass using an
+authenticated session (credentials from the AO3_USERNAME / AO3_PASSWORD
+environment variables, supplied as GitHub secrets for the CI test account).
+Logged-out fixtures still refresh with no credentials, so the script remains
+usable for a logged-out-only refresh when no credentials are provided.
 """
 
 import argparse
@@ -15,34 +20,45 @@ from bs4 import BeautifulSoup
 
 from ao3downloader import parse_soup, strings
 from ao3downloader.repo import Repository
-from ao3downloader.parse_text import get_work_number
+from ao3downloader.parse_text import get_work_number, get_payload
 
 
 FIXTURES = [
-    {"name": "unlockedWork.html",         "url": "/works/41822007",                   "type": "page"},
-    {"name": "unlockedWorkNoSkin.html",   "url": "/works/23009290",                   "type": "page"},
-    {"name": "explicitWorkLoggedIn.html", "url": "/works/20907563?view_adult=true",   "type": "page"},
-    {"name": "lockedWorkLoggedOut.html",  "url": "/works/185710",                     "type": "page"},
-    {"name": "multipleSeries.html",       "url": "/works/41214669",                   "type": "page"},
-    {"name": "bookmarks.html",            "url": "/users/ao3downloader_ci/bookmarks", "type": "page"},
-    {"name": "deletedWork.html",          "url": "/works/99999999999",                "type": "page"},
-    {"name": "hiddenWork.html",           "url": "/works/47308798",                   "type": "page"},
-    {"name": "epubTest.epub",             "url": "/works/23009290",                   "type": "book"},
-    {"name": "pdfTest.pdf",               "url": "/works/23009290",                   "type": "book"},
-    {"name": "mobiTest.mobi",             "url": "/works/23009290",                   "type": "book"},
-    {"name": "azw3Test.azw3",             "url": "/works/23009290",                   "type": "book"},
-    {"name": "htmlTest.html",             "url": "/works/23009290",                   "type": "book"},
-    {"name": "incompleteWork.epub",       "url": "/works/218676",                     "type": "book"},
-    {"name": "incompleteWork.pdf",        "url": "/works/218676",                     "type": "book"},
-    {"name": "incompleteWork.mobi",       "url": "/works/218676",                     "type": "book"},
-    {"name": "incompleteWork.azw3",       "url": "/works/218676",                     "type": "book"},
-    {"name": "incompleteWork.html",       "url": "/works/218676",                     "type": "book"},
-    {"name": "workInSeries.epub",         "url": "/works/334557",                     "type": "book"},
-    {"name": "workInSeries.pdf",          "url": "/works/334557",                     "type": "book"},
-    {"name": "workInSeries.mobi",         "url": "/works/334557",                     "type": "book"},
-    {"name": "workInSeries.azw3",         "url": "/works/334557",                     "type": "book"},
-    {"name": "workInSeries.html",         "url": "/works/334557",                     "type": "book"},
-    {"name": "tagWall.pdf",               "url": "/works/20907563?view_adult=true",   "type": "book"},
+    # # currently has to be updated manually - the refresh script never picks up the gate page, for some reason
+    # {"name": "explicitWorkLoggedOut.html", "url": "/works/20907563",                   "type": "page"},
+
+    # logged-out pages
+    {"name": "bookmarks.html",             "url": "/users/ao3downloader_ci/bookmarks", "type": "page"},
+    {"name": "deletedWork.html",           "url": "/works/99999999999",                "type": "page"},
+    {"name": "hiddenWork.html",            "url": "/works/47308798",                   "type": "page"},
+    {"name": "lockedWorkLoggedOut.html",   "url": "/works/185710",                     "type": "page"},
+    {"name": "multipleSeries.html",        "url": "/works/41214669",                   "type": "page"},
+    {"name": "unlockedWork.html",          "url": "/works/41822007",                   "type": "page"},
+    {"name": "unlockedWorkNoSkin.html",    "url": "/works/23009290",                   "type": "page"},
+
+    # logged-out ebooks
+    {"name": "incompleteWork.epub",        "url": "/works/218676",                     "type": "book"},
+    {"name": "incompleteWork.pdf",         "url": "/works/218676",                     "type": "book"},
+    {"name": "incompleteWork.mobi",        "url": "/works/218676",                     "type": "book"},
+    {"name": "incompleteWork.azw3",        "url": "/works/218676",                     "type": "book"},
+    {"name": "incompleteWork.html",        "url": "/works/218676",                     "type": "book"},
+    {"name": "workInSeries.epub",          "url": "/works/334557",                     "type": "book"},
+    {"name": "workInSeries.pdf",           "url": "/works/334557",                     "type": "book"},
+    {"name": "workInSeries.mobi",          "url": "/works/334557",                     "type": "book"},
+    {"name": "workInSeries.azw3",          "url": "/works/334557",                     "type": "book"},
+    {"name": "workInSeries.html",          "url": "/works/334557",                     "type": "book"},
+    {"name": "tagWall.pdf",                "url": "/works/20907563",                   "type": "book"},
+    {"name": "epubTest.epub",              "url": "/works/23009290",                   "type": "book"},
+    {"name": "pdfTest.pdf",                "url": "/works/23009290",                   "type": "book"},
+    {"name": "mobiTest.mobi",              "url": "/works/23009290",                   "type": "book"},
+    {"name": "azw3Test.azw3",              "url": "/works/23009290",                   "type": "book"},
+    {"name": "htmlTest.html",              "url": "/works/23009290",                   "type": "book"},
+
+    # logged-in pages
+    # explicitWorkLoggedIn.html requires test account to have show adult content without warning setting enabled
+    {"name": "explicitWorkLoggedIn.html",  "url": "/works/20907563",                   "type": "page", "login": True},
+    {"name": "lockedWorkLoggedIn.html",    "url": "/works/185710",                     "type": "page", "login": True}, 
+    {"name": "markedForLater.html",        "url": "/works/66326125",                   "type": "page", "login": True},
 ]
 
 IGNORED_SELECTORS = [
@@ -55,6 +71,7 @@ IGNORED_SELECTORS = [
     '.bookmarks',
     '.status',
     '.stats',
+    '.menu',
     'script',
 ]
 
@@ -63,14 +80,15 @@ TIMEOUT = 60
 MAX_RETRIES = 10
 
 
-def make_request(session, url):
+def make_request(session, url, method="GET", data=None):
     """Make a request with retry logic for errors, 5xx, 429, and cloudflare responses."""
 
     for attempt in range(MAX_RETRIES + 1):
         delay = 0.1 * (2 ** attempt)
 
         try:
-            response = session.get(url, headers={"user-agent": USER_AGENT}, timeout=TIMEOUT)
+            response = session.request(method, url, data=data,
+                                       headers={"user-agent": USER_AGENT}, timeout=TIMEOUT)
         except requests.RequestException as e:
             if attempt < MAX_RETRIES:
                 print(f"  {e.__class__.__name__}, retrying in {delay:.1f}s...")
@@ -106,6 +124,22 @@ def make_request(session, url):
         return response
 
     raise Exception(f"exhausted all {MAX_RETRIES} retries")
+
+
+def login(session, username, password):
+    """Authenticate the session against AO3 so login-gated fixtures can be fetched.
+
+    Reuses the same parsing helpers as Repository.login so the token extraction and
+    logged-in detection stay single-sourced. Raises if credentials are rejected.
+    """
+
+    soup = BeautifulSoup(make_request(session, strings.AO3_LOGIN_URL).text, "html.parser")
+    token = parse_soup.get_login_token(soup)
+    payload = get_payload(username, password, token)
+    response = make_request(session, strings.AO3_LOGIN_URL, method="POST", data=payload)
+    if not parse_soup.is_logged_in(BeautifulSoup(response.text, "html.parser")):
+        raise Exception("AO3 login failed - check the AO3_USERNAME / AO3_PASSWORD secrets "
+                        "and that the CI account credentials are valid")
 
 
 def fetch_work_page(session, url_path: str, cache: dict[str, requests.Response]) -> requests.Response:
@@ -191,27 +225,19 @@ def download_book(session, fixture, fixtures_dir, only_new,
         f.write(new_bytes)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Download fresh test fixtures from live AO3.")
-    parser.add_argument("--fixtures-dir", default=os.path.join("test", "fixtures"),
-                        help="directory to write fixtures to (default: test/fixtures)")
-    parser.add_argument("--delay", type=int, default=5,
-                        help="seconds to wait between requests (default: 5)")
-    parser.add_argument("--only-new", type=bool, default=False,
-                        help="whether to only download fixtures that don't exist yet (default: false)")
-    args = parser.parse_args()
+def process_fixtures(fixtures, session, args, failed: list[str], succeeded: list[str]):
+    """Download a group of fixtures with the given session, recording outcomes.
 
-    os.makedirs(args.fixtures_dir, exist_ok=True)
+    Each group gets its own caches so the same work URL can be fetched in both a
+    logged-out and a logged-in pass without one pass returning the other's cached page.
+    """
 
-    session = requests.Session()
     page_cache: dict[str, requests.Response] = {}
     soup_cache: dict[str, BeautifulSoup] = {}
-    failed = []
-    succeeded = []
 
-    for i, fixture in enumerate(FIXTURES):
+    for i, fixture in enumerate(fixtures):
         name = fixture["name"]
-        print(f"[{i + 1}/{len(FIXTURES)}] {name}...")
+        print(f"[{i + 1}/{len(fixtures)}] {name}...")
 
         try:
             if fixture["type"] == "page":
@@ -224,8 +250,58 @@ def main():
             failed.append(name)
             print(f"  FAILED: {e}")
 
-        if i < len(FIXTURES) - 1:
+        if i < len(fixtures) - 1:
             sleep(args.delay)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Download fresh test fixtures from live AO3.")
+    parser.add_argument("--fixtures-dir", default=os.path.join("test", "fixtures"),
+                        help="directory to write fixtures to (default: test/fixtures)")
+    parser.add_argument("--delay", type=int, default=5,
+                        help="seconds to wait between requests (default: 5)")
+    parser.add_argument("--only-new", action="store_true",
+                        help="only download fixtures that don't exist yet")
+    parser.add_argument("--require-login", action="store_true",
+                        help="fail if the login-gated fixtures cannot be refreshed "
+                             "because of missing credentials. Used by CI.")
+    args = parser.parse_args()
+
+    os.makedirs(args.fixtures_dir, exist_ok=True)
+
+    logged_out = [f for f in FIXTURES if not f.get("login")]
+    logged_in = [f for f in FIXTURES if f.get("login")]
+    failed: list[str] = []
+    succeeded: list[str] = []
+
+    # phase 1: logged-out fixtures
+    process_fixtures(logged_out, requests.Session(), args, failed, succeeded)
+
+    # phase 2: logged-in fixtures, with a separate session so the locked/explicit work
+    # URLs can be fetched logged in (content) as well as logged out (gate page) above.
+    if logged_in:
+        username = os.environ.get("AO3_USERNAME")
+        password = os.environ.get("AO3_PASSWORD")
+        if username and password:
+            print()
+            print(f"logging in as {username}...")
+            session = requests.Session()
+            try:
+                login(session, username, password)
+                print("  ok")
+            except Exception as e:
+                print(f"  FAILED: {e}")
+                failed.extend(f["name"] for f in logged_in)
+            else:
+                process_fixtures(logged_in, session, args, failed, succeeded)
+        elif args.require_login:
+            print()
+            print("ERROR: --require-login was set but AO3_USERNAME / AO3_PASSWORD are not set")
+            failed.extend(f["name"] for f in logged_in)
+        else:
+            print()
+            print("no credentials provided, skipping logged-in fixtures: "
+                  + ", ".join(f["name"] for f in logged_in))
 
     print()
     print(f"{len(succeeded)} succeeded, {len(failed)} failed")
