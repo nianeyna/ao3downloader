@@ -265,6 +265,11 @@ def test_has_custom_skin_false(fixture_soup):
 
 # region work metadata
 
+def _list_metadata(fixture_soup, fixture: str, worknum: str) -> dict:
+    soup = fixture_soup(fixture)
+    return parse_soup.get_work_metadata_from_list(soup, f'https://archiveofourown.org/works/{worknum}')
+
+
 def test_get_work_metadata_from_work_returns_expected_keys(fixture_soup, snapshot):
     soup = fixture_soup('unlockedWork')
     link = 'https://archiveofourown.org/works/12345678'
@@ -285,10 +290,9 @@ def test_get_work_metadata_from_list_returns_error_field_on_malformed_blurb():
 
 def test_get_work_metadata_from_list_does_not_leak_from_other_blurbs(fixture_soup):
     # bookmarks.html contains many works; metadata must come from the requested
-    # blurb only, not from tags collected across the whole index page.
-    soup = fixture_soup('bookmarks')
-
-    result = parse_soup.get_work_metadata_from_list(soup, 'https://archiveofourown.org/works/66326125')
+    # blurb only, not from tags collected across the whole index page. this blurb
+    # has no series, bookmarker's tags, or notes while its neighbors have all three.
+    result = _list_metadata(fixture_soup, 'bookmarks', '66326125')
 
     assert 'error' not in result
     assert result['title'] == 'Being An Account of An Abduction, and Its Aftermath'
@@ -298,6 +302,94 @@ def test_get_work_metadata_from_list_does_not_leak_from_other_blurbs(fixture_sou
     # Tags that belong to other bookmarks in the fixture must NOT leak in.
     assert 'Pon Farr' not in result['tags']
     assert 'Mind Meld' not in result['tags']
+    assert result['series'] == []
+    assert result['updated'] == '09 Jun 2025'
+    assert result['date_bookmarked'] == '19 May 2026'
+    assert result['bookmarker_tags'] == []
+    assert result['bookmarker_notes'] == ''
+    # bookmark listings have no reading history data
+    assert result['last_visited'] == ''
+    assert result['times_visited'] == ''
+
+
+def test_get_work_metadata_from_list_series_and_bookmarker_tags(fixture_soup):
+    result = _list_metadata(fixture_soup, 'bookmarks', '34816549')
+
+    assert result['series'] == ['Part 1 of MXTX - Retellings', 'Part 1 of No Paths Are Bound + Extras']
+    assert result['updated'] == '08 Sep 2022'
+    assert result['date_bookmarked'] == '18 May 2026'
+    assert result['bookmarker_tags'] == ['long work']
+    assert result['bookmarker_notes'] == ''
+
+
+def test_get_work_metadata_from_list_bookmarker_notes(fixture_soup):
+    result = _list_metadata(fixture_soup, 'bookmarks', '42461841')
+
+    assert result['bookmarker_notes'].strip() == '<p>This bookmark has a note!</p>'
+    assert result['bookmarker_tags'] == []
+    assert result['updated'] == '18 Oct 2022'
+    assert result['date_bookmarked'] == '18 May 2026'
+
+
+def test_get_work_metadata_from_list_marked_for_later(fixture_soup):
+    result = _list_metadata(fixture_soup, 'markedForLaterList', '66326125')
+
+    assert result['last_visited'] == '10 Jul 2026'
+    assert result['times_visited'] == '6'
+    assert result['updated'] == '09 Jun 2025'
+    assert result['series'] == []
+    # reading history listings have no bookmark data
+    assert result['date_bookmarked'] == ''
+    assert result['bookmarker_tags'] == []
+    assert result['bookmarker_notes'] == ''
+
+
+def test_get_work_metadata_from_list_marked_for_later_does_not_leak_from_other_blurbs(fixture_soup):
+    result = _list_metadata(fixture_soup, 'markedForLaterList', '334557')
+
+    assert result['series'] == ["Part 1 of Watches 'Verse"]
+    assert result['last_visited'] == '27 Jun 2026'
+    assert result['times_visited'] == '2'
+    assert result['updated'] == '06 Feb 2012'
+
+
+@pytest.mark.parametrize('fixture,worknum', [
+    ('bookmarks', '66326125'),
+    ('bookmarks', '34816549'),
+    ('markedForLaterList', '334557'),
+])
+def test_get_work_metadata_from_list_returns_same_keys_for_all_listing_types(fixture_soup, fixture, worknum):
+    # the csv column headers are derived from these keys, so they must be
+    # identical for every work regardless of listing type
+    result = _list_metadata(fixture_soup, fixture, worknum)
+
+    assert list(result.keys()) == [
+        'title', 'author', 'summary', 'fandoms', 'warnings', 'characters',
+        'relationships', 'tags', 'words', 'rating', 'chapters', 'categories',
+        'complete', 'series', 'updated', 'date_bookmarked', 'bookmarker_tags',
+        'bookmarker_notes', 'last_visited', 'times_visited']
+
+
+def test_get_work_metadata_from_list_plain_listing_sets_empty_optional_fields():
+    # plain listings (search results, tag pages) have no bookmark or reading history data
+    html = (
+        '<li class="work blurb group work-99" id="work_99">'
+        '<div class="header module">'
+        '<h4 class="heading"><a href="/works/99">Some Work</a></h4>'
+        '<p class="datetime">01 Jan 2020</p>'
+        '</div></li>')
+    soup = BeautifulSoup(html, 'html.parser')
+
+    result = parse_soup.get_work_metadata_from_list(soup, 'https://archiveofourown.org/works/99')
+
+    assert 'error' not in result
+    assert result['updated'] == '01 Jan 2020'
+    assert result['series'] == []
+    assert result['date_bookmarked'] == ''
+    assert result['bookmarker_tags'] == []
+    assert result['bookmarker_notes'] == ''
+    assert result['last_visited'] == ''
+    assert result['times_visited'] == ''
 
 # endregion
 

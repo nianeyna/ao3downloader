@@ -320,6 +320,15 @@ def get_work_metadata_from_list(soup: BeautifulSoup, link: str) -> dict:
         metadata['chapters'] = get_text_or_empty(blurb, 'dd.chapters')
         metadata['categories'] = get_text_or_empty(blurb, 'span.category')
         metadata['complete'] = get_text_or_empty(blurb, 'span.iswip') == 'Complete Work'
+        metadata['series'] = [' '.join(x.get_text().split()) for x in blurb.select('ul[class="series"] li')]
+        metadata['updated'] = get_text_or_empty(blurb, 'div.header p.datetime')
+        metadata['date_bookmarked'] = get_text_or_empty(blurb, 'div.user p.datetime')
+        metadata['bookmarker_tags'] = [x.get_text() for x in blurb.select('div.user ul.meta.tags a.tag')]
+        notes = blurb.select_one('div.user blockquote.notes')
+        metadata['bookmarker_notes'] = notes.decode_contents() if notes else ''
+        viewed = get_text_or_empty(blurb, 'div.user h4.viewed')
+        metadata['last_visited'] = parse_text.get_last_visited(viewed)
+        metadata['times_visited'] = parse_text.get_times_visited(viewed)
     except Exception as e: # don't crash the entire download if there is an unhandled exception
         metadata['error'] = ''.join(traceback.TracebackException.from_exception(e).format())
     return metadata

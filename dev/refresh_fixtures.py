@@ -56,9 +56,10 @@ FIXTURES = [
 
     # logged-in pages
     # explicitWorkLoggedIn.html requires test account to have show adult content without warning setting enabled
-    {"name": "explicitWorkLoggedIn.html",  "url": "/works/20907563",                   "type": "page", "login": True},
-    {"name": "lockedWorkLoggedIn.html",    "url": "/works/185710",                     "type": "page", "login": True}, 
-    {"name": "markedForLater.html",        "url": "/works/66326125",                   "type": "page", "login": True},
+    {"name": "explicitWorkLoggedIn.html",  "url": "/works/20907563",                               "type": "page", "login": True},
+    {"name": "lockedWorkLoggedIn.html",    "url": "/works/185710",                                 "type": "page", "login": True}, 
+    {"name": "markedForLater.html",        "url": "/works/66326125",                               "type": "page", "login": True},
+    {"name": "markedForLaterList.html",    "url": "/users/ao3downloader_ci/readings?show=to-read", "type": "page", "login": True},
 ]
 
 IGNORED_SELECTORS = [

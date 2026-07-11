@@ -289,6 +289,36 @@ def test_get_current_chapters_handles_index_0():
 # endregion
 
 
+# region reading history
+
+# reproduces the whitespace of the real viewed heading element
+VIEWED_HEADING = ('Last visited: 10 Jul 2026\n\n          (Latest version.)'
+                  '\n\n          Visited 6 times\n\n          (Marked for Later.)')
+
+
+def test_get_last_visited_extracts_date():
+    assert parse_text.get_last_visited(VIEWED_HEADING) == '10 Jul 2026'
+
+
+def test_get_last_visited_returns_empty_when_absent():
+    assert parse_text.get_last_visited('') == ''
+
+
+def test_get_times_visited_multiple():
+    assert parse_text.get_times_visited(VIEWED_HEADING) == '6'
+
+
+def test_get_times_visited_once():
+    text = 'Last visited: 09 Jul 2026 (Update available.) Visited once (Marked for Later.)'
+    assert parse_text.get_times_visited(text) == '1'
+
+
+def test_get_times_visited_returns_empty_when_absent():
+    assert parse_text.get_times_visited('') == ''
+
+# endregion
+
+
 # region get_payload
 
 def test_get_payload_contains_expected_fields():

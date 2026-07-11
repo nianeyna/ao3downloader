@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 
 from ao3downloader import strings
 
@@ -189,6 +190,29 @@ def get_current_chapters(text: str, index: int) -> str:
             currentchap += c
     currentchap = currentchap[::-1]
     return currentchap
+
+
+def get_last_visited(text: str) -> str:
+    """
+    extracts the date from 'Last visited: 10 Jul 2026' text found on ao3 reading history pages.
+    returns an empty string if no last visited date is found.
+    """
+
+    normalized = ' '.join(text.split())
+    match = re.search(r'Last visited: (\d{1,2} \w{3} \d{4})', normalized)
+    return match.group(1) if match else ''
+
+
+def get_times_visited(text: str) -> str:
+    """
+    extracts the visit count from 'Visited 6 times' or 'Visited once' text found on ao3 reading history pages.
+    returns an empty string if no visit count is found.
+    """
+
+    normalized = ' '.join(text.split())
+    if 'Visited once' in normalized: return '1'
+    match = re.search(r'Visited ([\d,]+) times', normalized)
+    return match.group(1).replace(',', '') if match else ''
 
 
 def get_payload(username: str, password: str, token: str) -> dict[str, str]:

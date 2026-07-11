@@ -9,6 +9,8 @@ from ao3downloader.fileio import FileOps
 from ao3downloader.repo import Repository
 
 
+OPTIONAL_COLUMNS = ['date_bookmarked', 'bookmarker_tags', 'bookmarker_notes', 'last_visited', 'times_visited']
+
 def action():
     fileops = FileOps()
     with Repository(fileops) as repo:
@@ -25,6 +27,7 @@ def action():
 
         if metatdata:
             flattened = [flatten_dict(k, v) for k, v in links.items()]
+            remove_empty_optional_columns(flattened)
             filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.csv'
             with open(os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename), 'w', newline='', encoding='utf-8') as f:
                 keys = []
@@ -47,3 +50,12 @@ def action():
 def flatten_dict(k: str, v: dict) -> dict:
     v['link'] = k
     return v
+
+
+def remove_empty_optional_columns(flattened: list[dict]) -> None:
+    """remove optional columns from the csv output if they are empty for every work in the download"""
+
+    empty = [c for c in OPTIONAL_COLUMNS if not any(item.get(c) for item in flattened)]
+    for item in flattened:
+        for c in empty:
+            item.pop(c, None)
