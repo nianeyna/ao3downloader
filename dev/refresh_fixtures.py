@@ -18,9 +18,13 @@ from time import sleep
 import requests
 from bs4 import BeautifulSoup
 
-from ao3downloader import parse_soup, strings
+from ao3downloader import exceptions, parse_soup, strings
 from ao3downloader.repo import Repository
 from ao3downloader.parse_text import get_work_number, get_payload
+
+
+class RefreshAbortedException(Exception):
+    """Raised when the runner itself appears to be blocked, making further requests pointless."""
 
 
 FIXTURES = [
@@ -79,6 +83,16 @@ IGNORED_SELECTORS = [
 USER_AGENT = "ao3downloader-ci (+https://github.com/nianeyna/ao3downloader)"
 TIMEOUT = 60
 MAX_RETRIES = 10
+CLOUDFLARE_ABORT_THRESHOLD = 3
+CLOUDFLARE_DIAGNOSTIC_HEADERS = ("cf-ray", "cf-mitigated", "server")
+
+
+def cloudflare_diagnostics(response: requests.Response) -> str:
+    """Summarize identifying headers from a challenge response."""
+
+    present = [f"{name}={response.headers[name]}" for name in CLOUDFLARE_DIAGNOSTIC_HEADERS
+               if name in response.headers]
+    return ", ".join(present) if present else "no cloudflare headers present"
 
 
 def make_request(session, url, method="GET", data=None):
@@ -116,11 +130,13 @@ def make_request(session, url, method="GET", data=None):
             continue
 
         if Repository.is_cloudflare_response(response):
+            diagnostics = cloudflare_diagnostics(response)
             if attempt < MAX_RETRIES:
-                print(f"  cloudflare response, retrying in {delay:.1f}s...")
+                print(f"  cloudflare response ({diagnostics}), retrying in {delay:.1f}s...")
                 sleep(delay)
                 continue
-            raise Exception(f"cloudflare response after {MAX_RETRIES} retries")
+            raise exceptions.CloudflareException(
+                f"cloudflare response after {MAX_RETRIES} retries ({diagnostics})")
 
         return response
 
@@ -231,10 +247,16 @@ def process_fixtures(fixtures, session, args, failed: list[str], succeeded: list
 
     Each group gets its own caches so the same work URL can be fetched in both a
     logged-out and a logged-in pass without one pass returning the other's cached page.
+
+    Raises RefreshAbortedException after CLOUDFLARE_ABORT_THRESHOLD consecutive
+    cloudflare-blocked fixtures. Each blocked fixture already represents 10 straight
+    challenge responses, so at that point the runner itself is presumed blocked and
+    attempting the rest would just push the job into its timeout.
     """
 
     page_cache: dict[str, requests.Response] = {}
     soup_cache: dict[str, BeautifulSoup] = {}
+    consecutive_cloudflare = 0
 
     for i, fixture in enumerate(fixtures):
         name = fixture["name"]
@@ -246,9 +268,19 @@ def process_fixtures(fixtures, session, args, failed: list[str], succeeded: list
             else:
                 download_book(session, fixture, args.fixtures_dir, args.only_new, page_cache, soup_cache)
             succeeded.append(name)
+            consecutive_cloudflare = 0
             print(f"  ok")
+        except exceptions.CloudflareException as e:
+            failed.append(name)
+            consecutive_cloudflare += 1
+            print(f"  FAILED: {e}")
+            if consecutive_cloudflare >= CLOUDFLARE_ABORT_THRESHOLD:
+                raise RefreshAbortedException(
+                    f"{consecutive_cloudflare} fixtures in a row got cloudflare challenges "
+                    "on every attempt - the runner appears to be blocked")
         except Exception as e:
             failed.append(name)
+            consecutive_cloudflare = 0
             print(f"  FAILED: {e}")
 
         if i < len(fixtures) - 1:
@@ -275,34 +307,42 @@ def main():
     failed: list[str] = []
     succeeded: list[str] = []
 
-    # phase 1: logged-out fixtures
-    process_fixtures(logged_out, requests.Session(), args, failed, succeeded)
+    try:
+        # phase 1: logged-out fixtures
+        process_fixtures(logged_out, requests.Session(), args, failed, succeeded)
 
-    # phase 2: logged-in fixtures, with a separate session so the locked/explicit work
-    # URLs can be fetched logged in (content) as well as logged out (gate page) above.
-    if logged_in:
-        username = os.environ.get("AO3_USERNAME")
-        password = os.environ.get("AO3_PASSWORD")
-        if username and password:
-            print()
-            print(f"logging in as {username}...")
-            session = requests.Session()
-            try:
-                login(session, username, password)
-                print("  ok")
-            except Exception as e:
-                print(f"  FAILED: {e}")
+        # phase 2: logged-in fixtures, with a separate session so the locked/explicit work
+        # URLs can be fetched logged in (content) as well as logged out (gate page) above.
+        if logged_in:
+            username = os.environ.get("AO3_USERNAME")
+            password = os.environ.get("AO3_PASSWORD")
+            if username and password:
+                print()
+                print(f"logging in as {username}...")
+                session = requests.Session()
+                try:
+                    login(session, username, password)
+                    print("  ok")
+                except Exception as e:
+                    print(f"  FAILED: {e}")
+                    failed.extend(f["name"] for f in logged_in)
+                else:
+                    process_fixtures(logged_in, session, args, failed, succeeded)
+            elif args.require_login:
+                print()
+                print("ERROR: --require-login was set but AO3_USERNAME / AO3_PASSWORD are not set")
                 failed.extend(f["name"] for f in logged_in)
             else:
-                process_fixtures(logged_in, session, args, failed, succeeded)
-        elif args.require_login:
-            print()
-            print("ERROR: --require-login was set but AO3_USERNAME / AO3_PASSWORD are not set")
-            failed.extend(f["name"] for f in logged_in)
-        else:
-            print()
-            print("no credentials provided, skipping logged-in fixtures: "
-                  + ", ".join(f["name"] for f in logged_in))
+                print()
+                print("no credentials provided, skipping logged-in fixtures: "
+                      + ", ".join(f["name"] for f in logged_in))
+    except RefreshAbortedException as e:
+        attempted = set(succeeded) | set(failed)
+        skipped = [f["name"] for f in FIXTURES if f["name"] not in attempted]
+        print()
+        print(f"ABORTED: {e}")
+        if skipped:
+            print(f"not attempted: {', '.join(skipped)}")
 
     print()
     print(f"{len(succeeded)} succeeded, {len(failed)} failed")
