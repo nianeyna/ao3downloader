@@ -6,6 +6,27 @@ import pytest
 import ao3downloader.parse_text as parse_text
 
 
+# region normalize_path_input
+
+@pytest.mark.parametrize('raw, expected', [
+    ('/tmp/fics', '/tmp/fics'),
+    ('  /tmp/fics  ', '/tmp/fics'),
+    ('"/tmp/fics"', '/tmp/fics'),
+    ("'/tmp/fics'", '/tmp/fics'),
+    ('"C:\\Users\\foo\\fics"', 'C:\\Users\\foo\\fics'),
+    ('  "/tmp/fics"  ', '/tmp/fics'),
+    ('"/tmp/fics\'', '"/tmp/fics\''),
+    ('"/tmp/fics', '"/tmp/fics'),
+    ('/tmp/fics"', '/tmp/fics"'),
+    ('', ''),
+    ('"', '"'),
+])
+def testnormalize_path_input(raw: str, expected: str) -> None:
+    assert parse_text.normalize_path_input(raw) == expected
+
+# endregion
+
+
 # region get_valid_filename
 
 def test_get_valid_filename_no_directories():

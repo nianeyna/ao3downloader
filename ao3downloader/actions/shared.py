@@ -46,9 +46,9 @@ def links_only() -> bool:
     return True if input() == strings.PROMPT_YES else False
 
 
-def write_links_file(urls: list[str], prefix: str) -> str:
+def write_links_file(fileops: FileOps, urls: list[str], prefix: str) -> str:
     filename = f'{prefix}_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.txt'
-    path = os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename)
+    path = os.path.join(fileops.downloadfolder, filename)
     with open(path, 'w') as f:
         for url in urls:
             f.write(url + '\n')
@@ -105,20 +105,10 @@ def api_token(fileops: FileOps) -> str:
             strings.SETTING_API_TOKEN)
 
 
-def normalize_path_input(folder: str) -> str:
-    """For file or folder path inputs. Strips enclosing quotes and leading and trailing whitespace."""
-    if not folder:
-        return folder
-    folder = folder.strip()
-    if len(folder) >= 2 and folder[0] == folder[-1] and folder[0] in ('"', "'"):
-        folder = folder[1:-1].strip()
-    return folder
-
-
 def links_file() -> str:
     while True:
         print(strings.AO3_PROMPT_FILE_INPUT)
-        path = normalize_path_input(input())
+        path = parse_text.normalize_path_input(input())
         if os.path.exists(path):
             break
         else:
@@ -129,7 +119,7 @@ def links_file() -> str:
 def redownload_folder() -> str:
     while True:
         print(strings.REDOWNLOAD_PROMPT_FOLDER)
-        folder = normalize_path_input(input())
+        folder = parse_text.normalize_path_input(input())
         if os.path.isdir(folder):
             break
         else:
@@ -247,7 +237,7 @@ def update_types(fileops: FileOps) -> list[str]:
 def update_folder(fileops: FileOps) -> str:
     saved = fileops.get_setting(strings.SETTING_UPDATE_FOLDER)
     if saved:
-        normalized = normalize_path_input(saved)
+        normalized = parse_text.normalize_path_input(saved)
         if os.path.isdir(normalized):
             print(strings.UPDATE_PROMPT_USE_SAVED_FOLDER)
             if input() == strings.PROMPT_YES:
@@ -257,7 +247,7 @@ def update_folder(fileops: FileOps) -> str:
         fileops.save_setting(strings.SETTING_UPDATE_FOLDER, None)
     while True:
         print(strings.UPDATE_PROMPT_INPUT)
-        folder = normalize_path_input(input())
+        folder = parse_text.normalize_path_input(input())
         if os.path.isdir(folder):
             fileops.save_setting(strings.SETTING_UPDATE_FOLDER, folder)
             return folder

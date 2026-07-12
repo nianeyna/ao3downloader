@@ -24,6 +24,7 @@ INI_NAME_PATTERN = 'FileNamePattern'
 INI_DEBUG_LOGGING = 'EnableDebugLogging'
 INI_MAX_RETRIES = 'MaxRetries'
 INI_MAX_TIMEOUTS = 'MaxTimeouts'
+INI_DOWNLOAD_FOLDER = 'DownloadFolder'
 
 INI_DEFAULT_NAME_LENGTH = 50
 INI_DEFAULT_NAME_PATTERN = '{worknum} {title} - {author}'
@@ -140,6 +141,8 @@ MESSAGE_SERIES_FILE = 'found work in series'
 MESSAGE_RETRY = 'Retrying {} request. Attempt {}. {} seconds until next attempt.'
 MESSAGE_SUCCESS = 'Successful {} request with status code {}'
 MESSAGE_WELCOME = 'welcome to ao3downloader!\nthe script has been initialized in the following directory:\n\t{}\nif you would like to change any settings, you may do so by entering\n\'{}\' to quit this menu and then editing the file \'{}\'\n(located at the above folder path) before running the script again.\n'
+MESSAGE_DOWNLOAD_FOLDER = 'downloads will be saved to:\n\t{}\n'
+MESSAGE_DOWNLOAD_FOLDER_ERROR = 'could not create the download folder: {}\nplease check the \'' + INI_DOWNLOAD_FOLDER + '\' setting in ' + INI_FILE_NAME
 MESSAGE_EXIT = '\nexiting'
 MESSAGE_INI_FILE_CHANGED = 'the options available in ' + INI_FILE_NAME + ' have changed. a copy of the new default settings file has been saved as {}. please review the changes and update ' + INI_FILE_NAME + ' accordingly.'
 MESSAGE_INI_DIFFERENCES = 'the following differences were found:\n'

@@ -17,12 +17,16 @@ class FileOps:
         self.logfile = os.path.join(strings.LOG_FOLDER_NAME, strings.LOG_FILE_NAME)
         self.inifile = strings.INI_FILE_NAME
         self.settingsfile = strings.SETTINGS_FILE_NAME
-        self.downloadfolder = strings.DOWNLOAD_FOLDER_NAME
+        self.downloadfolder = self.get_download_folder()
 
 
     def initialize(self) -> None:
         if not os.path.exists(strings.LOG_FOLDER_NAME): os.mkdir(strings.LOG_FOLDER_NAME)
-        if not os.path.exists(self.downloadfolder): os.mkdir(self.downloadfolder)
+        try:
+            os.makedirs(self.downloadfolder, exist_ok=True)
+        except OSError:
+            print(strings.MESSAGE_DOWNLOAD_FOLDER_ERROR.format(self.downloadfolder))
+            raise
         if not os.path.exists(self.inifile):
             with importlib.resources.open_text(strings.SETTINGS_FOLDER_NAME, self.inifile) as f:
                 with open(self.inifile, 'w', encoding='utf-8') as ini_file:
@@ -162,10 +166,17 @@ class FileOps:
         return True
 
 
-    def get_ini_value(self, key: str, fallback: str) -> str:
+    def get_download_folder(self) -> str:
+        folder = self.get_ini_value(strings.INI_DOWNLOAD_FOLDER, strings.DOWNLOAD_FOLDER_NAME, raw=True)
+        folder = parse_text.normalize_path_input(folder)
+        if not folder: return strings.DOWNLOAD_FOLDER_NAME
+        return os.path.expanduser(os.path.expandvars(folder))
+
+
+    def get_ini_value(self, key: str, fallback: str, raw: bool = False) -> str:
         config = configparser.ConfigParser()
         config.read(self.inifile)
-        return config.get(strings.INI_SECTION_NAME, key, fallback=fallback)
+        return config.get(strings.INI_SECTION_NAME, key, fallback=fallback, raw=raw)
 
 
     def get_ini_value_boolean(self, key: str, fallback: bool) -> bool:

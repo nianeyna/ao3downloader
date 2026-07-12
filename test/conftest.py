@@ -49,9 +49,10 @@ def fixture_soup():
 # region fileops / repo
 
 @pytest.fixture
-def fake_fileops(tmp_path) -> FileOps:
+def fake_fileops(tmp_path, monkeypatch) -> FileOps:
     """Real FileOps whose paths are redirected under tmp_path."""
 
+    monkeypatch.chdir(tmp_path)  # so construction can't pick up a real settings.ini
     fileops = FileOps()
     fileops.logfile = str(tmp_path / 'log.jsonl')
     fileops.inifile = str(tmp_path / 'settings.ini')

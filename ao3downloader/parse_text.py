@@ -42,6 +42,16 @@ def get_valid_filepath(filename: str, maximum: int) -> str:
     return valid_name[:maximum].strip()
 
 
+def normalize_path_input(folder: str) -> str:
+    """For file or folder path inputs. Strips enclosing quotes and leading and trailing whitespace."""
+    if not folder:
+        return folder
+    folder = folder.strip()
+    if len(folder) >= 2 and folder[0] == folder[-1] and folder[0] in ('"', "'"):
+        folder = folder[1:-1].strip()
+    return folder
+
+
 def get_file_type(filetype: str) -> str:
     """
     creates a filename suffix string for an input (uppercase) filetype and returns it

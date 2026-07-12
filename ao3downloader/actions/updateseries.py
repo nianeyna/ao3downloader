@@ -58,7 +58,7 @@ def action():
         if links_only:
             series_urls = list(series.keys())
             if series_urls:
-                path = shared.write_links_file(series_urls, 'update_series_links')
+                path = shared.write_links_file(fileops, series_urls, 'update_series_links')
                 print(strings.INFO_LINKS_FILE_WRITTEN.format(len(series_urls), path))
             else:
                 print(strings.INFO_NO_LINKS_TO_WRITE)

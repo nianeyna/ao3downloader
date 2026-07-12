@@ -1,10 +1,13 @@
-"""Tests for ao3downloader.fileio — log writing, byte saving, settings persistence."""
+"""Tests for ao3downloader.fileio — log writing, byte saving, settings persistence, download folder resolution."""
 
 import datetime
 import json
 import os
 
+import pytest
+
 from ao3downloader import strings
+from ao3downloader.fileio import FileOps
 
 
 # region write_log
@@ -267,5 +270,128 @@ def test_get_ini_value_integer_reads_and_fallbacks(fake_fileops):
 
     assert fake_fileops.get_ini_value_integer('MaxRetries', 0) == 42
     assert fake_fileops.get_ini_value_integer('Missing', 99) == 99
+
+
+def test_get_ini_value_raw_tolerates_percent_signs(fake_fileops):
+    _write_ini(fake_fileops, '[settings]\nSomeKey=%USERPROFILE%\\fics\n')
+
+    assert fake_fileops.get_ini_value('SomeKey', 'fallback', raw=True) == '%USERPROFILE%\\fics'
+
+# endregion
+
+
+# region get_download_folder
+
+def _write_download_folder(fake_fileops, value: str) -> None:
+    _write_ini(fake_fileops, f'[settings]\n{strings.INI_DOWNLOAD_FOLDER}={value}\n')
+
+
+def test_get_download_folder_returns_default_when_key_missing(fake_fileops):
+    _write_ini(fake_fileops, '[settings]\n')
+
+    assert fake_fileops.get_download_folder() == strings.DOWNLOAD_FOLDER_NAME
+
+
+def test_get_download_folder_returns_default_when_value_blank(fake_fileops):
+    _write_download_folder(fake_fileops, '')
+
+    assert fake_fileops.get_download_folder() == strings.DOWNLOAD_FOLDER_NAME
+
+
+def test_get_download_folder_returns_default_when_value_is_quotes_only(fake_fileops):
+    _write_download_folder(fake_fileops, '""')
+
+    assert fake_fileops.get_download_folder() == strings.DOWNLOAD_FOLDER_NAME
+
+
+def test_get_download_folder_keeps_relative_path_relative(fake_fileops):
+    _write_download_folder(fake_fileops, os.path.join('my fics', 'ao3'))
+
+    assert fake_fileops.get_download_folder() == os.path.join('my fics', 'ao3')
+
+
+def test_get_download_folder_returns_absolute_path_verbatim(fake_fileops, tmp_path):
+    _write_download_folder(fake_fileops, str(tmp_path / 'elsewhere'))
+
+    assert fake_fileops.get_download_folder() == str(tmp_path / 'elsewhere')
+
+
+def test_get_download_folder_strips_enclosing_quotes(fake_fileops):
+    _write_download_folder(fake_fileops, '"my fics"')
+
+    assert fake_fileops.get_download_folder() == 'my fics'
+
+
+def test_get_download_folder_tolerates_percent_signs(fake_fileops):
+    _write_download_folder(fake_fileops, '50% fics')
+
+    assert fake_fileops.get_download_folder() == '50% fics'
+
+
+def test_get_download_folder_expands_home_directory(fake_fileops, tmp_path, monkeypatch):
+    # cover both the posix (HOME) and windows (USERPROFILE) lookups
+    monkeypatch.setenv('HOME', str(tmp_path))
+    monkeypatch.setenv('USERPROFILE', str(tmp_path))
+    _write_download_folder(fake_fileops, '~/fics')
+
+    assert fake_fileops.get_download_folder() == str(tmp_path) + '/fics'
+
+
+def test_get_download_folder_expands_environment_variables(fake_fileops, tmp_path, monkeypatch):
+    monkeypatch.setenv('AO3DL_TEST_FOLDER', str(tmp_path))
+    _write_download_folder(fake_fileops, '$AO3DL_TEST_FOLDER/fics')
+
+    assert fake_fileops.get_download_folder() == str(tmp_path) + '/fics'
+
+
+def test_fileops_reads_download_folder_from_ini_on_construction(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with open(strings.INI_FILE_NAME, 'w', encoding='utf-8') as f:
+        f.write(f'[settings]\n{strings.INI_DOWNLOAD_FOLDER}=custom folder\n')
+
+    assert FileOps().downloadfolder == 'custom folder'
+
+
+def test_fileops_uses_default_download_folder_when_no_ini(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    assert FileOps().downloadfolder == strings.DOWNLOAD_FOLDER_NAME
+
+# endregion
+
+
+# region initialize
+
+def test_initialize_creates_nested_download_folder(fake_fileops, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _write_ini(fake_fileops, '[settings]\n')
+    fake_fileops.downloadfolder = str(tmp_path / 'a' / 'b' / 'c')
+
+    fake_fileops.initialize()
+
+    assert os.path.isdir(fake_fileops.downloadfolder)
+
+
+def test_initialize_succeeds_when_download_folder_already_exists(fake_fileops, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _write_ini(fake_fileops, '[settings]\n')
+    assert os.path.isdir(fake_fileops.downloadfolder)
+
+    fake_fileops.initialize()
+
+    assert os.path.isdir(fake_fileops.downloadfolder)
+
+
+def test_initialize_fails_with_message_when_download_folder_uncreatable(fake_fileops, tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    _write_ini(fake_fileops, '[settings]\n')
+    blocker = tmp_path / 'blocker'
+    blocker.write_bytes(b'')
+    fake_fileops.downloadfolder = str(blocker / 'fics')
+
+    with pytest.raises(OSError):
+        fake_fileops.initialize()
+
+    assert strings.MESSAGE_DOWNLOAD_FOLDER_ERROR.format(fake_fileops.downloadfolder) in capsys.readouterr().out
 
 # endregion

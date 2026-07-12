@@ -103,6 +103,8 @@ def ao3downloader():
         fileOps = FileOps()
         fileOps.initialize()
         print(strings.MESSAGE_WELCOME.format(os.getcwd(), QUIT_ACTION, strings.INI_FILE_NAME))
+        if fileOps.downloadfolder != strings.DOWNLOAD_FOLDER_NAME:
+            print(strings.MESSAGE_DOWNLOAD_FOLDER.format(os.path.abspath(fileOps.downloadfolder)))
         fileOps.update_ini()
         display_menu()
         while True:

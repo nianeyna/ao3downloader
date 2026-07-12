@@ -57,7 +57,7 @@ def action():
         if links_only:
             urls = [w['link'] for w in works_cleaned]
             if urls:
-                path = shared.write_links_file(urls, 'update_links')
+                path = shared.write_links_file(fileops, urls, 'update_links')
                 print(strings.INFO_LINKS_FILE_WRITTEN.format(len(urls), path))
             else:
                 print(strings.INFO_NO_LINKS_TO_WRITE)

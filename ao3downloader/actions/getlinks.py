@@ -29,7 +29,7 @@ def action():
             flattened = [flatten_dict(k, v) for k, v in links.items()]
             remove_empty_optional_columns(flattened)
             filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.csv'
-            with open(os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename), 'w', newline='', encoding='utf-8') as f:
+            with open(os.path.join(fileops.downloadfolder, filename), 'w', newline='', encoding='utf-8') as f:
                 keys = []
                 sample = flattened[0]
                 for key in sample: keys.append(key)
@@ -42,7 +42,7 @@ def action():
                         fileops.write_log(item)
         else:
             filename = f'links_{datetime.datetime.now().strftime("%m%d%Y%H%M%S")}.txt'
-            with open(os.path.join(strings.DOWNLOAD_FOLDER_NAME, filename), 'w') as f:
+            with open(os.path.join(fileops.downloadfolder, filename), 'w') as f:
                 for l in links:
                     f.write(l + '\n')
 

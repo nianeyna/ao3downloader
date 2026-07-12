@@ -10,27 +10,6 @@ from ao3downloader.actions import shared
 from ao3downloader.fileio import FileOps
 
 
-# region normalize_path_input
-
-@pytest.mark.parametrize('raw, expected', [
-    ('/tmp/fics', '/tmp/fics'),
-    ('  /tmp/fics  ', '/tmp/fics'),
-    ('"/tmp/fics"', '/tmp/fics'),
-    ("'/tmp/fics'", '/tmp/fics'),
-    ('"C:\\Users\\foo\\fics"', 'C:\\Users\\foo\\fics'),
-    ('  "/tmp/fics"  ', '/tmp/fics'),
-    ('"/tmp/fics\'', '"/tmp/fics\''),
-    ('"/tmp/fics', '"/tmp/fics'),
-    ('/tmp/fics"', '/tmp/fics"'),
-    ('', ''),
-    ('"', '"'),
-])
-def testnormalize_path_input(raw: str, expected: str) -> None:
-    assert shared.normalize_path_input(raw) == expected
-
-# endregion
-
-
 # region get_files_of_type
 
 def test_get_files_of_type_returns_matching_files(tmp_path, capsys) -> None:
