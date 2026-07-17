@@ -71,6 +71,7 @@ IGNORED_SELECTORS = [
     '[name="authenticity_token"]',
     '[aria-hidden="true"]',
     '#site_search_tooltip',
+    '#show_comments_link',
     '.kudos',
     '.hits',
     '.bookmarks',
