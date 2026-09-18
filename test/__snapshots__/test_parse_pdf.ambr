@@ -27,7 +27,7 @@
   dict({
     'link': 'https://archiveofourown.org/works/334557',
     'series': list([
-      'http://archiveofourown.org/series/15213',
+      'https://archiveofourown.org/series/15213',
     ]),
     'stats': 'Stats: Published: 2012-02-07 Words: 31,623 Chapters: 8/8',
   })
