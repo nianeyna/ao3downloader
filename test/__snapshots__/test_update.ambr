@@ -97,7 +97,7 @@
   dict({
     'link': 'https://archiveofourown.org/works/334557',
     'series': list([
-      'http://archiveofourown.org/series/15213',
+      'https://archiveofourown.org/series/15213',
     ]),
   })
 # ---
