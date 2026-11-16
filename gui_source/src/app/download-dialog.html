@@ -287,10 +287,6 @@
                   </span>
                 } @else {
                   All bookmarks
-                  <span class="hint coverage-hint">
-                    A work with no index entry yet is picked up and checked only if it is one of your
-                    AO3 bookmarks.
-                  </span>
                 }
               </span>
             </label>
@@ -299,13 +295,7 @@
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'pages'"
                        (change)="coverage.set('pages')" />
-                <span>
-                  A slice of your bookmarks listing - in the order you bookmarked them, newest first
-                  <span class="hint coverage-hint">
-                    A work with no index entry yet is picked up and checked only if it is one of your
-                    AO3 bookmarks on those pages.
-                  </span>
-                </span>
+                <span>A slice of your bookmarks listing - in the order you bookmarked them, newest first</span>
               </label>
             } @else {
               <!-- the next page lists the scans that can be measured back to -->
@@ -336,10 +326,6 @@
                     </span>
                   } @else {
                     Choose my own date range
-                    <span class="hint coverage-hint">
-                      A work with no index entry yet is picked up and checked only if it is one of
-                      your AO3 bookmarks, updated on AO3 within the range.
-                    </span>
                   }
                 </span>
               </label>
@@ -350,13 +336,7 @@
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'existing'"
                        (change)="coverage.set('existing')" />
-                <span>
-                  Skip check for new bookmarks - Just update existing works
-                  <span class="hint coverage-hint">
-                    Only works already in your index. A work with no index entry is not picked up -
-                    Resolve issues can look those up.
-                  </span>
-                </span>
+                <span>Skip check for new bookmarks - Just update existing works</span>
               </label>
               <!-- once chosen, how its files are judged sits under it, nested -->
               @if (coverage() === 'existing') {
@@ -378,6 +358,10 @@
                         Only checks your existing files against your existing index to see if they are
                         outdated. Nothing is looked up on AO3, so this does not update the index of any work.
                       </p>
+                      <p class="hint nested no-entry-hint">
+                        Only works already in your index. A work with no index entry is not picked up -
+                        Resolve issues can look those up.
+                      </p>
                       <p class="hint warn skip-index-warning nested">
                         Your files are only checked against your last index, not against live AO3 data:
                         a fic AO3 has updated since it was last indexed will not be seen as needing an
@@ -395,6 +379,10 @@
                         time: its index entry is updated, and your files are judged against what AO3 has now.
                         One request per work, so on a large library this takes a long time.
                       </p>
+                      <p class="hint nested no-entry-hint">
+                        Only works already in your index are looked up. A work with no index entry is not
+                        picked up - Resolve issues can look those up.
+                      </p>
                     }
                   </fieldset>
                 </div>
@@ -407,13 +395,7 @@
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'resume'"
                        (change)="coverage.set('resume')" />
-                <span>
-                  Retry an earlier run
-                  <span class="hint coverage-hint">
-                    Covers what the run it retries covered, so a work with no index entry yet is picked
-                    up only if that run would have picked it up.
-                  </span>
-                </span>
+                <span>Retry an earlier run</span>
               </label>
             }
           </fieldset>

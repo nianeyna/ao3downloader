@@ -3223,15 +3223,21 @@ describe('DownloadDialog', () => {
     expect(jobs.started[0].filetypes).not.toContain('JSON');
   });
 
-  it('says under every coverage choice whether a work with no index entry is picked up', async () => {
+  it("says whether a work with no index entry is picked up only under the custom run's outdated-check choices", async () => {
     await open('custom');
     await advanceTo('options');
-    const hints = [...element.querySelectorAll('fieldset .coverage-hint')]
-      .map((x) => x.textContent!.replace(/\s+/g, ' ').trim());
-    // all bookmarks, a slice, a date range, skipping the check, and a retry
-    expect(hints.length).toBe(5);
-    expect(hints[0]).toBe('A work with no index entry yet is picked up and checked only if it is one of your AO3 bookmarks.');
-    expect(hints[3]).toContain('A work with no index entry is not picked up');
+    expect(element.querySelectorAll('.coverage-hint').length).toBe(0);
+    checkbox('Skip check for new bookmarks')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('.no-entry-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'A work with no index entry is not picked up');
+    // and the non-bookmarks choice is put away: every indexed work is covered already
+    expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
+    checkbox('Check for outdated against latest on AO3')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('.no-entry-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'Only works already in your index are looked up.');
+    expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
   });
 
   it('words the overwrite and series options plainly', async () => {
