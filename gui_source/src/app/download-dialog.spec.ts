@@ -2624,7 +2624,7 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
 
     checkbox('Check all non-bookmarks for updates too')!.click();
-    checkbox('Skip check for new bookmarks')!.click();
+    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
 
     expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
@@ -3046,11 +3046,11 @@ describe('DownloadDialog', () => {
   it('offers skipping the indexing only on a custom run', async () => {
     await open('custom');
     await advanceTo('options');
-    expect(checkbox('Skip check for new bookmarks')).toBeTruthy();
+    expect(checkbox('Just update existing works')).toBeTruthy();
 
     await open('bookmarks');
     await advanceTo('options');
-    expect(checkbox('Skip check for new bookmarks')).toBeUndefined();
+    expect(checkbox('Just update existing works')).toBeUndefined();
   });
 
   it('warns, once indexing is skipped, that files are judged against the last index', async () => {
@@ -3058,7 +3058,7 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
     expect(element.querySelector('.skip-index-warning')).toBeNull();
 
-    checkbox('Skip check for new bookmarks')!.click();
+    checkbox('Just update existing works')!.click();
     fixture.detectChanges();
     expect(element.querySelector('.skip-index-warning')!.textContent).toContain(
       'not against live AO3 data',
@@ -3117,7 +3117,7 @@ describe('DownloadDialog', () => {
     debugOn();
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip check for new bookmarks')!.click();
+    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
     button('Continue')!.click();
     await fixture.whenStable();
@@ -3131,7 +3131,7 @@ describe('DownloadDialog', () => {
   it('does not ask the helper for JSON it will not write', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip check for new bookmarks')!.click();
+    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
 
     await advanceTo('running');
@@ -3160,7 +3160,7 @@ describe('DownloadDialog', () => {
   it('sends a custom run told to skip indexing', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip check for new bookmarks')!.click();
+    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
 
     await advanceTo('running');
@@ -3173,14 +3173,14 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
     expect(element.querySelector('.skip-index-hint')).toBeNull();
 
-    const choice = checkbox('Skip check for new bookmarks - Just update existing works')!;
+    const choice = checkbox('Just update existing works')!;
     expect(choice.type).toBe('radio');
     expect(choice.name).toBe('coverage');
     choice.click();
     await fixture.whenStable();
 
     expect(element.querySelector('.skip-index-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
-      'Simply checks all your existing works in FicFairy for downloads/updates.');
+      'Only checks existing works in FicFairy for downloads/updates.');
     expect(element.querySelector('.skip-index-warning')).toBeTruthy();
     // an alternative to the others: choosing it puts the date range away
     expect(checkbox('Choose my own date range')!.checked).toBe(false);
@@ -3191,7 +3191,7 @@ describe('DownloadDialog', () => {
   it('judges against the index unless asked to look every work up on AO3, which keeps JSON', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip check for new bookmarks')!.click();
+    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
 
     const byIndex = checkbox('Check for outdated against current index')!;
@@ -3215,7 +3215,7 @@ describe('DownloadDialog', () => {
   it('sends no recheck when judging against the index', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip check for new bookmarks')!.click();
+    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
     await advanceTo('running');
 
@@ -3227,7 +3227,7 @@ describe('DownloadDialog', () => {
     await open('custom');
     await advanceTo('options');
     expect(element.querySelectorAll('.coverage-hint').length).toBe(0);
-    checkbox('Skip check for new bookmarks')!.click();
+    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
     expect(element.querySelector('.no-entry-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
       'A work with no index entry is not picked up');

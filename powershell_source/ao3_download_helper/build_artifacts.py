@@ -539,7 +539,7 @@ collections still asks for your username, but never your password.
 **Custom run** is the full scan with its parts made optional. It covers exactly one of
 four things, which it asks before anything else: **all bookmarks**, a **slice** of your
 listing by page number, a **date range**, or **just the works already in your index**
-(*Skip check for new bookmarks*). They are alternatives rather than settings that
+(*Just update existing works*). They are alternatives rather than settings that
 combine - a run cannot be walking a listing and not walking it - so choosing one puts the
 others away.
 

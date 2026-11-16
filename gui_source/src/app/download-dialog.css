@@ -1076,7 +1076,7 @@ textarea.ghost-typing {
   margin-top: 4px;
 }
 
-/* 'Skip check for new bookmarks', once chosen: its hint and how files are judged, under it */
+/* 'Just update existing works', once chosen: its hint and how files are judged, under it */
 .existing-options {
   margin: 2px 0 6px 29px;
 }

@@ -336,15 +336,15 @@
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'existing'"
                        (change)="coverage.set('existing')" />
-                <span>Skip check for new bookmarks - Just update existing works</span>
+                <span>Just update existing works</span>
               </label>
               <!-- once chosen, how its files are judged sits under it, nested -->
               @if (coverage() === 'existing') {
                 <div class="existing-options">
                   <p class="hint skip-index-hint">
-                    Simply checks all your existing works in FicFairy for downloads/updates. A good
-                    choice if you just need to download new formats for existing works in your library.
-                    Includes checking all non-bookmarks too by default.
+                    Only checks existing works in FicFairy for downloads/updates. A good choice if you
+                    just need to download new formats for existing works in your library. Checks all
+                    works with an index in the library, including non-bookmarks.
                   </p>
                   <fieldset class="existing-check">
                     <legend>How to tell if a file is outdated</legend>
