@@ -3246,7 +3246,7 @@ describe('DownloadDialog', () => {
     const label = (text: string) => checkbox(text)!.closest('label')!.parentElement!.textContent!.replace(/\s+/g, ' ');
     expect(checkbox('Overwrite existing downloads')).toBeTruthy();
     expect(label('Overwrite existing downloads')).toContain(
-      'Regardless of whether the file was updated on AO3, just replace everything. Choose which formats get replaced on the next page.');
+      'Choose which formats get replaced on the next page. Check this if you are concerned about file integrity issues and would like to re-download each file again.');
     expect(label('If a work is a part of a series, download all its other works too')).toContain(
       'Downloads all works whenever a series is found - even if its other works are not bookmarked by you.');
   });
