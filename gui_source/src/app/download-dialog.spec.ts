@@ -3180,7 +3180,7 @@ describe('DownloadDialog', () => {
     await fixture.whenStable();
 
     expect(element.querySelector('.skip-index-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
-      'Only checks existing works in FicFairy for downloads/updates.');
+      "Only checks existing works in FicFairy for downloads/updates (skips 'walking' your bookmarks).");
     expect(element.querySelector('.skip-index-warning')).toBeTruthy();
     // an alternative to the others: choosing it puts the date range away
     expect(checkbox('Choose my own date range')!.checked).toBe(false);
