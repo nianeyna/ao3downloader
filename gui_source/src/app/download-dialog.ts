@@ -294,18 +294,25 @@ export class DownloadDialog implements OnDestroy {
   /** the combined run's note only: turns it off for next time, once accepted */
   protected readonly dontAskAgain = signal(false);
 
-  /** a custom run may work from the index rather than reading AO3's listing again */
-  protected readonly reindex = signal(true);
+  /**
+   * A custom run may work from the index rather than reading AO3's listing again - its own
+   * choice of what the run covers (`coverage` 'existing'), or, on a retry, whatever the run it
+   * retries did (`retryReindex`)
+   */
+  protected readonly reindex = computed(() =>
+    this.resuming() ? this.retryReindex() : this.coverage() !== 'existing');
+  private readonly retryReindex = signal(true);
   /**
    * What this run reaches for, as one choice rather than several flags.
    *
-   * 'all' is the whole listing, 'pages' a slice of it, 'dates' a window of time. They are
+   * 'all' is the whole listing, 'pages' a slice of it, 'dates' a window of time, 'existing' no
+   * listing at all - only the works already in the index (a custom run skipping its indexing). They are
    * alternatives - a run cannot be walking a listing and not walking it - so one signal
    * with three values cannot hold a combination that means nothing, which two booleans
    * could. A quick scan uses the same signal for its own pair: 'all' there means back to
    * its last completed run.
    */
-  protected readonly coverage = signal<'all' | 'pages' | 'dates' | 'run' | 'resume'>('all');
+  protected readonly coverage = signal<'all' | 'pages' | 'dates' | 'run' | 'resume' | 'existing'>('all');
   /**
    * A custom run picking up where an unfinished run left off. It then runs as that run -
    * its workflow, file types and options - so nothing else on the way in is a choice.
@@ -1068,6 +1075,8 @@ export class DownloadDialog implements OnDestroy {
       rows.push({ label: 'Covers', value: this.dateRange() });
     } else if (this.picksPages()) {
       rows.push({ label: 'Covers', value: this.pageRange() });
+    } else if (this.action() === 'custom' && this.coverage() === 'existing') {
+      rows.push({ label: 'Covers', value: 'every work already in your index' });
     } else if (this.picksDates() || this.action() === 'quick') {
       // the third choice: no slice and no window, so it reaches as far as the run can
       rows.push({
@@ -1735,7 +1744,7 @@ export class DownloadDialog implements OnDestroy {
     this.images.set(!!options['images']);
     this.overwrite.set(!!options['overwrite']);
     this.nonBookmarks.set(!!options['nonBookmarks']);
-    this.reindex.set(options['reindex'] !== false);
+    this.retryReindex.set(options['reindex'] !== false);
     // a retry logs in as the run it retries did: one that went without asks for no password,
     // and one reading your own listing is found by the account it read
     this.skipLogin.set(!!options['skipLogin']);

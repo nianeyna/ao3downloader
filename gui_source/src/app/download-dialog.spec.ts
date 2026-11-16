@@ -547,11 +547,11 @@ describe('DownloadDialog', () => {
       await open(action);
       await advanceTo('options');
 
-      expect(checkbox('encountered series'), action).toBeTruthy();
+      expect(checkbox('download all its other works too'), action).toBeTruthy();
     }
     expect(element.textContent).toContain(
-      'If a bookmarked work belongs to a series, download the rest of the series too - even ' +
-        'if its other works are not bookmarked.',
+      'Downloads all works whenever a series is found - even if its other works are not ' +
+        'bookmarked by you.',
     );
   });
 
@@ -915,7 +915,7 @@ describe('DownloadDialog', () => {
       await open(action);
       await advanceTo(currentStep() === 'options' ? 'options' : 'filetypes');
 
-      expect(checkbox('encountered series'), action).toBeUndefined();
+      expect(checkbox('download all its other works too'), action).toBeUndefined();
     }
   });
 
@@ -961,7 +961,7 @@ describe('DownloadDialog', () => {
     // it has no options step at all
     expect(currentStep()).not.toBe('options');
     expect(element.querySelector('input[name="pages"]')).toBeNull();
-    expect(checkbox('encountered series')).toBeUndefined();
+    expect(checkbox('download all its other works too')).toBeUndefined();
     expect(checkbox('publication date')).toBeUndefined();
     expect(checkbox('images separately')).toBeUndefined();
   });
@@ -969,7 +969,7 @@ describe('DownloadDialog', () => {
   it('notes in the visit log which options were left as the default and which were changed', async () => {
     await open('bookmarks');
     await advanceTo('options');
-    checkbox('encountered series')!.click();
+    checkbox('download all its other works too')!.click();
     await fixture.whenStable();
     await advanceTo('running');
 
@@ -986,7 +986,7 @@ describe('DownloadDialog', () => {
     await open('bookmarks');
     await advanceTo('options');
 
-    checkbox('encountered series')!.click();
+    checkbox('download all its other works too')!.click();
     await fixture.whenStable();
 
     await advanceTo('running');
@@ -2106,7 +2106,7 @@ describe('DownloadDialog', () => {
   it('says what happens to the rest of a series, in words', async () => {
     await open('bookmarks');
     await advanceTo('options');
-    checkbox('encountered series')!.click();
+    checkbox('download all its other works too')!.click();
     await fixture.whenStable();
     await advanceTo('running');
 
@@ -2149,7 +2149,7 @@ describe('DownloadDialog', () => {
     expect(currentStep()).toBe('options');
     expect(checkbox('Index and download encountered works')?.checked).toBe(false);
     // series only mean anything once there are works to follow them from
-    expect(checkbox('encountered series')).toBeUndefined();
+    expect(checkbox('download all its other works too')).toBeUndefined();
     expect(element.querySelector('.dialog input[type="number"]')).toBeNull();
   });
 
@@ -2194,7 +2194,7 @@ describe('DownloadDialog', () => {
     await fixture.whenStable();
 
     expect(element.textContent).toContain('the collection');
-    checkbox('encountered series')!.click();
+    checkbox('download all its other works too')!.click();
     await fixture.whenStable();
     button('Continue')!.click();
     await fixture.whenStable();
@@ -2622,7 +2622,7 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
 
     checkbox('Check all non-bookmarks for updates too')!.click();
-    checkbox('Skip indexing')!.click();
+    checkbox('Skip check for new bookmarks')!.click();
     await fixture.whenStable();
 
     expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
@@ -3044,11 +3044,11 @@ describe('DownloadDialog', () => {
   it('offers skipping the indexing only on a custom run', async () => {
     await open('custom');
     await advanceTo('options');
-    expect(checkbox('Skip indexing')).toBeTruthy();
+    expect(checkbox('Skip check for new bookmarks')).toBeTruthy();
 
     await open('bookmarks');
     await advanceTo('options');
-    expect(checkbox('Skip indexing')).toBeUndefined();
+    expect(checkbox('Skip check for new bookmarks')).toBeUndefined();
   });
 
   it('warns, once indexing is skipped, that files are judged against the last index', async () => {
@@ -3056,7 +3056,7 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
     expect(element.querySelector('.skip-index-warning')).toBeNull();
 
-    checkbox('Skip indexing')!.click();
+    checkbox('Skip check for new bookmarks')!.click();
     fixture.detectChanges();
     expect(element.querySelector('.skip-index-warning')!.textContent).toContain(
       'not against live AO3 data',
@@ -3115,7 +3115,7 @@ describe('DownloadDialog', () => {
     debugOn();
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip indexing')!.click();
+    checkbox('Skip check for new bookmarks')!.click();
     await fixture.whenStable();
     button('Continue')!.click();
     await fixture.whenStable();
@@ -3129,7 +3129,7 @@ describe('DownloadDialog', () => {
   it('does not ask the helper for JSON it will not write', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip indexing')!.click();
+    checkbox('Skip check for new bookmarks')!.click();
     await fixture.whenStable();
 
     await advanceTo('running');
@@ -3158,12 +3158,43 @@ describe('DownloadDialog', () => {
   it('sends a custom run told to skip indexing', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip indexing')!.click();
+    checkbox('Skip check for new bookmarks')!.click();
     await fixture.whenStable();
 
     await advanceTo('running');
 
     expect(jobs.started[0].options.reindex).toBe(false);
+  });
+
+  it("offers skipping the indexing as a choice of what a custom run covers, with its hint and warning", async () => {
+    await open('custom');
+    await advanceTo('options');
+    expect(element.querySelector('.skip-index-hint')).toBeNull();
+
+    const choice = checkbox('Skip check for new bookmarks - Just update existing works')!;
+    expect(choice.type).toBe('radio');
+    expect(choice.name).toBe('coverage');
+    choice.click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('.skip-index-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'Simply checks all your existing works in FicFairy for downloads/updates.');
+    expect(element.querySelector('.skip-index-warning')).toBeTruthy();
+    // an alternative to the others: choosing it puts the date range away
+    expect(checkbox('Choose my own date range')!.checked).toBe(false);
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ reindex: false, dates: false, pages: 0 });
+  });
+
+  it('words the overwrite and series options plainly', async () => {
+    await open('custom');
+    await advanceTo('options');
+    const label = (text: string) => checkbox(text)!.closest('label')!.parentElement!.textContent!.replace(/\s+/g, ' ');
+    expect(checkbox('Overwrite existing downloads')).toBeTruthy();
+    expect(label('Overwrite existing downloads')).toContain(
+      'Regardless of whether the file was updated on AO3, just replace everything. Choose which formats get replaced on the next page.');
+    expect(label('If a work is a part of a series, download all its other works too')).toContain(
+      'Downloads all works whenever a series is found - even if its other works are not bookmarked by you.');
   });
 
   it('asks the lighter runs nothing about pages', async () => {
@@ -3954,8 +3985,8 @@ describe('DownloadDialog', () => {
     checkbox('Retry an earlier run')!.click();
     await fixture.whenStable();
 
-    for (const label of ['Skip indexing', 'Overwrite existing downloads',
-                         'Get all works from encountered series']) {
+    for (const label of ['Overwrite existing downloads',
+                         'download all its other works too']) {
       // disabled by the fieldset around them, which the property does not reflect
       expect(checkbox(label)!.matches(':disabled')).toBe(true);
     }

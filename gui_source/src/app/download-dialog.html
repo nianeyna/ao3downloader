@@ -317,6 +317,15 @@
               </label>
             }
 
+            <!-- no listing at all: the works already in the index (it skips the indexing) -->
+            @if (action() === 'custom') {
+              <label class="check">
+                <input type="radio" name="coverage" [checked]="coverage() === 'existing'"
+                       (change)="coverage.set('existing')" />
+                <span>Skip check for new bookmarks - Just update existing works</span>
+              </label>
+            }
+
             <!-- last: it takes every other choice from the run it retries. not for a guest: the
                  dummy library's runs never happened, so there is nothing to carry on from -->
             @if (action() === 'custom' && !guest()) {
@@ -327,6 +336,19 @@
               </label>
             }
           </fieldset>
+
+          @if (action() === 'custom' && coverage() === 'existing') {
+            <p class="hint skip-index-hint">
+              Simply checks all your existing works in FicFairy for downloads/updates. A good
+              choice if you just need to download new formats for existing works in your library.
+              Includes checking all non-bookmarks too by default.
+            </p>
+            <p class="hint warn skip-index-warning">
+              Your files are only checked against your last index, not against live AO3 data:
+              a fic AO3 has updated since it was last indexed will not be seen as needing an
+              update.
+            </p>
+          }
 
           @if (resuming()) {
             <p class="hint">
@@ -484,29 +506,6 @@
           never in the listing. only a full scan goes the long way round, so it is the only
           run where ticking this could do anything
         -->
-        @if (picksReindex()) {
-          <label class="check">
-            <input
-              type="checkbox"
-              name="reindex"
-              [checked]="!reindex()"
-              (change)="reindex.set(!$any($event.target).checked)"
-            />
-            <span>Skip indexing - work from what is already indexed</span>
-          </label>
-          <p class="hint">
-            Useful for downloading your fics in a new format, or to fill in any blanks in
-            your downloaded files if your index is already up-to-date
-          </p>
-          @if (!reindex()) {
-            <p class="hint warn skip-index-warning">
-              Your files are only checked against your last index, not against live AO3 data:
-              a fic AO3 has updated since it was last indexed will not be seen as needing an
-              update.
-            </p>
-          }
-        }
-
         @if (picksCollectionWorks()) {
           <label class="check">
             <input
@@ -571,15 +570,15 @@
         @if (picksSeries()) {
           <label class="check">
             <input type="checkbox" [checked]="series()" (change)="series.set($any($event.target).checked)" />
-            <span>Get all works from encountered series</span>
+            <span>If a work is a part of a series, download all its other works too</span>
           </label>
           <p class="hint">
             @if (picksCollectionWorks()) {
-              If a work in the collection belongs to a series, download the rest of the series
-              too - even if its other works are not in the collection.
+              Downloads all works whenever a series is found - even if its other works are not in
+              the collection.
             } @else {
-              If a bookmarked work belongs to a series, download the rest of the series too - even
-              if its other works are not bookmarked.
+              Downloads all works whenever a series is found - even if its other works are not
+              bookmarked by you.
             }
           </p>
         }
@@ -610,11 +609,12 @@
               [checked]="overwrite()"
               (change)="overwrite.set($any($event.target).checked)"
             />
-            <span>Overwrite existing downloads, even if there has been no update</span>
+            <span>Overwrite existing downloads</span>
           </label>
           <p class="hint">
-            Check this if you are concerned about file integrity issues and would like to
-            re-download each file again, in the formats you ask for.
+            Regardless of whether the file was updated on AO3, just replace everything. Choose
+            which formats get replaced on the next page. Check this if you are concerned about file
+            integrity issues and would like to re-download each file again.
           </p>
           <!-- the non-bookmarks it re-reads are downloaded with the rest, so they are overwritten too -->
           @if (overwrite() && picksNonBookmarks() && nonBookmarks()) {
