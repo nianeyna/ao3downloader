@@ -1062,3 +1062,16 @@ textarea.ghost-typing {
 .existing-check .nested {
   margin-left: 26px;
 }
+
+/* under each choice of what a run covers: whether a work with no index entry is picked up */
+.coverage-hint {
+  display: block;
+  margin: 2px 0 0;
+}
+/* a choice with a hint under it keeps its radio beside its first line, not halfway down */
+.check:has(.coverage-hint) {
+  align-items: flex-start;
+}
+.check:has(.coverage-hint) input {
+  margin-top: 4px;
+}

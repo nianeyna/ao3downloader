@@ -3223,6 +3223,17 @@ describe('DownloadDialog', () => {
     expect(jobs.started[0].filetypes).not.toContain('JSON');
   });
 
+  it('says under every coverage choice whether a work with no index entry is picked up', async () => {
+    await open('custom');
+    await advanceTo('options');
+    const hints = [...element.querySelectorAll('fieldset .coverage-hint')]
+      .map((x) => x.textContent!.replace(/\s+/g, ' ').trim());
+    // all bookmarks, a slice, a date range, skipping the check, and a retry
+    expect(hints.length).toBe(5);
+    expect(hints[0]).toBe('A work with no index entry yet is picked up and checked only if it is one of your AO3 bookmarks.');
+    expect(hints[3]).toContain('A work with no index entry is not picked up');
+  });
+
   it('words the overwrite and series options plainly', async () => {
     await open('custom');
     await advanceTo('options');
