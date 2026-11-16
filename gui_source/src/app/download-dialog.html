@@ -349,39 +349,34 @@
                   <fieldset class="existing-check">
                     <legend>How to tell if a file is outdated</legend>
                     <label class="check">
-                      <input type="radio" name="existingCheck" value="index" [checked]="existingCheck() === 'index'"
-                             (change)="existingCheck.set('index')" />
-                      <span>Check for outdated against current index</span>
-                    </label>
-                    @if (existingCheck() === 'index') {
-                      <p class="hint nested">
-                        Only checks your existing files against your existing index to see if they are
-                        outdated. Nothing is looked up on AO3, so this does not update the index of any work.
-                      </p>
-                      <p class="hint nested no-entry-hint">
-                        Only works already in your index. A work with no index entry is not picked up -
-                        Resolve issues can look those up.
-                      </p>
-                      <p class="hint warn skip-index-warning nested">
-                        Your files are only checked against your last index, not against live AO3 data:
-                        a fic AO3 has updated since it was last indexed will not be seen as needing an
-                        update.
-                      </p>
-                    }
-                    <label class="check">
                       <input type="radio" name="existingCheck" value="ao3" [checked]="existingCheck() === 'ao3'"
                              (change)="existingCheck.set('ao3')" />
                       <span>Check for outdated against latest on AO3</span>
                     </label>
                     @if (existingCheck() === 'ao3') {
-                      <p class="hint nested recheck-hint">
-                        Skips walking your bookmarks, but looks up every work in your index on AO3, one at a
-                        time: its index entry is updated, and your files are judged against what AO3 has now.
-                        One request per work, so on a large library this takes a long time.
+                      <p class="hint nested recheck-hint no-entry-hint">
+                        Looks up every work on AO3 for changes. One at a time, each index entry (the work
+                        summary, chapter count, tags shown in FicFairy) is updated, and any downloaded files
+                        are judged against the most recent that AO3 has to offer to check whether they need
+                        updating. Will not download or update works that do not have an index.
                       </p>
+                    }
+                    <label class="check">
+                      <input type="radio" name="existingCheck" value="index" [checked]="existingCheck() === 'index'"
+                             (change)="existingCheck.set('index')" />
+                      <span>Check for outdated against current index</span>
+                    </label>
+                    @if (existingCheck() === 'index') {
                       <p class="hint nested no-entry-hint">
-                        Only works already in your index are looked up. A work with no index entry is not
-                        picked up - Resolve issues can look those up.
+                        Does not check AO3 directly to see if there has been any update - instead, checks
+                        downloaded files against your last index to determine whether or not an update needs
+                        to be fetched. Will not download or update works that do not have an index. Indexes
+                        (the work summary, chapter count, tags shown in FicFairy) do not get updated.
+                      </p>
+                      <p class="hint warn skip-index-warning nested">
+                        This only brings fics up to date to their latest index. A fic with an outdated index
+                        may not be caught and brought completely up to date - it will miss any update from
+                        AO3 that is more recent than its last index.
                       </p>
                     }
                   </fieldset>

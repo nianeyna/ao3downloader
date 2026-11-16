@@ -3060,8 +3060,10 @@ describe('DownloadDialog', () => {
 
     checkbox('Just update existing works')!.click();
     fixture.detectChanges();
+    checkbox('Check for outdated against current index')!.click();
+    fixture.detectChanges();
     expect(element.querySelector('.skip-index-warning')!.textContent).toContain(
-      'not against live AO3 data',
+      'it will miss any update from AO3 that is more recent than its last index',
     );
   });
 
@@ -3119,6 +3121,9 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
     checkbox('Just update existing works')!.click();
     await fixture.whenStable();
+    // looking every work up on AO3 (the default) writes the index; the index choice does not
+    checkbox('Check for outdated against current index')!.click();
+    await fixture.whenStable();
     button('Continue')!.click();
     await fixture.whenStable();
 
@@ -3132,6 +3137,9 @@ describe('DownloadDialog', () => {
     await open('custom');
     await advanceTo('options');
     checkbox('Just update existing works')!.click();
+    await fixture.whenStable();
+    // looking every work up on AO3 (the default) writes the index; the index choice does not
+    checkbox('Check for outdated against current index')!.click();
     await fixture.whenStable();
 
     await advanceTo('running');
@@ -3181,14 +3189,15 @@ describe('DownloadDialog', () => {
 
     expect(element.querySelector('.skip-index-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
       "Only checks existing works in FicFairy for downloads/updates (skips 'walking' your bookmarks).");
-    expect(element.querySelector('.skip-index-warning')).toBeTruthy();
+    // looking every work up on AO3 is the default, so there is no warning until the index is chosen
+    expect(element.querySelector('.skip-index-warning')).toBeNull();
     // an alternative to the others: choosing it puts the date range away
     expect(checkbox('Choose my own date range')!.checked).toBe(false);
     await advanceTo('running');
     expect(jobs.started[0].options).toMatchObject({ reindex: false, dates: false, pages: 0 });
   });
 
-  it('judges against the index unless asked to look every work up on AO3, which keeps JSON', async () => {
+  it('looks every work up on AO3 unless asked to judge against the index, and keeps JSON', async () => {
     await open('custom');
     await advanceTo('options');
     checkbox('Just update existing works')!.click();
@@ -3196,15 +3205,20 @@ describe('DownloadDialog', () => {
 
     const byIndex = checkbox('Check for outdated against current index')!;
     const byAo3 = checkbox('Check for outdated against latest on AO3')!;
-    expect(byIndex.checked).toBe(true);
+    // listed first, and the default
+    const radios = [...element.querySelectorAll<HTMLInputElement>('.existing-check input[type=radio]')];
+    expect(radios.map(r => r.value)).toEqual(['ao3', 'index']);
+    expect(byAo3.checked).toBe(true);
+    expect(element.querySelector('.recheck-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'Looks up every work on AO3 for changes. One at a time');
+    expect(element.querySelector('.skip-index-warning')).toBeNull();
+    byIndex.click();
+    await fixture.whenStable();
     expect(element.querySelector('.recheck-hint')).toBeNull();
     expect(element.querySelector('.existing-check')!.textContent!.replace(/\s+/g, ' ')).toContain(
-      'this does not update the index of any work');
+      'Indexes (the work summary, chapter count, tags shown in FicFairy) do not get updated.');
     byAo3.click();
     await fixture.whenStable();
-    expect(element.querySelector('.recheck-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
-      'looks up every work in your index on AO3, one at a time');
-    expect(element.querySelector('.skip-index-warning')).toBeNull();
 
     await advanceTo('running');
     expect(jobs.started[0].options).toMatchObject({ reindex: false, recheck: true });
@@ -3216,6 +3230,8 @@ describe('DownloadDialog', () => {
     await open('custom');
     await advanceTo('options');
     checkbox('Just update existing works')!.click();
+    await fixture.whenStable();
+    checkbox('Check for outdated against current index')!.click();
     await fixture.whenStable();
     await advanceTo('running');
 
@@ -3230,13 +3246,13 @@ describe('DownloadDialog', () => {
     checkbox('Just update existing works')!.click();
     await fixture.whenStable();
     expect(element.querySelector('.no-entry-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
-      'A work with no index entry is not picked up');
+      'Will not download or update works that do not have an index.');
     // and the non-bookmarks choice is put away: every indexed work is covered already
     expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
-    checkbox('Check for outdated against latest on AO3')!.click();
+    checkbox('Check for outdated against current index')!.click();
     await fixture.whenStable();
     expect(element.querySelector('.no-entry-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
-      'Only works already in your index are looked up.');
+      'Will not download or update works that do not have an index.');
     expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
   });
 

@@ -305,9 +305,9 @@ export class DownloadDialog implements OnDestroy {
   /**
    * Skipping the indexing, how a custom run judges the files of the works in the index: against
    * the index as it stands (`index`, nothing read from AO3), or against AO3 now (`ao3`: each work
-   * looked up, its entry rewritten - `recheck`)
+   * looked up, its entry rewritten - `recheck`, the default and listed first, at the owner's request)
    */
-  protected readonly existingCheck = signal<'index' | 'ao3'>('index');
+  protected readonly existingCheck = signal<'index' | 'ao3'>('ao3');
   /** a custom run looking every indexed work up on AO3 rather than walking the listing */
   protected readonly recheck = computed(() =>
     this.picksReindex() && !this.resuming() && this.coverage() === 'existing' &&
