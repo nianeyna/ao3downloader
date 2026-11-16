@@ -21,7 +21,10 @@ TARGET = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '.
 
 FILETYPES = (['JSON', 'HTML'], ['JSON'], ['HTML'])
 # the choices step_plan reads, each on and off
-CHOICES = ('collectionWorks', 'series', 'replaceOutdated', 'reindex', 'dates', 'images', 'nonBookmarks')
+CHOICES = ('collectionWorks', 'series', 'replaceOutdated', 'reindex', 'dates', 'images', 'nonBookmarks',
+           'skipIndex', 'recheck')
+# a choice whose 'on' sends a false option: a custom run told to skip its indexing
+SENT_FALSE = {'skipIndex': 'reindex'}
 ACTIONS = ('bookmarks', 'quick', 'custom', 'new', 'sync', 'update', 'work', 'works',
            'import', 'collections', 'collection')
 
@@ -32,6 +35,8 @@ def cases() -> list[dict]:
         for filetypes in FILETYPES:
             for flags in itertools.product((False, True), repeat=len(CHOICES)):
                 options = {name: on for name, on in zip(CHOICES, flags) if on}
+                for choice, option in SENT_FALSE.items():
+                    if options.pop(choice, False): options[option] = False
                 job = server.Job(action, list(filetypes), 'Someone', server.resolve_options(options))
                 found.append({'action': action, 'filetypes': filetypes, 'options': options,
                               'plan': [[step, label] for step, label in server.step_plan(job)]})

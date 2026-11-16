@@ -1054,3 +1054,11 @@ textarea.ghost-typing {
   font-weight: 400;
   color: var(--text-dim);
 }
+
+/* a custom run skipping its indexing: how files are judged, under the choice */
+.existing-check {
+  margin: 4px 0 10px;
+}
+.existing-check .nested {
+  margin-left: 26px;
+}

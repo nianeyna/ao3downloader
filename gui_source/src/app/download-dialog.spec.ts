@@ -1002,6 +1002,8 @@ describe('DownloadDialog', () => {
       workdates: false,
       // only a custom run may turn this off, so every other run always indexes
       reindex: true,
+      // a custom run skipping its indexing may look each work up; nothing else may
+      recheck: false,
       // offered on a full scan, but off unless it is asked for
       overwrite: false,
       // offered on a full scan too, and off unless it is asked for
@@ -3184,6 +3186,41 @@ describe('DownloadDialog', () => {
     expect(checkbox('Choose my own date range')!.checked).toBe(false);
     await advanceTo('running');
     expect(jobs.started[0].options).toMatchObject({ reindex: false, dates: false, pages: 0 });
+  });
+
+  it('judges against the index unless asked to look every work up on AO3, which keeps JSON', async () => {
+    await open('custom');
+    await advanceTo('options');
+    checkbox('Skip check for new bookmarks')!.click();
+    await fixture.whenStable();
+
+    const byIndex = checkbox('Check for outdated against current index')!;
+    const byAo3 = checkbox('Check for outdated against latest on AO3')!;
+    expect(byIndex.checked).toBe(true);
+    expect(element.querySelector('.recheck-hint')).toBeNull();
+    expect(element.querySelector('.existing-check')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'this does not update the index of any work');
+    byAo3.click();
+    await fixture.whenStable();
+    expect(element.querySelector('.recheck-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'looks up every work in your index on AO3, one at a time');
+    expect(element.querySelector('.skip-index-warning')).toBeNull();
+
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ reindex: false, recheck: true });
+    // every entry it reads is rewritten, so the index is written
+    expect(jobs.started[0].filetypes).toContain('JSON');
+  });
+
+  it('sends no recheck when judging against the index', async () => {
+    await open('custom');
+    await advanceTo('options');
+    checkbox('Skip check for new bookmarks')!.click();
+    await fixture.whenStable();
+    await advanceTo('running');
+
+    expect(jobs.started[0].options).toMatchObject({ reindex: false, recheck: false });
+    expect(jobs.started[0].filetypes).not.toContain('JSON');
   });
 
   it('words the overwrite and series options plainly', async () => {

@@ -154,6 +154,8 @@ export interface JobOptions {
    * skipped indexing would judge everything against however stale the index happened to be.
    */
   reindex: boolean;
+  /** skipping the indexing, look every indexed work up on AO3 (a custom run's alone) */
+  recheck?: boolean;
   /**
    * Whether to cover a date window instead of a slice of the listing.
    *

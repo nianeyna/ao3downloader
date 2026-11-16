@@ -343,11 +343,37 @@
               choice if you just need to download new formats for existing works in your library.
               Includes checking all non-bookmarks too by default.
             </p>
-            <p class="hint warn skip-index-warning">
-              Your files are only checked against your last index, not against live AO3 data:
-              a fic AO3 has updated since it was last indexed will not be seen as needing an
-              update.
-            </p>
+            <fieldset class="existing-check">
+              <legend>How to tell if a file is outdated</legend>
+              <label class="check">
+                <input type="radio" name="existingCheck" value="index" [checked]="existingCheck() === 'index'"
+                       (change)="existingCheck.set('index')" />
+                <span>Check for outdated against current index</span>
+              </label>
+              @if (existingCheck() === 'index') {
+                <p class="hint nested">
+                  Only checks your existing files against your existing index to see if they are
+                  outdated. Nothing is looked up on AO3, so this does not update the index of any work.
+                </p>
+                <p class="hint warn skip-index-warning nested">
+                  Your files are only checked against your last index, not against live AO3 data:
+                  a fic AO3 has updated since it was last indexed will not be seen as needing an
+                  update.
+                </p>
+              }
+              <label class="check">
+                <input type="radio" name="existingCheck" value="ao3" [checked]="existingCheck() === 'ao3'"
+                       (change)="existingCheck.set('ao3')" />
+                <span>Check for outdated against latest on AO3</span>
+              </label>
+              @if (existingCheck() === 'ao3') {
+                <p class="hint nested recheck-hint">
+                  Skips walking your bookmarks, but looks up every work in your index on AO3, one at a
+                  time: its index entry is updated, and your files are judged against what AO3 has now.
+                  One request per work, so on a large library this takes a long time.
+                </p>
+              }
+            </fieldset>
           }
 
           @if (resuming()) {

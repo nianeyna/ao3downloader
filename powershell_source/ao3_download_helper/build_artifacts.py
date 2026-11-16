@@ -547,10 +547,12 @@ A date range comes in two shapes, everything updated since a date or between two
 both ends count.
 
 The last of those **skips reading ao3 at all** and works through every work already indexed,
-bookmarked or not. That costs no requests to decide anything, but judges everything against
-however old your index is, and leaves the index as it was - useful for downloading your fics
-in a new format, or filling in blanks in your downloaded files when the index is already up
-to date.
+bookmarked or not, and asks how a file is judged outdated. **Against the current index** costs
+no requests to decide anything, but judges everything against however old your index is, and
+leaves the index as it was - useful for downloading your fics in a new format, or filling in
+blanks in your downloaded files when the index is already up to date. **Against the latest on
+ao3** looks each work up on ao3, one at a time, updates its index entry and judges its files
+against that - one request per work, so slow on a large library.
 
 With a date range, the run indexes first. It reads your bookmarks **sorted by
 when ao3 last updated each work** and stops at the first fic older than the earliest date
