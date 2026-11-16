@@ -1075,3 +1075,11 @@ textarea.ghost-typing {
 .check:has(.coverage-hint) input {
   margin-top: 4px;
 }
+
+/* 'Skip check for new bookmarks', once chosen: its hint and how files are judged, under it */
+.existing-options {
+  margin: 2px 0 6px 29px;
+}
+.existing-options .skip-index-hint {
+  margin-bottom: 8px;
+}
