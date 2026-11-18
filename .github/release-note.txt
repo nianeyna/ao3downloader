@@ -1,1 +1,1 @@
-no-post
+Custom runs can now update only the works already in your library, checking each one for changes on AO3 or against your existing index.
