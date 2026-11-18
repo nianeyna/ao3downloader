@@ -295,17 +295,8 @@
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'pages'"
                        (change)="coverage.set('pages')" />
-                <span>A slice of your bookmarks listing - choose my own page range</span>
+                <span>A slice of your bookmarks listing (Choose my own <strong>page</strong> range)</span>
               </label>
-              @if (coverage() === 'pages') {
-                <p class="hint nested slice-order-hint">
-                  @if (pagesOrder() === 'updated') {
-                    Orders your bookmarks in the order AO3 last updated them, newest first.
-                  } @else {
-                    Orders your bookmarks in the order you bookmarked them, newest first.
-                  }
-                </p>
-              }
             } @else {
               <!-- the next page lists the scans that can be measured back to -->
               <label class="check">
@@ -334,7 +325,7 @@
                       your AO3 bookmarks, bookmarked or updated on AO3 within the range.
                     </span>
                   } @else {
-                    A slice of your bookmarks listing - choose my own date range
+                    A slice of your bookmarks listing (Choose my own <strong>date</strong> range)
                   }
                 </span>
               </label>
@@ -465,7 +456,7 @@
           }
 
           <label class="field">
-            <span>{{ rangeWord() }} on or after (leave empty to read all remaining)</span>
+            <span>{{ rangeWord() }} on or after (leave empty to go all the way back)</span>
             <input type="date" name="dateFrom" [value]="dateFrom()"
                    (input)="dateFrom.set($any($event.target).value)" />
           </label>
@@ -560,8 +551,15 @@
           </label>
 
           <p class="hint slice-hint">
-            Reads a slice of your bookmarks to find new or updated works. This run will fetch
-            <strong>{{ pageRange() }}</strong>.
+            Reads a slice of your bookmarks to find new or updated works.
+            <span class="slice-order-hint">
+              @if (pagesOrder() === 'updated') {
+                Orders your bookmarks in the order AO3 last updated them, newest first.
+              } @else {
+                Orders your bookmarks in the order you bookmarked them, newest first.
+              }
+            </span>
+            This run will fetch <strong>{{ pageRange() }}</strong>.
           </p>
         }
 

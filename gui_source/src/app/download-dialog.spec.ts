@@ -262,7 +262,7 @@ async function advanceTo(target: 'options' | 'filetypes' | 'credentials' | 'runn
 async function toPageOptions() {
   await open('custom');
   await advanceTo('options');
-  checkbox('choose my own page range')!.click();
+  checkbox('Choose my own page range')!.click();
   await fixture.whenStable();
 }
 
@@ -270,10 +270,10 @@ describe('DownloadDialog', () => {
   it('says what order a slice of the bookmarks listing is in, once it is chosen', async () => {
     await open('custom');
     await advanceTo('options');
-    expect(checkbox('A slice of your bookmarks listing - choose my own page range')).toBeTruthy();
-    expect(checkbox('A slice of your bookmarks listing - choose my own date range')).toBeTruthy();
+    expect(checkbox('A slice of your bookmarks listing (Choose my own page range)')).toBeTruthy();
+    expect(checkbox('A slice of your bookmarks listing (Choose my own date range)')).toBeTruthy();
     expect(element.querySelector('.slice-order-hint')).toBeNull();
-    checkbox('choose my own page range')!.click();
+    checkbox('Choose my own page range')!.click();
     await fixture.whenStable();
     // the slice walks the listing sorted by date bookmarked (sorted_bookmarks_link)
     expect(element.querySelector('.slice-order-hint')!.textContent).toContain(
@@ -1154,7 +1154,7 @@ describe('DownloadDialog', () => {
     // the longer account of the walk is gone, at the owner's request
     expect(element.textContent).not.toContain('reads the whole listing');
     expect(element.textContent).not.toContain('re-read one at a time');
-    expect(element.textContent).toContain("Updated on or after (leave empty to read all remaining)");
+    expect(element.textContent).toContain("Updated on or after (leave empty to go all the way back)");
 
     await chooseWindow('2024-01-01', '2024-06-30');
     expect(element.textContent).toContain("Updated on or before (leave empty to use today's date)");
@@ -2700,7 +2700,7 @@ describe('DownloadDialog', () => {
   it('reads a custom date range by date updated unless asked to read it by date bookmarked', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('choose my own date range')!.click();
+    checkbox('Choose my own date range')!.click();
     await fixture.whenStable();
 
     // above the range's own choices, and starting on what a range always did
@@ -2716,7 +2716,7 @@ describe('DownloadDialog', () => {
     await chooseWindow('2024-01-01', '2024-06-30');
     expect(body.textContent).toContain('Everything bookmarked since a date');
     expect(body.textContent).toContain("Bookmarked on or before (leave empty to use today's date)");
-    expect(body.textContent).toContain('Bookmarked on or after (leave empty to read all remaining)');
+    expect(body.textContent).toContain('Bookmarked on or after (leave empty to go all the way back)');
     expect(body.textContent).toContain('any works that were bookmarked between 2024-01-01 and 2024-06-30');
 
     await advanceTo('running');
@@ -2726,7 +2726,7 @@ describe('DownloadDialog', () => {
   it('reads a slice of pages by date bookmarked unless asked to read it by date updated', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('choose my own page range')!.click();
+    checkbox('Choose my own page range')!.click();
     await fixture.whenStable();
 
     // above the page numbers, starting on what a slice always did
@@ -2736,7 +2736,8 @@ describe('DownloadDialog', () => {
       Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(checkbox('Date bookmarked')!.checked).toBe(true);
     expect(element.querySelector('.slice-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
-      'Reads a slice of your bookmarks to find new or updated works. This run will fetch all pages');
+      'Reads a slice of your bookmarks to find new or updated works. Orders your bookmarks in the ' +
+      'order you bookmarked them, newest first. This run will fetch all pages');
     expect(element.textContent).not.toContain('positions in the whole listing');
 
     checkbox('Date updated')!.click();
@@ -3249,7 +3250,7 @@ describe('DownloadDialog', () => {
     // looking every work up on AO3 is the default, so there is no warning until the index is chosen
     expect(element.querySelector('.skip-index-warning')).toBeNull();
     // an alternative to the others: choosing it puts the date range away
-    expect(checkbox('choose my own date range')!.checked).toBe(false);
+    expect(checkbox('Choose my own date range')!.checked).toBe(false);
     await advanceTo('running');
     expect(jobs.started[0].options).toMatchObject({ reindex: false, dates: false, pages: 0 });
   });
