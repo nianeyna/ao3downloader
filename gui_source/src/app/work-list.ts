@@ -1,4 +1,5 @@
 import { HIDE_WARNING_KEY } from './preferences';
+import { LOOSE_PREFIX } from './unindexed-works';
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { WorkLink } from './work-link';
 import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
@@ -428,7 +429,7 @@ export class WorkList {
 
   /** whether an entry can be marked by hand: anything with an index file of its own */
   protected canMark(work: Bookmark): boolean {
-    return !!work.id && !work.placeholder;
+    return !!work.id && !work.placeholder && !work.unindexed;
   }
 
   protected isBookmark(work: Bookmark): boolean {
@@ -458,6 +459,8 @@ export class WorkList {
    * series is not one fic - its works are downloaded from their own entries.
    */
   protected worksToFetch(work: Bookmark): string[] {
+    // a file named for no work number has nothing to fetch it by
+    if (work.id?.startsWith(LOOSE_PREFIX)) return [];
     return work.id && this.typeOf(work) === 'individual work' ? [work.id] : [];
   }
 
@@ -871,7 +874,7 @@ export class WorkList {
 
   protected hasLocalCopy(work: Bookmark): boolean {
     // a series' or an external work's id is not a work number, and could be one by chance
-    return isWorkEntry(work) && !!work.id && this.htmlFiles().has(work.id);
+    return !!this.copyOf(work, 'html');
   }
 
   protected isOpen(key: string): boolean {
@@ -907,9 +910,15 @@ export class WorkList {
   protected openWork(work: Bookmark, event: Event): void {
     event.preventDefault();
 
-    const copy = isWorkEntry(work) && work.id ? this.htmlFiles().get(work.id) : undefined;
+    const copy = this.copyOf(work, 'html');
     if (copy) {
       this.library.openCopy(copy, 'html', work.link);
+      return;
+    }
+    // a file no entry matches may be held in no html at all: its first format opens instead
+    const other = work.unindexed ? this.formatsOf(work)[0] : undefined;
+    if (other) {
+      this.openFormat(work, other, event);
       return;
     }
     if (work.link) window.open(work.link, '_blank', 'noopener');
@@ -921,9 +930,31 @@ export class WorkList {
    * work number, so they never get one.
    */
   protected formatsOf(work: Bookmark): OpenableFormat[] {
-    if (!isWorkEntry(work) || !work.id) return [];
-    const copies = this.copies();
-    return OPENABLE_FORMATS.filter((format) => format !== 'html' && copies[format].has(work.id!));
+    return OPENABLE_FORMATS.filter((format) => format !== 'html' && !!this.copyOf(work, format));
+  }
+
+  /**
+   * The work's newest copy in a format: from the library's copies by work number, or - for a
+   * file no index entry matches - from the files its row was made from.
+   */
+  /** a row for a file whose name holds no work number: nothing to hide, tick or fetch it by */
+  protected isLoose(work: Bookmark): boolean {
+    return !!work.unindexed && !!work.id?.startsWith(LOOSE_PREFIX);
+  }
+
+  /** where an unindexed row's date came from, said on hovering it */
+  protected unindexedDateTitle(work: Bookmark): string {
+    switch (work.unindexed_date) {
+      case 'name': return 'The date in its file name';
+      case 'guessed': return 'A date guessed from its file name';
+      case 'file': return 'When the file last changed - its name has no date';
+      default: return 'No date could be read';
+    }
+  }
+
+  private copyOf(work: Bookmark, format: OpenableFormat): LocalCopy | undefined {
+    if (work.unindexed) return work.unindexed_files?.[format];
+    return isWorkEntry(work) && work.id ? this.copies()[format].get(work.id) : undefined;
   }
 
   protected readonly viewable = viewableInBrowser;
@@ -935,7 +966,7 @@ export class WorkList {
    */
   protected openFormat(work: Bookmark, format: OpenableFormat, event: Event): void {
     event.preventDefault();
-    const copy = isWorkEntry(work) && work.id ? this.copies()[format].get(work.id) : undefined;
+    const copy = this.copyOf(work, format);
     if (!copy) return;
     if (viewableInBrowser(format)) this.library.openCopy(copy, format, null);
     else this.saveCopy(copy, format);

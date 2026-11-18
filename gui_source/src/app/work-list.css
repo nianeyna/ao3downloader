@@ -1094,3 +1094,18 @@
   height: 100%;
   fill: currentColor;
 }
+
+/* a file no index entry matches: shown from its name, said so */
+.badge.not-in-index {
+  border-color: var(--warn-border);
+  color: var(--warn-text);
+}
+
+.unindexed-titles {
+  padding-right: 120px;
+}
+
+.date-source {
+  color: var(--text-dim);
+  font-style: italic;
+}

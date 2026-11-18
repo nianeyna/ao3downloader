@@ -542,7 +542,7 @@
   </section>
 } @else if (view() === 'bookmarks') {
   <!-- shown from the first moment of a read, so the heading, buttons and bar never jump in -->
-  @if (data() || loading()) {
+  @if (data() || loading() || works().length) {
     <app-work-list
       [works]="works()"
       [owner]="owner()"

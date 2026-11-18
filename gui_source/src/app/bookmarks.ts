@@ -1,4 +1,5 @@
 import { fileDate, workNumber } from './naming';
+import type { LocalCopy, OpenableFormat } from './library';
 
 /**
  * Shapes and pure helpers for the json file written by ao3downloader's JSON download type.
@@ -198,6 +199,15 @@ export interface Bookmark {
    * no entry in the index. Its number and link are all that is known about it.
    */
   placeholder?: boolean;
+  /**
+   * A file in `works/` no index entry matches, listed from what its name says
+   * (`unindexed-works.ts`) - never written to the index.
+   */
+  unindexed?: boolean;
+  /** where such a row's date came from: the name as the app writes it, a guess, or the file */
+  unindexed_date?: 'name' | 'guessed' | 'file' | '';
+  /** such a row's own files, a format each - it has no work number for `Library.copies` to know */
+  unindexed_files?: Partial<Record<OpenableFormat, LocalCopy>>;
 }
 
 export interface BookmarksExport {

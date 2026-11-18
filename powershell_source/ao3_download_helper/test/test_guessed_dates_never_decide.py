@@ -44,6 +44,11 @@ PAGE_ALLOWED = {
     ('imports.ts', 'newestOf'),
     # the date a file's name carries, certain or guessed, for `byRecency`'s order above
     ('imports.ts', 'nameDate'),
+    # the Works tab's row for a file no index entry matches: the date shown on it, said to be a
+    # guess (`unindexed_date`); nothing is replaced, renamed or fetched on it
+    ('unindexed-works.ts', 'readUnindexedFile'),
+    # which of two such files in one format that row's button opens - it opens, never removes
+    ('unindexed-works.ts', 'unindexedRows'),
 }
 
 

@@ -1,4 +1,5 @@
 import { ProgressBar } from './progress-bar';
+import { UnindexedWorks } from './unindexed-works';
 import { NamePattern, namePatternText } from './naming';
 import { formatsOfPattern } from './renames';
 import { inAo3Zone, shownTime } from './preferences';
@@ -639,7 +640,9 @@ export class App {
     this.updates.acknowledgeFailure();
   }
 
-  protected readonly works = computed<Bookmark[]>(() => this.data()?.works ?? []);
+  private readonly unindexed = inject(UnindexedWorks);
+  /** the index's works, then every file in works/ no entry matches - listed from its name */
+  protected readonly works = computed<Bookmark[]>(() => [...(this.data()?.works ?? []), ...this.unindexed.rows()]);
   protected readonly owner = computed(() => ownerFromSource(this.data()?.source ?? ''));
 
   /**
