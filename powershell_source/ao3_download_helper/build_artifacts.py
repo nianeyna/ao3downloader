@@ -546,13 +546,14 @@ others away.
 A date range comes in two shapes, everything updated since a date or between two dates, and
 both ends count.
 
-The last of those **skips reading ao3 at all** and works through every work already indexed,
-bookmarked or not, and asks how a file is judged outdated. **Against the current index** costs
-no requests to decide anything, but judges everything against however old your index is, and
-leaves the index as it was - useful for downloading your fics in a new format, or filling in
-blanks in your downloaded files when the index is already up to date. **Against the latest on
-ao3** looks each work up on ao3, one at a time, updates its index entry and judges its files
-against that - one request per work, so slow on a large library.
+The last of those **skips walking your bookmarks** and works through every work already
+indexed, bookmarked or not, and asks how a file is judged outdated. **Against the latest on
+ao3**, the default, looks each work up on ao3, one at a time, updates its index entry and
+judges its files against that - one request per work, so slow on a large library. **Against
+the current index** reads nothing from ao3, but judges everything against however old your
+index is, and leaves the index as it was - useful for downloading your fics in a new format,
+or filling in blanks in your downloaded files when the index is already up to date. Either
+way, a work with no index entry is not downloaded or updated.
 
 With a date range, the run indexes first. It reads your bookmarks **sorted by
 when ao3 last updated each work** and stops at the first fic older than the earliest date
@@ -564,9 +565,9 @@ whatever turns out to be missing or behind.
 Works with no recorded update date are never covered by a date range, since there is nothing
 to compare.
 
-Skipping the indexing decides a file type as well: json is the index, so a run that does not
-index does not write it, and the json box is ticked or unticked to match and locked either
-way. Every run asks its options first and its file types second for that reason, and a run
+Skipping the indexing can decide a file type as well: json is the index, so a run that neither
+indexes nor looks each work up on ao3 does not write it, and the json box is ticked or
+unticked to match and locked either way. Every run asks its options first and its file types second for that reason, and a run
 with nothing to choose skips the options step rather than showing an empty one.
 
 It is also the only run that offers **saving embedded images separately**. That fetches each
