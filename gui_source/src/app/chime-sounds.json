@@ -15,11 +15,10 @@
       {"f": 4698.6, "at": 0.44, "gain": 0.04, "decay": 0.55, "type": "sine"},
       {"f": 3951, "at": 0.52, "gain": 0.03, "decay": 0.6, "type": "sine"}
     ]},
-  {"id": "ping", "name": "Soft ping", "about": "two short, light notes", "notes": [
-      {"f": 1318.5, "at": 0, "gain": 0.2, "decay": 0.35, "type": "sine"},
-      {"f": 2637, "at": 0, "gain": 0.03, "decay": 0.2, "type": "sine"},
-      {"f": 1760, "at": 0.09, "gain": 0.2, "decay": 0.4, "type": "sine"},
-      {"f": 3520, "at": 0.09, "gain": 0.03, "decay": 0.2, "type": "sine"}
+  {"id": "droplet", "name": "Water droplet", "about": "a quick rising plip", "notes": [
+      {"f": 1760, "at": 0, "gain": 0.15, "decay": 0.12, "type": "sine"},
+      {"f": 2217.5, "at": 0.03, "gain": 0.12, "decay": 0.15, "type": "sine"},
+      {"f": 2793.8, "at": 0.06, "gain": 0.1, "decay": 0.3, "type": "sine"}
     ]},
   {"id": "harp", "name": "Harp", "about": "four warm, low strings rolled like a strum, the top one ringing on", "notes": [
       {"f": 261.6, "at": 0.0, "gain": 0.17, "decay": 1.4, "type": "triangle"},

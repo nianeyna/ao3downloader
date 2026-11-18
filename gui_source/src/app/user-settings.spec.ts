@@ -303,7 +303,7 @@ describe('UserSettings', () => {
     await open();
     const select = element.querySelector<HTMLSelectElement>('.appearance select[name="waitChimeSound"]')!;
     expect([...select.options].map((o) => o.textContent?.trim())).toEqual(
-      ['Bell', 'Fairy sparkle', 'Soft ping', 'Harp']);
+      ['Bell', 'Fairy sparkle', 'Water droplet', 'Harp']);
     expect(select.value).toBe('bell');
 
     select.value = 'sparkle';
