@@ -262,18 +262,22 @@ async function advanceTo(target: 'options' | 'filetypes' | 'credentials' | 'runn
 async function toPageOptions() {
   await open('custom');
   await advanceTo('options');
-  checkbox('A slice of your bookmarks listing')!.click();
+  checkbox('choose my own page range')!.click();
   await fixture.whenStable();
 }
 
 describe('DownloadDialog', () => {
-  it('says what order a slice of the bookmarks listing is in', async () => {
+  it('says what order a slice of the bookmarks listing is in, once it is chosen', async () => {
     await open('custom');
     await advanceTo('options');
-    const slice = Array.from(element.querySelectorAll<HTMLLabelElement>('label.check'))
-      .find((l) => l.textContent?.includes('A slice of your bookmarks listing'));
+    expect(checkbox('A slice of your bookmarks listing - choose my own page range')).toBeTruthy();
+    expect(checkbox('A slice of your bookmarks listing - choose my own date range')).toBeTruthy();
+    expect(element.querySelector('.slice-order-hint')).toBeNull();
+    checkbox('choose my own page range')!.click();
+    await fixture.whenStable();
     // the slice walks the listing sorted by date bookmarked (sorted_bookmarks_link)
-    expect(slice?.textContent).toContain('in the order you bookmarked them, newest first');
+    expect(element.querySelector('.slice-order-hint')!.textContent).toContain(
+      'in the order you bookmarked them, newest first');
   });
 
   it('starts the link box with a work number handed over from a listing', async () => {
@@ -2690,7 +2694,7 @@ describe('DownloadDialog', () => {
   it('keeps the custom run date range worded as a single walk by date updated', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Choose my own date range')!.click();
+    checkbox('choose my own date range')!.click();
     await fixture.whenStable();
 
     const said = element.querySelector('.body')?.textContent ?? '';
@@ -3192,7 +3196,7 @@ describe('DownloadDialog', () => {
     // looking every work up on AO3 is the default, so there is no warning until the index is chosen
     expect(element.querySelector('.skip-index-warning')).toBeNull();
     // an alternative to the others: choosing it puts the date range away
-    expect(checkbox('Choose my own date range')!.checked).toBe(false);
+    expect(checkbox('choose my own date range')!.checked).toBe(false);
     await advanceTo('running');
     expect(jobs.started[0].options).toMatchObject({ reindex: false, dates: false, pages: 0 });
   });

@@ -295,8 +295,13 @@
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'pages'"
                        (change)="coverage.set('pages')" />
-                <span>A slice of your bookmarks listing - in the order you bookmarked them, newest first</span>
+                <span>A slice of your bookmarks listing - choose my own page range</span>
               </label>
+              @if (coverage() === 'pages') {
+                <p class="hint nested slice-order-hint">
+                  Orders your bookmarks in the order you bookmarked them, newest first.
+                </p>
+              }
             } @else {
               <!-- the next page lists the scans that can be measured back to -->
               <label class="check">
@@ -325,7 +330,7 @@
                       your AO3 bookmarks, bookmarked or updated on AO3 within the range.
                     </span>
                   } @else {
-                    Choose my own date range
+                    A slice of your bookmarks listing - choose my own date range
                   }
                 </span>
               </label>
