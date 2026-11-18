@@ -45,7 +45,6 @@ INI_NAME_LENGTH = 'FileNameLength'
 INI_NAME_PATTERN = 'FileNamePattern'
 INI_DEBUG_LOGGING = 'EnableDebugLogging'
 # adds a debug panel to the download window. for working on the app, not for using it.
-INI_DEBUG_TOOLS = 'EnableDebugTools'
 # prints every request and every line a run says to the helper's own console
 INI_CONSOLE_LOGGING = 'EnableConsoleLogging'
 # how long a background run may sit paused before the helper abandons it

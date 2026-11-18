@@ -631,7 +631,7 @@ describe('DownloadDialog', () => {
    * options step at all.
    */
   async function openQuickDates() {
-    jobs.settingsOverride = { ...CONFIG.settings!, debugTools: true };
+    debugOn();
     await open('quick');
     await advanceTo('options');
   }
@@ -2743,7 +2743,7 @@ describe('DownloadDialog', () => {
     checkbox('Date updated')!.click();
     await fixture.whenStable();
     expect(element.querySelector('.slice-order-hint')!.textContent).toContain(
-      'in the order AO3 last updated them, newest first');
+      'in the order they were last updated on AO3, newest first');
 
     await advanceTo('running');
     expect(jobs.started[0].options).toMatchObject({ dates: false, order: 'updated' });
@@ -3347,19 +3347,19 @@ describe('DownloadDialog', () => {
   // region the debug panel
 
   async function runningWithDebug(on: boolean) {
-    jobs.settingsOverride = { ...CONFIG.settings!, debugTools: on };
+    if (on) debugOn();
     await open('sync');
     await advanceTo('running');
   }
 
-  it('hides the debug panel unless settings.ini asks for it', async () => {
+  it('hides the debug panel unless debug mode is on', async () => {
     // skipping a step really skips it, so this is not something to leave lying about
     await runningWithDebug(false);
 
     expect(element.querySelector('.settings.debug')).toBeNull();
   });
 
-  it('shows the debug panel when settings.ini asks for it', async () => {
+  it('shows the debug panel while debug mode is on', async () => {
     await runningWithDebug(true);
 
     const panel = element.querySelector('.settings.debug');

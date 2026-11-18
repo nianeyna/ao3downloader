@@ -13,7 +13,7 @@ A **run** is one press of a button: it logs in to AO3, indexes, downloads, and r
 | **Index my collections** | Collections | Your own collections | 1 request per 20 works |
 | **Index collection by URL** | Collections | Any collection, from a link | 1 request per 20 works |
 
-Three more - *new bookmarks + incomplete fics*, *just incomplete*, *just new bookmarks* - are the pieces Quick Scan is made of. They only show when `EnableDebugTools=true` in [[Settings]].
+Three more - *new bookmarks + incomplete fics*, *just incomplete*, *just new bookmarks* - are the pieces Quick Scan is made of. They only show while **debug mode** is on (User settings, under *Advanced*), which also turns on the quick scan's date range and a debug panel in the run window.
 
 ## Quick Scan
 

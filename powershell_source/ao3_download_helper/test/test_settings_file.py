@@ -68,7 +68,7 @@ def test_the_real_template_has_every_setting_the_helper_reads():
     names = [key for key, _ in settings_file.blocks_of(settings_file.template_text())]
     for key in (strings.INI_HELPER_URL, strings.INI_REQUIRE_PASSCODE, strings.INI_PAGE_ORIGIN,
                 strings.INI_CONSOLE_LOGGING, strings.INI_PAUSED_RUN_TIMEOUT,
-                strings.INI_WAIT_TIME, strings.INI_DEBUG_TOOLS):
+                strings.INI_WAIT_TIME):
         assert key in names, key
 
 # endregion

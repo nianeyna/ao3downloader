@@ -643,7 +643,6 @@ def read_settings(fileops: FileOps) -> dict:
         'maxRetries': fileops.get_ini_value_integer(strings.INI_MAX_RETRIES, 0),
         'maxTimeouts': fileops.get_ini_value_integer(strings.INI_MAX_TIMEOUTS, 3),
         'debugLogging': fileops.get_ini_value_boolean(strings.INI_DEBUG_LOGGING, False),
-        'debugTools': fileops.get_ini_value_boolean(strings.INI_DEBUG_TOOLS, False),
         'consoleLogging': fileops.get_ini_value_boolean(strings.INI_CONSOLE_LOGGING, False),
         # how long a paused background run is kept before it is abandoned - the page warns
         # with this number before a background run is paused

@@ -1187,12 +1187,12 @@ export class DownloadDialog implements OnDestroy {
   protected readonly settings = computed(() => this.config()?.settings ?? null);
 
   /**
-   * Whether settings.ini has turned on the debug panel.
+   * Whether debug mode is on: the debug panel, and the quick scan's date range.
    *
    * Off unless deliberately asked for: skipping a step really does skip it, and what that
    * step would have done does not happen.
    */
-  protected readonly debugTools = computed(() => !!this.settings()?.debugTools);
+  protected readonly debugTools = computed(() => this.debugMode.on());
   /** set once a skip has been asked for, so it cannot be sent twice by accident */
   protected readonly skipping = signal(false);
 

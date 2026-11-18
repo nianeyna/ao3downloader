@@ -135,8 +135,6 @@ describe('Library', () => {
 
   it('shows debug mode\'s dummy data instead of the real library, the same library for either choice', async () => {
     store.recalled = handle();
-    // a downloaded app offers debug mode only with settings.ini's EnableDebugTools on
-    TestBed.inject(Jobs).config.set({ ...BUILT_IN_CONFIG, settings: { debugTools: true } } as ServerConfig);
     TestBed.inject(DebugMode).set(true);
     TestBed.inject(DummyData).set(true);
 

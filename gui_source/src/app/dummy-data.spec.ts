@@ -57,7 +57,6 @@ describe('DummyData', () => {
   it('is only in force while debug mode is on', () => {
     const dummy = TestBed.inject(DummyData);
     const debug = TestBed.inject(DebugMode);
-    TestBed.inject(Jobs).config.set({ ...BUILT_IN_CONFIG, settings: { debugTools: true } } as ServerConfig);
     dummy.set(true);
     expect(localStorage.getItem(DUMMY_DATA_KEY)).toBe('on');
     expect(dummy.active()).toBe(false);

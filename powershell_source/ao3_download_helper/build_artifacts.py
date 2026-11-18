@@ -625,9 +625,10 @@ first one you already have, then downloads what it found. It is the first pass o
 combined run, on its own.
 
 Those three are the individual passes **Quick Scan** and **(Full scan) Reindex &
-Update All** are built from, so they are off by default. Set `EnableDebugTools=true` in
-`config/settings.ini` to show them - they appear in red, prefixed **[DEBUG]**, because
-reaching for one part when you wanted the whole is the easy mistake to make.
+Update All** are built from, so they are off by default. Turn on **debug mode** (User
+settings, under *Advanced*) to show them - they appear in red, prefixed **[DEBUG]**, because
+reaching for one part when you wanted the whole is the easy mistake to make. Debug mode also
+offers the quick scan a date range of its own, and a debug panel in the run window.
 
 ### Collections
 

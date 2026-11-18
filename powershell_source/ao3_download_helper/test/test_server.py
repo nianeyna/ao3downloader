@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from source_code import exceptions, parse_text, progress, server, strings
+from source_code import exceptions, parse_text, progress, server, settings_file, strings
 from source_code.fileio import FileOps as RealFileOps
 from source_code.storage import LocalStorage
 
@@ -1618,17 +1618,15 @@ def test_asking_an_unknown_job_to_skip_says_so():
     assert sent['status'] == 404
 
 
-def test_the_debug_panel_is_off_unless_settings_ini_turns_it_on(fake_environment):
-    # it is for working on the app, not for using it, and skipping really does skip
+def test_the_debug_tools_are_not_a_setting_any_more(fake_environment):
+    # debug mode, the page's own switch, turns them on: settings.ini no longer has a say
     fileops = fake_environment['fileops']
-    fileops.get_ini_value_boolean.return_value = False
+    fileops.get_ini_value_boolean.return_value = True
     # read_settings builds the example file name, which does arithmetic on this
     fileops.get_ini_value_integer.return_value = 50
 
-    assert server.read_settings(fileops)['debugTools'] is False
-
-    fileops.get_ini_value_boolean.return_value = True
-    assert server.read_settings(fileops)['debugTools'] is True
+    assert 'debugTools' not in server.read_settings(fileops)
+    assert 'EnableDebugTools' not in settings_file.template_text()
 
 # endregion
 

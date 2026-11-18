@@ -503,8 +503,7 @@
 
   <!-- always the last section on the page, folded away. A guest's holds only the owner's way in
        (`GuestMode.openLogin`); anyone else's holds the file naming (a helper on this computer
-       only) and debug mode (on a downloaded app only when settings.ini's EnableDebugTools is
-       true, `DebugMode.allowed`) - neither ever shown to a guest, a preview included -->
+       only) and debug mode (`DebugMode.allowed`, the one switch for every debug tool) - neither ever shown to a guest, a preview included -->
   @if (guest()) {
     @if (guestMode.loginOffered()) {
       <details class="group advanced guest-faded">
@@ -648,7 +647,7 @@
                    (change)="setDebugMode($any($event.target).checked)" />
             <span>
               Turn on debug mode
-              <span class="hint">Shows a banner at the top and a DEBUG tab with tools for trying the app out - such as a mock of Resolve issues found in your library that touches no real files.</span>
+              <span class="hint">Shows a banner at the top and a DEBUG tab with tools for trying the app out - such as a mock of Resolve issues found in your library that touches no real files. It also turns on the [DEBUG] runs, the quick scan's date range and a debug panel in the run window, for working on the app rather than using it.</span>
             </span>
           </label>
         </div>

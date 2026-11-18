@@ -69,7 +69,7 @@ def test_a_setup_that_could_not_work_is_refused_at_build_time(change, reason):
 @pytest.mark.parametrize('key, variable', [
     ('ExtraWaitTime', 'EXTRA_WAIT_TIME'), ('MaxRetries', 'MAX_RETRIES'),
     ('MaxTimeouts', 'MAX_TIMEOUTS'), ('FileNameLength', 'FILE_NAME_LENGTH'),
-    ('EnableDebugLogging', 'ENABLE_DEBUG_LOGGING'), ('EnableDebugTools', 'ENABLE_DEBUG_TOOLS'),
+    ('EnableDebugLogging', 'ENABLE_DEBUG_LOGGING'), ('EnableConsoleLogging', 'ENABLE_CONSOLE_LOGGING'),
     ('HelperUrl', 'HELPER_URL'), ('RequirePasscode', 'REQUIRE_PASSCODE'),
     ('PageOrigin', 'PAGE_ORIGIN'),
 ])
@@ -132,7 +132,7 @@ def test_the_password_setting_is_left_out_as_the_bundle_leaves_it_out():
 @pytest.mark.parametrize('variable, value, reason', [
     ('EXTRA_WAIT_TIME', 'fifteen', 'whole number'),
     ('MAX_RETRIES', '-1', 'whole number'),
-    ('ENABLE_DEBUG_TOOLS', 'sometimes', 'true or false'),
+    ('ENABLE_DEBUG_LOGGING', 'sometimes', 'true or false'),
 ])
 def test_a_value_of_the_wrong_kind_fails_the_build_naming_the_variable(variable, value, reason):
     with pytest.raises(DeployError, match=variable) as refused:
@@ -141,8 +141,8 @@ def test_a_value_of_the_wrong_kind_fails_the_build_naming_the_variable(variable,
 
 
 def test_booleans_are_written_the_way_the_template_writes_them():
-    written = deploy_config.write_settings({**HOSTED, 'ENABLE_DEBUG_TOOLS': 'Yes'}, template())
-    assert 'EnableDebugTools=true' in written
+    written = deploy_config.write_settings({**HOSTED, 'ENABLE_DEBUG_LOGGING': 'Yes'}, template())
+    assert 'EnableDebugLogging=true' in written
 
 
 def test_the_variables_arrive_as_json_from_the_workflow():

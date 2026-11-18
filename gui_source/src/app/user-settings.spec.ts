@@ -35,7 +35,7 @@ const CONFIG: ServerConfig = {
 
 const INI: IniSetting[] = [
   { key: 'ExtraWaitTime', value: '15', default: '40', kind: 'integer', about: 'seconds to wait' },
-  { key: 'EnableDebugTools', value: 'false', default: 'false', kind: 'boolean', about: 'a debug panel' },
+  { key: 'EnableDebugLogging', value: 'false', default: 'false', kind: 'boolean', about: 'more in the log file' },
 ];
 
 let fixture: ComponentFixture<UserSettings>;
@@ -163,7 +163,6 @@ describe('UserSettings', () => {
   });
 
   it('folds the file naming and debug mode under Advanced, last of all, for anyone not a guest', async () => {
-    TestBed.inject(Jobs).config.set({ ...CONFIG, settings: { ...CONFIG.settings!, debugTools: true } });
     await open();
     const advanced = element.querySelector<HTMLDetailsElement>('details.advanced')!;
     expect(advanced.open).toBe(false);
@@ -262,7 +261,6 @@ describe('UserSettings', () => {
   });
 
   it('never shows a guest the file naming or debug mode, a preview included', async () => {
-    TestBed.inject(Jobs).config.set({ ...CONFIG, settings: { ...CONFIG.settings!, debugTools: true } });
     TestBed.inject(HelperConnection).guest.set(true);
     TestBed.inject(GuestMode).preview.set(true);
     await open();
@@ -553,7 +551,7 @@ describe('UserSettings', () => {
     await open();
 
     const rows = Array.from(element.querySelectorAll('.ini [data-setting]'));
-    expect(rows.map((r) => r.getAttribute('data-setting'))).toEqual(['ExtraWaitTime', 'EnableDebugTools']);
+    expect(rows.map((r) => r.getAttribute('data-setting'))).toEqual(['ExtraWaitTime', 'EnableDebugLogging']);
     expect(element.querySelector('.ini')?.textContent).toContain('/home/me/config/settings.ini');
     expect(rows[0].textContent).toContain('seconds to wait');
   });
@@ -579,10 +577,10 @@ describe('UserSettings', () => {
   it('writes a true/false setting as soon as it is picked', async () => {
     await open();
 
-    choose('[data-setting="EnableDebugTools"] select', 'true');
+    choose('[data-setting="EnableDebugLogging"] select', 'true');
     await settle();
 
-    expect(posted).toEqual([{ EnableDebugTools: 'true' }]);
+    expect(posted).toEqual([{ EnableDebugLogging: 'true' }]);
   });
 
   it('offers a question\'s default answer as a list of the answers it has', async () => {
@@ -764,23 +762,16 @@ describe('UserSettings', () => {
   // endregion
   // region where it is kept, and putting it all back
 
-  it('offers debug mode on a downloaded app only when settings.ini turns on EnableDebugTools', async () => {
+  it('offers debug mode on a downloaded app, now that it is the one switch for every debug tool', async () => {
     localStorage.setItem('ao3.debugMode', 'on');
     await open();
-    expect(element.querySelector('.debug-mode')).toBeNull();
-    // what this browser saved is not in force where it is not allowed
-    expect(TestBed.inject(DebugMode).on()).toBe(false);
-
-    TestBed.inject(Jobs).config.set({ ...CONFIG, settings: { debugTools: true } } as ServerConfig);
-    fixture.detectChanges();
-    await fixture.whenStable();
     expect(element.querySelector('.debug-mode')).not.toBeNull();
     expect(TestBed.inject(DebugMode).on()).toBe(true);
+    expect(element.querySelector('.debug-mode')!.textContent).toContain('[DEBUG] runs');
     localStorage.removeItem('ao3.debugMode');
   });
 
   it('says at the top right of every section where it is saved, Advanced always last', async () => {
-    TestBed.inject(Jobs).config.set({ ...CONFIG, settings: { ...CONFIG.settings!, debugTools: true } });
     await open();
 
     const sections = [...element.querySelectorAll('.group')];
