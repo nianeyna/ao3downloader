@@ -292,11 +292,26 @@
             </label>
 
             @if (action() !== 'quick') {
+              <!-- one choice, with the two ways of slicing it nested under it: the page range or the
+                   date range, each still its own coverage underneath -->
               <label class="check">
-                <input type="radio" name="coverage" [checked]="coverage() === 'pages'"
-                       (change)="coverage.set('pages')" />
-                <span>A slice of your bookmarks listing <em>(Choose my own page range)</em></span>
+                <input type="radio" name="coverage" [checked]="coverage() === 'pages' || coverage() === 'dates'"
+                       (change)="coverage.set(sliceBy())" />
+                <span>A slice of your bookmarks listing</span>
               </label>
+              <!-- always shown, so either can be picked straight away; picking one picks the slice -->
+              <div class="slice-options">
+                <label class="check">
+                  <input type="radio" name="sliceBy" value="pages" [checked]="coverage() === 'pages'"
+                         (change)="chooseSlice('pages')" />
+                  <span>Choose my own page range</span>
+                </label>
+                <label class="check">
+                  <input type="radio" name="sliceBy" value="dates" [checked]="coverage() === 'dates'"
+                         (change)="chooseSlice('dates')" />
+                  <span>Choose my own date range</span>
+                </label>
+              </div>
             } @else {
               <!-- the next page lists the scans that can be measured back to -->
               <label class="check">
@@ -312,21 +327,18 @@
               </label>
             }
 
-            @if (picksDates()) {
+            <!-- the quick scan's own date range: only reachable with debug mode on; see picksDates.
+                 a custom run's is nested under its slice, above -->
+            @if (picksDates() && action() === 'quick') {
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'dates'"
                        (change)="coverage.set('dates')" />
                 <span>
-                  @if (action() === 'quick') {
-                    <!-- only reachable with the debug tools on; see picksDates -->
-                    [DEBUG] Choose my own date range
-                    <span class="hint coverage-hint">
-                      A work with no index entry yet is picked up and checked only if it is one of
-                      your AO3 bookmarks, bookmarked or updated on AO3 within the range.
-                    </span>
-                  } @else {
-                    A slice of your bookmarks listing <em>(Choose my own date range)</em>
-                  }
+                  [DEBUG] Choose my own date range
+                  <span class="hint coverage-hint">
+                    A work with no index entry yet is picked up and checked only if it is one of
+                    your AO3 bookmarks, bookmarked or updated on AO3 within the range.
+                  </span>
                 </span>
               </label>
             }

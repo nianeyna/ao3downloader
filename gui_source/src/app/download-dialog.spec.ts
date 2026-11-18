@@ -267,11 +267,36 @@ async function toPageOptions() {
 }
 
 describe('DownloadDialog', () => {
+  it('nests the page range and the date range under one slice of the bookmarks listing', async () => {
+    await open('custom');
+    await advanceTo('options');
+    const slice = checkbox('A slice of your bookmarks listing')!;
+    const nested = element.querySelector('.slice-options')!;
+    expect([...nested.querySelectorAll('label.check')].map((l) => l.textContent?.trim())).toEqual(
+      ['Choose my own page range', 'Choose my own date range']);
+    expect(slice.checked).toBe(false);
+
+    // picking one of the two picks the slice
+    checkbox('Choose my own date range')!.click();
+    await fixture.whenStable();
+    expect(slice.checked).toBe(true);
+    expect(element.querySelector('input[name=dateFrom]')).toBeTruthy();
+
+    // and picking the slice again, after something else, goes back to the one last picked
+    checkbox('All bookmarks')!.click();
+    await fixture.whenStable();
+    expect(slice.checked).toBe(false);
+    slice.click();
+    await fixture.whenStable();
+    expect(checkbox('Choose my own date range')!.checked).toBe(true);
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ dates: true });
+  });
+
   it('says what order a slice of the bookmarks listing is in, once it is chosen', async () => {
     await open('custom');
     await advanceTo('options');
-    expect(checkbox('A slice of your bookmarks listing (Choose my own page range)')).toBeTruthy();
-    expect(checkbox('A slice of your bookmarks listing (Choose my own date range)')).toBeTruthy();
+    expect(checkbox('A slice of your bookmarks listing')).toBeTruthy();
     expect(element.querySelector('.slice-order-hint')).toBeNull();
     checkbox('Choose my own page range')!.click();
     await fixture.whenStable();
@@ -1171,7 +1196,7 @@ describe('DownloadDialog', () => {
     expect(element.querySelector('input[name="start"]')).toBeNull();
     expect(element.querySelector('input[name="pages"]')).toBeNull();
 
-    checkbox('bookmarks listing')!.click();
+    checkbox('page range')!.click();
     await fixture.whenStable();
 
     expect(element.querySelector('input[name="start"]')).not.toBeNull();

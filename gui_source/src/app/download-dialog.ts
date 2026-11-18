@@ -492,6 +492,15 @@ export class DownloadDialog implements OnDestroy {
    * at what that shape always did: a slice of pages by date bookmarked, a date range by date
    * updated. Nothing changes for a run where it is left alone.
    */
+  /**
+   * Which slice the custom run's *A slice of your bookmarks listing* opens on: the one last
+   * picked under it, so choosing the slice again after something else takes it back there.
+   */
+  protected readonly sliceBy = signal<'pages' | 'dates'>('pages');
+  protected chooseSlice(by: 'pages' | 'dates'): void {
+    this.sliceBy.set(by);
+    this.coverage.set(by);
+  }
   protected readonly pagesOrder = signal<'bookmarked' | 'updated'>('bookmarked');
   protected readonly datesOrder = signal<'bookmarked' | 'updated'>('updated');
   /** the order offered, and sent, for the shape chosen - a custom run's slice or range alone */
