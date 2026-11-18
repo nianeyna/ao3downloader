@@ -4,6 +4,7 @@ import { readUnindexedFile, unindexedRows, LOOSE_PREFIX } from './unindexed-work
 import { WorksFile } from './library';
 import { WorkList } from './work-list';
 import { Bookmark } from './bookmarks';
+import { Jobs } from './jobs';
 
 /**
  * Files in works/ that no index entry matches are still listed, from what their names say -
@@ -117,7 +118,23 @@ describe('files no index entry matches', () => {
     expect(element.querySelector('.badge.not-in-index')).not.toBeNull();
     expect(Array.from(element.querySelectorAll('button.format')).map((b) => b.textContent?.trim())).toEqual(['PDF']);
     expect(element.querySelector('.datetime')?.getAttribute('title')).toBe('The date in its file name');
-    expect(element.querySelector('.download-now')).not.toBeNull();
+    expect(element.querySelector('.download-now')?.textContent).toContain('download the latest version of this work');
+    expect(element.querySelector('.resolve-now')?.textContent).toContain('Look up its index from AO3 here');
+  });
+
+  it('says where a date came from when it is not written the apps way', async () => {
+    const element = await listed(unindexedRows([
+      file('A Title - Writer - 123 (May 6 2024).epub'), file('9 B - W.html', Date.UTC(2023, 2, 4)),
+    ], nothingIndexed));
+    const said = Array.from(element.querySelectorAll('.datetime')).map((d) => d.textContent?.trim());
+    expect(said).toEqual(['2024-05-06 (best guess from filename)', '2023-03-04 (from filedate)']);
+  });
+
+  it('asks for Resolve issues when its look-up link is pressed', async () => {
+    const element = await listed(unindexedRows([file('123 A Title - Writer.html')], nothingIndexed));
+    const jobs = TestBed.inject(Jobs);
+    element.querySelector<HTMLButtonElement>('.resolve-now')!.click();
+    expect(jobs.resolveIssuesAsked()).toBe(1);
   });
 
   it('offers nothing to tick, hide or fetch for a file with no work number', async () => {

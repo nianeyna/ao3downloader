@@ -455,6 +455,14 @@ export class App {
         this.openRun(works.length === 1 ? 'work' : 'works', works.join('\n'));
       });
     });
+    // 'look up its index' on a file no index entry matches: Resolve issues, as the reminder opens it
+    effect(() => {
+      if (!this.jobs.resolveIssuesAsked()) return;
+      untracked(() => {
+        this.jobs.resolveIssuesAsked.set(0);
+        this.openImport();
+      });
+    });
     effect(() => {
       const read = this.library.lastRead();
       if (read) untracked(() => void this.jobs.settleInterrupted(read.store));

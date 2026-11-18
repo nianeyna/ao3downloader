@@ -368,7 +368,7 @@
         -->
         <div class="blurb-corner">
           <p class="corner-line">
-            <span class="datetime" [title]="unindexedDateTitle(work)">{{ work.date_updated }}@if (work.unindexed_date === 'guessed') {<span class="date-source"> (a guess)</span>} @else if (work.unindexed_date === 'file') {<span class="date-source"> (file changed)</span>}</span>
+            <span class="datetime" [title]="unindexedDateTitle(work)">{{ work.date_updated }}@if (work.unindexed_date === 'guessed') {<span class="date-source"> (best guess from filename)</span>} @else if (work.unindexed_date === 'file') {<span class="date-source"> (from filedate)</span>}</span>
             <span class="origin-icon external" role="img" [attr.aria-label]="originLabel(work)" [title]="originLabel(work)">
               <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5v8.5M4.8 6.8L8 10l3.2-3.2M2.5 10.5v3h11v-3"/></svg>
             </span>
@@ -392,13 +392,17 @@
           </h4>
         </div>
         <p class="not-indexed unindexed-note">
+          A file in your library with no index entry. We've tried to infer its details from the
+          filename.
           @if (isLoose(work)) {
-            A file in your library with no work number in its name, so it cannot be matched to a
-            work on AO3. Shown from its file name.
+            Its name has no work number, so it cannot be matched to a work on AO3.
           } @else {
-            A file in your library with no index entry, shown from its file name. Resolve issues can
-            look it up on AO3, or
-            <button type="button" class="link-button download-now" (click)="downloadNow(work)">download it now</button>.
+            <button type="button" class="link-button resolve-now" [disabled]="runGoing()"
+              [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
+              (click)="resolveIssues()">Look up its index from AO3 here</button>, or
+            <button type="button" class="link-button download-now" [disabled]="runGoing()"
+              [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
+              (click)="downloadNow(work)">download the latest version of this work</button>.
           }
         </p>
       } @else {

@@ -937,6 +937,11 @@ export class WorkList {
    * The work's newest copy in a format: from the library's copies by work number, or - for a
    * file no index entry matches - from the files its row was made from.
    */
+  /** opens Resolve issues, which looks a file with no index entry up on AO3 */
+  protected resolveIssues(): void {
+    if (!this.runGoing()) this.jobs.resolveIssuesAsked.update((n) => n + 1);
+  }
+
   /** a row for a file whose name holds no work number: nothing to hide, tick or fetch it by */
   protected isLoose(work: Bookmark): boolean {
     return !!work.unindexed && !!work.id?.startsWith(LOOSE_PREFIX);

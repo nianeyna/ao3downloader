@@ -695,6 +695,11 @@ export class Jobs {
    * link box; nothing else reads it.
    */
   readonly fetchWorksAsked = signal<string[] | null>(null);
+  /**
+   * Resolve issues asked for from a listing - the *look up its index* link on a file no index
+   * entry matches. `App` takes it and opens the window, as the reminder's button does.
+   */
+  readonly resolveIssuesAsked = signal(0);
 
   async loadConfig(): Promise<ServerConfig | null> {
     try {
