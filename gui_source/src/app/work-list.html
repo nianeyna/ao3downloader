@@ -368,7 +368,7 @@
         -->
         <div class="blurb-corner">
           <p class="corner-line">
-            <span class="datetime" [title]="unindexedDateTitle(work)">{{ work.date_updated }}@if (work.unindexed_date === 'guessed') {<span class="date-source"> (best guess from filename)</span>} @else if (work.unindexed_date === 'file') {<span class="date-source"> (from filedate)</span>}</span>
+            <span class="datetime" [title]="unindexedDateTitle(work)">{{ work.date_updated }}@if (work.unindexed_date === 'guessed') {<span class="date-source"> (best guess from filename)</span>} @else if (work.unindexed_date === 'file') {<span class="date-source"> (best guess from filedate)</span>}</span>
             <span class="origin-icon external" role="img" [attr.aria-label]="originLabel(work)" [title]="originLabel(work)">
               <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5v8.5M4.8 6.8L8 10l3.2-3.2M2.5 10.5v3h11v-3"/></svg>
             </span>

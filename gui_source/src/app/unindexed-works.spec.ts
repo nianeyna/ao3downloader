@@ -129,7 +129,7 @@ describe('files no index entry matches', () => {
       file('A Title - Writer - 123 (May 6 2024).epub'), file('9 B - W.html', Date.UTC(2023, 2, 4)),
     ], nothingIndexed));
     const said = Array.from(element.querySelectorAll('.datetime')).map((d) => d.textContent?.trim());
-    expect(said).toEqual(['2024-05-06 (best guess from filename)', '2023-03-04 (from filedate)']);
+    expect(said).toEqual(['2024-05-06 (best guess from filename)', '2023-03-04 (best guess from filedate)']);
   });
 
   it('asks for Resolve issues when its look-up link is pressed', async () => {
