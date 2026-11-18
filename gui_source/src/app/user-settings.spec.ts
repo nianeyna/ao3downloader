@@ -20,7 +20,7 @@ import { IMPORT_EXCLUDED_FILE, LibraryImports } from './imports';
 import { Library } from './library';
 import { LibraryStore } from './library-store';
 import { CUSTOM_FONT, CUSTOM_FONT_KEY, FONT_KEY, PALETTES, PALETTE_KEY, paletteById } from './appearance';
-import { CHIME_KEY, Chime, ChimePlayer } from './chime';
+import { CHIME_KEY, CHIME_SOUND_KEY, Chime, ChimePlayer } from './chime';
 import { IniSetting, TOAST_MS, UserSettings } from './user-settings';
 import { GuestMode } from './guest';
 import { RUN_LOG_LINES_KEY, RUN_LOG_LINES_MIN, TRIM_OLD_RUN_LOGS_KEY } from './run-logs';
@@ -297,6 +297,27 @@ describe('UserSettings', () => {
     expect(TestBed.inject(Chime).on()).toBe(true);
   });
 
+
+  it('offers a choice of sounds, plays the one chosen, and puts the bell back on reset', async () => {
+    const play = vi.spyOn(TestBed.inject(ChimePlayer), 'play').mockImplementation(() => {});
+    await open();
+    const select = element.querySelector<HTMLSelectElement>('.appearance select[name="waitChimeSound"]')!;
+    expect([...select.options].map((o) => o.textContent?.trim())).toEqual(
+      ['Bell', 'Fairy sparkle', 'Soft ping', 'Harp']);
+    expect(select.value).toBe('bell');
+
+    select.value = 'sparkle';
+    select.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    // choosing one plays it, and saves it to this browser
+    expect(play.mock.calls.at(-1)![0]!.id).toBe('sparkle');
+    expect(localStorage.getItem(CHIME_SOUND_KEY)).toBe('sparkle');
+    element.querySelector<HTMLButtonElement>('.appearance button.play-chime')!.click();
+    expect(play.mock.calls.at(-1)![0]!.id).toBe('sparkle');
+
+    TestBed.inject(Chime).choose('bell');
+    expect(localStorage.getItem(CHIME_SOUND_KEY)).toBeNull();
+  });
   it('changes the palette at once, keeps it in this browser, and offers it to Reset', async () => {
     await open();
     expect(element.querySelectorAll('.palette').length).toBe(PALETTES.length);

@@ -1,12 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CHIME_GAP_MS, CHIME_KEY, Chime, ChimePlayer } from './chime';
+import { CHIME_GAP_MS, CHIME_KEY, CHIME_SOUND_KEY, CHIME_SOUNDS, Chime, ChimePlayer, soundById } from './chime';
 
 /** counts dings instead of making a sound */
 export class CountingPlayer extends ChimePlayer {
   played = 0;
-  override play(): void {
+  sounds: string[] = [];
+  override play(sound?: { id: string }): void {
     this.played++;
+    if (sound) this.sounds.push(sound.id);
   }
 }
 
@@ -81,4 +83,20 @@ describe('Chime', () => {
   });
 
   // endregion
+
+  it('rings the sound this browser chose, and the bell for one no longer offered', () => {
+    localStorage.setItem(CHIME_SOUND_KEY, 'harp');
+    const c = chime();
+    c.waiting();
+    expect(player.sounds).toEqual(['harp']);
+    expect(soundById('kazoo').id).toBe('bell');
+  });
+
+  it('keeps every sound short and quiet enough to be a notification', () => {
+    for (const sound of CHIME_SOUNDS) {
+      const end = Math.max(...sound.notes.map((n) => n.at + n.decay));
+      expect(end, sound.id).toBeLessThan(2);
+      for (const n of sound.notes) expect(n.gain, sound.id).toBeLessThanOrEqual(0.25);
+    }
+  });
 });

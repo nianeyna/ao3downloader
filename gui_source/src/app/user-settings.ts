@@ -57,7 +57,7 @@ import {
   savedTrimOldRunLogs,
 } from './run-logs';
 import { VISIT_LOG_LIMIT, VISIT_LOG_MAX, VISIT_LOG_MIN, VisitLog } from './visit-log';
-import { Chime } from './chime';
+import { CHIME_SOUNDS, Chime, DEFAULT_SOUND, soundById } from './chime';
 import { Appearance, CUSTOM_FONT, DEFAULT_FONT, DEFAULT_PALETTE, FONTS, FONT_GROUPS, PALETTES, fontById, fontStack, paletteById } from './appearance';
 
 export type Asking = 'ask' | 'skip';
@@ -172,6 +172,7 @@ export class UserSettings implements OnDestroy {
 
   protected readonly appearance = inject(Appearance);
   protected readonly chime = inject(Chime);
+  protected readonly chimeSounds = CHIME_SOUNDS;
   protected readonly palettes = PALETTES;
   protected readonly fonts = FONTS;
   protected readonly fontGroups = FONT_GROUPS;
@@ -218,6 +219,12 @@ export class UserSettings implements OnDestroy {
   protected setChime(on: boolean): void {
     this.chime.set(on);
     this.say(on ? 'Saved: the page dings when it is waiting for you' : 'Saved: no sound when the page is waiting for you');
+  }
+
+  protected setChimeSound(id: string): void {
+    this.chime.choose(id);
+    this.chime.sample();
+    this.say(`Saved: the sound is ${soundById(id).name}`);
   }
 
   /** sent on change, like a settings.ini box, so the page does not jump about mid-word */
@@ -591,6 +598,10 @@ export class UserSettings implements OnDestroy {
     if (!this.chime.on()) {
       changes.push({ group: 'Appearance', name: 'Sound when waiting for you', current: 'Off', default: 'On' });
     }
+    if (this.chime.sound() !== DEFAULT_SOUND) {
+      changes.push({ group: 'Appearance', name: 'Sound', current: soundById(this.chime.sound()).name,
+                     default: soundById(DEFAULT_SOUND).name });
+    }
     const askingNow = this.asking();
     for (const prompt of PROMPTS) {
       if (askingNow[prompt.key] === 'skip') {
@@ -863,6 +874,7 @@ export class UserSettings implements OnDestroy {
   private resetBrowserSettings(): void {
     this.appearance.reset();
     this.chime.set(true);
+    this.chime.choose(DEFAULT_SOUND);
     for (const prompt of PROMPTS) setPromptAsks(prompt, true);
     this.asking.set(Object.fromEntries(PROMPTS.map((p) => [p.key, 'ask' as Asking])));
     this.updates.dismissed.set(false);

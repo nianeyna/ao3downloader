@@ -212,6 +212,14 @@
         <input type="checkbox" name="waitChime" [checked]="chime.on()" (change)="setChime($any($event.target).checked)" />
         Play a sound when the page is waiting for you
       </label>
+      <label class="field chime-sound">
+        <span>Sound</span>
+        <select name="waitChimeSound" (change)="setChimeSound($any($event.target).value)">
+          @for (sound of chimeSounds; track sound.id) {
+            <option [value]="sound.id" [selected]="chime.sound() === sound.id">{{ sound.name }}</option>
+          }
+        </select>
+      </label>
       <button type="button" class="button subtle play-chime" (click)="chime.sample()">Play it</button>
       <p class="hint">A short ding when a run asks you a question, or Resolve issues stops to ask which copy to keep - so you know to come back to this tab.</p>
     </div>

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "bell",
+    "name": "Bell",
+    "about": "two soft bell notes, a fifth apart",
+    "notes": [
+      { "f": 880, "at": 0, "gain": 0.25, "decay": 0.6, "type": "sine" },
+      { "f": 1318.5, "at": 0.12, "gain": 0.25, "decay": 0.6, "type": "sine" }
+    ]
+  },
+  {
+    "id": "sparkle",
+    "name": "Fairy sparkle",
+    "about": "a quick rising run of high notes, then a shimmer",
+    "notes": [
+      { "f": 1568, "at": 0, "gain": 0.12, "decay": 0.45, "type": "sine" },
+      { "f": 1975.5, "at": 0.045, "gain": 0.12, "decay": 0.45, "type": "sine" },
+      { "f": 2349.3, "at": 0.09, "gain": 0.12, "decay": 0.45, "type": "sine" },
+      { "f": 2637, "at": 0.135, "gain": 0.11, "decay": 0.5, "type": "sine" },
+      { "f": 3136, "at": 0.18, "gain": 0.1, "decay": 0.55, "type": "sine" },
+      { "f": 3951, "at": 0.225, "gain": 0.09, "decay": 0.6, "type": "sine" },
+      { "f": 4186, "at": 0.3, "gain": 0.05, "decay": 0.5, "type": "sine" },
+      { "f": 3520, "at": 0.37, "gain": 0.05, "decay": 0.5, "type": "sine" },
+      { "f": 4698.6, "at": 0.44, "gain": 0.04, "decay": 0.55, "type": "sine" },
+      { "f": 3951, "at": 0.52, "gain": 0.03, "decay": 0.6, "type": "sine" }
+    ]
+  },
+  {
+    "id": "ping",
+    "name": "Soft ping",
+    "about": "two short, light notes",
+    "notes": [
+      { "f": 1318.5, "at": 0, "gain": 0.2, "decay": 0.35, "type": "sine" },
+      { "f": 2637, "at": 0, "gain": 0.03, "decay": 0.2, "type": "sine" },
+      { "f": 1760, "at": 0.09, "gain": 0.2, "decay": 0.4, "type": "sine" },
+      { "f": 3520, "at": 0.09, "gain": 0.03, "decay": 0.2, "type": "sine" }
+    ]
+  },
+  {
+    "id": "harp",
+    "name": "Harp",
+    "about": "a gentle rising pluck",
+    "notes": [
+      { "f": 392, "at": 0, "gain": 0.2, "decay": 1.1, "type": "triangle" },
+      { "f": 784, "at": 0, "gain": 0.04, "decay": 0.4, "type": "sine" },
+      { "f": 493.9, "at": 0.07, "gain": 0.2, "decay": 1.1, "type": "triangle" },
+      { "f": 987.8, "at": 0.07, "gain": 0.04, "decay": 0.4, "type": "sine" },
+      { "f": 587.3, "at": 0.14, "gain": 0.2, "decay": 1.1, "type": "triangle" },
+      { "f": 1174.7, "at": 0.14, "gain": 0.04, "decay": 0.4, "type": "sine" },
+      { "f": 784, "at": 0.21, "gain": 0.2, "decay": 1.2, "type": "triangle" },
+      { "f": 1568, "at": 0.21, "gain": 0.04, "decay": 0.45, "type": "sine" },
+      { "f": 987.8, "at": 0.28, "gain": 0.18, "decay": 1.3, "type": "triangle" },
+      { "f": 1975.5, "at": 0.28, "gain": 0.035, "decay": 0.5, "type": "sine" }
+    ]
+  }
+]
