@@ -2736,7 +2736,7 @@ describe('DownloadDialog', () => {
       Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(checkbox('Date bookmarked')!.checked).toBe(true);
     expect(element.querySelector('.slice-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
-      'Reads a slice of your bookmarks to find new or updated works. Orders your bookmarks in the ' +
+      'Reads a slice of your bookmarks to find new or updated works. Fetches your bookmarks in the ' +
       'order you bookmarked them, newest first. This run will fetch all pages');
     expect(element.textContent).not.toContain('positions in the whole listing');
 
