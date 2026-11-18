@@ -299,19 +299,22 @@
                        (change)="coverage.set(sliceBy())" />
                 <span>A slice of your bookmarks listing</span>
               </label>
-              <!-- always shown, so either can be picked straight away; picking one picks the slice -->
-              <div class="slice-options">
-                <label class="check">
-                  <input type="radio" name="sliceBy" value="pages" [checked]="coverage() === 'pages'"
-                         (change)="chooseSlice('pages')" />
-                  <span>Choose my own page range</span>
-                </label>
-                <label class="check">
-                  <input type="radio" name="sliceBy" value="dates" [checked]="coverage() === 'dates'"
-                         (change)="chooseSlice('dates')" />
-                  <span>Choose my own date range</span>
-                </label>
-              </div>
+              <!-- once the slice is picked: the page range ticked to begin with (`sliceBy`), and
+                   the one last picked when the slice is picked again -->
+              @if (coverage() === 'pages' || coverage() === 'dates') {
+                <div class="slice-options">
+                  <label class="check">
+                    <input type="radio" name="sliceBy" value="pages" [checked]="sliceBy() === 'pages'"
+                           (change)="chooseSlice('pages')" />
+                    <span>Choose my own <strong>page range</strong></span>
+                  </label>
+                  <label class="check">
+                    <input type="radio" name="sliceBy" value="dates" [checked]="sliceBy() === 'dates'"
+                           (change)="chooseSlice('dates')" />
+                    <span>Choose my own <strong>date range</strong></span>
+                  </label>
+                </div>
+              }
             } @else {
               <!-- the next page lists the scans that can be measured back to -->
               <label class="check">

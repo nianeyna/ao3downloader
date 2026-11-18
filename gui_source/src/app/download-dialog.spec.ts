@@ -197,6 +197,21 @@ function checkbox(labelText: string): HTMLInputElement | undefined {
     ?.querySelector('input') as HTMLInputElement | undefined;
 }
 
+/**
+ * Picks a custom run's page range or date range: the slice first, which shows the two, then the
+ * one asked for. A quick scan's debug date range has no slice above it, and is picked as it is.
+ */
+async function pickSlice(name: string): Promise<void> {
+  const slice = checkbox('A slice of your bookmarks listing');
+  if (slice && !slice.checked) {
+    slice.click();
+    await fixture.whenStable();
+  }
+  const range = checkbox(name)!;
+  if (!range.checked) range.click();
+  await fixture.whenStable();
+}
+
 function currentStep(): string {
   return element.querySelector('.dialog')?.getAttribute('data-step') ?? '';
 }
@@ -262,31 +277,37 @@ async function advanceTo(target: 'options' | 'filetypes' | 'credentials' | 'runn
 async function toPageOptions() {
   await open('custom');
   await advanceTo('options');
-  checkbox('Choose my own page range')!.click();
+  await pickSlice('Choose my own page range');
   await fixture.whenStable();
 }
 
 describe('DownloadDialog', () => {
-  it('nests the page range and the date range under one slice of the bookmarks listing', async () => {
+  it('nests the page range and the date range under one slice, shown once it is picked', async () => {
     await open('custom');
     await advanceTo('options');
     const slice = checkbox('A slice of your bookmarks listing')!;
+    expect(slice.checked).toBe(false);
+    expect(element.querySelector('.slice-options')).toBeNull();
+
+    // picked, it shows the two with the page range ticked to begin with
+    slice.click();
+    await fixture.whenStable();
     const nested = element.querySelector('.slice-options')!;
     expect([...nested.querySelectorAll('label.check')].map((l) => l.textContent?.trim())).toEqual(
       ['Choose my own page range', 'Choose my own date range']);
-    expect(slice.checked).toBe(false);
+    expect(nested.querySelectorAll('strong').length).toBe(2);
+    expect(checkbox('Choose my own page range')!.checked).toBe(true);
+    expect(element.querySelector('input[name=start]')).toBeTruthy();
 
-    // picking one of the two picks the slice
     checkbox('Choose my own date range')!.click();
     await fixture.whenStable();
-    expect(slice.checked).toBe(true);
     expect(element.querySelector('input[name=dateFrom]')).toBeTruthy();
 
-    // and picking the slice again, after something else, goes back to the one last picked
+    // picking something else puts the two away; picking the slice again takes back the last one
     checkbox('All bookmarks')!.click();
     await fixture.whenStable();
-    expect(slice.checked).toBe(false);
-    slice.click();
+    expect(element.querySelector('.slice-options')).toBeNull();
+    checkbox('A slice of your bookmarks listing')!.click();
     await fixture.whenStable();
     expect(checkbox('Choose my own date range')!.checked).toBe(true);
     await advanceTo('running');
@@ -298,7 +319,7 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
     expect(checkbox('A slice of your bookmarks listing')).toBeTruthy();
     expect(element.querySelector('.slice-order-hint')).toBeNull();
-    checkbox('Choose my own page range')!.click();
+    await pickSlice('Choose my own page range');
     await fixture.whenStable();
     // the slice walks the listing sorted by date bookmarked (sorted_bookmarks_link)
     expect(element.querySelector('.slice-order-hint')!.textContent).toContain(
@@ -1085,7 +1106,7 @@ describe('DownloadDialog', () => {
 
   /** tick the date range, and fill in the dates the chosen shape of window offers */
   async function chooseWindow(from: string, to = '') {
-    checkbox('date range')!.click();
+    await pickSlice('date range');
     await fixture.whenStable();
 
     if (to) {
@@ -1190,13 +1211,13 @@ describe('DownloadDialog', () => {
 
     expect(element.querySelector('input[name="start"]')).not.toBeNull();
 
-    checkbox('date range')!.click();
+    await pickSlice('date range');
     await fixture.whenStable();
 
     expect(element.querySelector('input[name="start"]')).toBeNull();
     expect(element.querySelector('input[name="pages"]')).toBeNull();
 
-    checkbox('page range')!.click();
+    await pickSlice('page range');
     await fixture.whenStable();
 
     expect(element.querySelector('input[name="start"]')).not.toBeNull();
@@ -2682,7 +2703,7 @@ describe('DownloadDialog', () => {
   it('sends a quick scan the date range it was given', async () => {
     await openQuickDates();
 
-    checkbox('Choose my own date range')!.click();
+    await pickSlice('Choose my own date range');
     await fixture.whenStable();
     const from = element.querySelector<HTMLInputElement>('input[name="dateFrom"]')!;
     from.value = '2026-01-01';
@@ -2707,7 +2728,7 @@ describe('DownloadDialog', () => {
   // the same method as the ordinary quick scan, given two dates instead of an earlier scan
   it('explains that a quick scan date range reads by date bookmarked, then by date updated', async () => {
     await openQuickDates();
-    checkbox('Choose my own date range')!.click();
+    await pickSlice('Choose my own date range');
     await fixture.whenStable();
     const from = element.querySelector<HTMLInputElement>('input[name="dateFrom"]')!;
     from.value = '2026-01-01';
@@ -2725,7 +2746,7 @@ describe('DownloadDialog', () => {
   it('reads a custom date range by date updated unless asked to read it by date bookmarked', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Choose my own date range')!.click();
+    await pickSlice('Choose my own date range');
     await fixture.whenStable();
 
     // above the range's own choices, and starting on what a range always did
@@ -2751,7 +2772,7 @@ describe('DownloadDialog', () => {
   it('reads a slice of pages by date bookmarked unless asked to read it by date updated', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Choose my own page range')!.click();
+    await pickSlice('Choose my own page range');
     await fixture.whenStable();
 
     // above the page numbers, starting on what a slice always did
@@ -2784,7 +2805,7 @@ describe('DownloadDialog', () => {
   it('gives a quick scan over a date range its own caveats', async () => {
     await openQuickDates();
 
-    checkbox('Choose my own date range')!.click();
+    await pickSlice('Choose my own date range');
     await fixture.whenStable();
     await walkToNote();
 
@@ -3275,7 +3296,8 @@ describe('DownloadDialog', () => {
     // looking every work up on AO3 is the default, so there is no warning until the index is chosen
     expect(element.querySelector('.skip-index-warning')).toBeNull();
     // an alternative to the others: choosing it puts the date range away
-    expect(checkbox('Choose my own date range')!.checked).toBe(false);
+    expect(checkbox('A slice of your bookmarks listing')!.checked).toBe(false);
+    expect(element.querySelector('.slice-options')).toBeNull();
     await advanceTo('running');
     expect(jobs.started[0].options).toMatchObject({ reindex: false, dates: false, pages: 0 });
   });
