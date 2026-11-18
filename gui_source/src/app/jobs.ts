@@ -163,6 +163,11 @@ export interface JobOptions {
    * `start`/`pages` and `dateFrom`/`dateTo` the helper reads at all.
    */
   dates: boolean;
+  /**
+   * A custom run's order for its slice of pages or its date range: by date bookmarked or by
+   * date updated. Empty is each shape's own - pages by date bookmarked, a range by date updated
+   */
+  order?: '' | 'bookmarked' | 'updated';
   /** inclusive ends of that window, YYYY-MM-DD; empty means no limit at that end */
   dateFrom: string;
   dateTo: string;

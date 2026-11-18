@@ -543,8 +543,14 @@ listing by page number, a **date range**, or **just the works already in your in
 combine - a run cannot be walking a listing and not walking it - so choosing one puts the
 others away.
 
-A date range comes in two shapes, everything updated since a date or between two dates, and
-both ends count.
+A slice of pages or a date range can be read in either order - **by date bookmarked** or
+**by date updated** - chosen under it. A page range reads by date bookmarked unless told
+otherwise, and a date range by date updated, as they always did. Read by date updated, a
+fic ao3 updates moves to the top, so the same pages hold different fics from day to day.
+
+A date range comes in two shapes, everything since a date or between two dates, and both
+ends count. Leave the newer end empty for today, or the older end empty to read all the way
+back.
 
 The last of those **skips walking your bookmarks** and works through every work already
 indexed, bookmarked or not, and asks how a file is judged outdated. **Against the latest on
@@ -562,8 +568,13 @@ earliest date and there is nothing to stop at, so it reads the whole listing. It
 the works in range out of the index, re-reads them one at a time newest first, and downloads
 whatever turns out to be missing or behind.
 
-Works with no recorded update date are never covered by a date range, since there is nothing
-to compare.
+A range of dates bookmarked does the same by the date you bookmarked each work: it reads
+your bookmarks newest bookmarked first, stops at the first bookmark made before the earliest
+date, and picks the works you bookmarked in range. Only your own bookmarks have a date
+bookmarked, so nothing else is picked.
+
+Works with no recorded date - updated, or bookmarked - are never covered by a date range,
+since there is nothing to compare.
 
 Skipping the indexing can decide a file type as well: json is the index, so a run that neither
 indexes nor looks each work up on ao3 does not write it, and the json box is ticked or

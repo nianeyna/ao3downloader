@@ -105,7 +105,7 @@ def test_html_is_offered_by_default_but_can_be_turned_off():
 def test_resolve_options_defaults_match_the_console_defaults():
     assert server.resolve_options(None) == {
         'start': 1, 'pages': 0, 'series': False, 'images': False, 'workdates': False,
-        'reindex': True, 'dates': False, 'recheck': False, 'skipLogin': False, 'dateFrom': '', 'dateTo': '',
+        'reindex': True, 'dates': False, 'order': '', 'recheck': False, 'skipLogin': False, 'dateFrom': '', 'dateTo': '',
         'overwrite': False, 'floorRun': '', 'nonBookmarks': False, 'resume': '', 'retryMode': '',
         'collectionWorks': False, 'subcollections': False, 'parentCollections': False,
         'replaceOutdated': False, 'indexOnly': [],
@@ -115,12 +115,13 @@ def test_resolve_options_defaults_match_the_console_defaults():
 def test_resolve_options_reads_what_was_asked_for():
     result = server.resolve_options(
         {'start': '5', 'pages': '8', 'series': True, 'images': True, 'workdates': True,
-         'reindex': False, 'dates': True, 'dateFrom': '2026-01-01',
+         'reindex': False, 'dates': True, 'order': 'bookmarked', 'dateFrom': '2026-01-01',
          'dateTo': '2026-06-30', 'overwrite': True, 'nonBookmarks': True,
          'collectionWorks': True, 'subcollections': True, 'parentCollections': True})
 
     assert result == {'start': 5, 'pages': 8, 'series': True, 'images': True,
-                      'workdates': True, 'reindex': False, 'dates': True, 'recheck': False, 'skipLogin': False,
+                      'workdates': True, 'reindex': False, 'dates': True, 'order': 'bookmarked',
+                      'recheck': False, 'skipLogin': False,
                       'dateFrom': '2026-01-01', 'dateTo': '2026-06-30',
                       'overwrite': True, 'floorRun': '', 'nonBookmarks': True,
                       'resume': '', 'retryMode': '', 'collectionWorks': True, 'subcollections': True,
@@ -2766,6 +2767,80 @@ def test_a_custom_run_given_pages_still_scans(fake_environment):
         server.run_custom(job, fake_environment['fileops'], fake_environment['repo'], None)
 
     ao3.get_metadata.assert_called_once()
+
+
+# region a custom run's slice or range, read by date bookmarked or by date updated
+
+def test_each_custom_shape_keeps_its_own_order_when_none_is_asked():
+    # an older page, or a retry of an older run, sends no order: nothing changes for them
+    pages = server.Job(server.ACTION_CUSTOM, ['JSON'], 'Someone', server.resolve_options({'pages': 3}))
+    dates = server.Job(server.ACTION_CUSTOM, ['JSON'], 'Someone', server.resolve_options({'dates': True}))
+
+    assert server.listing_order(pages) == 'bookmarked'
+    assert server.listing_order(dates) == 'updated'
+
+
+def test_an_order_that_is_not_one_is_not_kept():
+    assert server.resolve_options({'order': 'kudos'})['order'] == ''
+
+
+def walked_pages(fake_environment, options):
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options(options))
+    ao3 = MagicMock()
+    ao3.get_metadata.return_value = []
+    with patch.object(server, 'Ao3', return_value=ao3), \
+         patch.object(server, 'download_planned'):
+        server.run_custom(job, fake_environment['fileops'], fake_environment['repo'], None)
+    return ao3.get_metadata.call_args.args[0]
+
+
+def test_a_slice_of_pages_is_read_by_date_bookmarked_unless_asked_otherwise(fake_environment):
+    assert strings.AO3_SORT_BY_BOOKMARKED in walked_pages(fake_environment, {'pages': 3})
+    assert strings.AO3_SORT_BY_BOOKMARKED in walked_pages(fake_environment,
+                                                          {'pages': 3, 'order': 'bookmarked'})
+
+
+def test_a_slice_of_pages_can_be_read_by_date_updated(fake_environment):
+    link = walked_pages(fake_environment, {'pages': 3, 'order': 'updated'})
+
+    assert strings.AO3_SORT_BY_UPDATED in link
+    assert strings.AO3_SORT_BY_BOOKMARKED not in link
+
+
+def test_a_range_of_dates_bookmarked_walks_by_date_bookmarked_down_to_its_older_end(fake_environment):
+    ao3, _ = run_window(fake_environment, {'dateFrom': '2026-01-01', 'order': 'bookmarked'})
+
+    call = ao3.get_metadata.call_args
+    assert strings.AO3_SORT_BY_BOOKMARKED in call.args[0]
+    assert call.kwargs['stop_before'] == '2026-01-01'
+    assert call.kwargs['stop_on'] == 'bookmarked'
+
+
+def test_a_range_of_dates_bookmarked_picks_works_by_the_day_they_were_bookmarked(fake_environment):
+    index = [
+        dict(dated('in', '01 Jan 2020'), date_bookmarked='10 Mar 2026'),
+        dict(dated('updated in range only', '10 Mar 2026'), date_bookmarked='01 Jan 2020'),
+        dated('never bookmarked', '10 Mar 2026'),
+    ]
+
+    _, pass_ = run_window(fake_environment,
+                          {'dateFrom': '2026-03-01', 'dateTo': '2026-03-31', 'order': 'bookmarked'},
+                          index)
+
+    assert [x['id'] for x in pass_.call_args.args[3]] == ['in']
+
+
+def test_a_range_of_dates_bookmarked_says_so_on_its_checklist():
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options({'dates': True, 'order': 'bookmarked'}))
+
+    plan = dict(server.step_plan(job))
+
+    assert plan['index'] == strings.STEP_INDEX_BOOKMARKED_WINDOW
+    assert plan['read'] == strings.STEP_READ_BOOKMARKED_WINDOW
+
+# endregion
 
 
 def test_a_date_window_says_so_on_its_checklist():

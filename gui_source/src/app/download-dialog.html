@@ -299,7 +299,11 @@
               </label>
               @if (coverage() === 'pages') {
                 <p class="hint nested slice-order-hint">
-                  Orders your bookmarks in the order you bookmarked them, newest first.
+                  @if (pagesOrder() === 'updated') {
+                    Orders your bookmarks in the order AO3 last updated them, newest first.
+                  } @else {
+                    Orders your bookmarks in the order you bookmarked them, newest first.
+                  }
                 </p>
               }
             } @else {
@@ -417,12 +421,29 @@
         }
 
         @if (picksDates() && useDates()) {
+          <!-- a custom run's range may be of dates bookmarked or dates updated; the quick scan's
+               debug range reads both -->
+          @if (offersOrder()) {
+          <fieldset class="listing-order">
+            <legend>Order by</legend>
+            <label class="check">
+              <input type="radio" name="listingOrder" value="bookmarked"
+                     [checked]="listingOrder() === 'bookmarked'" (change)="setListingOrder('bookmarked')" />
+              <span>Date bookmarked</span>
+            </label>
+            <label class="check">
+              <input type="radio" name="listingOrder" value="updated"
+                     [checked]="listingOrder() === 'updated'" (change)="setListingOrder('updated')" />
+              <span>Date updated</span>
+            </label>
+          </fieldset>
+          }
           <fieldset>
             <legend>Which date range</legend>
             <label class="check">
               <input type="radio" name="window" [checked]="!betweenDates()"
                      (change)="betweenDates.set(false)" />
-              <span>Everything updated since a date</span>
+              <span>Everything {{ rangeWord().toLowerCase() }} since a date</span>
             </label>
             <label class="check">
               <input type="radio" name="window" [checked]="betweenDates()"
@@ -433,32 +454,31 @@
 
           <!--
             the newer end comes first because the run works in that direction: it walks
-            down from the most recently updated fic and stops at the older end
+            down from the newest and stops at the older end
           -->
           @if (betweenDates()) {
             <label class="field">
-              <span>Updated on or before</span>
+              <span>{{ rangeWord() }} on or before (leave empty to use today's date)</span>
               <input type="date" name="dateTo" [value]="dateTo()"
                      (input)="dateTo.set($any($event.target).value)" />
             </label>
           }
 
           <label class="field">
-            <span>Updated on or after</span>
+            <span>{{ rangeWord() }} on or after (leave empty to read all remaining)</span>
             <input type="date" name="dateFrom" [value]="dateFrom()"
                    (input)="dateFrom.set($any($event.target).value)" />
           </label>
 
-          <p class="hint">
-            Both ends count. This run will fetch <strong>{{ dateRange() }}</strong>.
-          </p>
-          <!-- the dates are the person's own, in the zone AO3 dates fics in for them, so the
-               two are compared as typed - see User settings -->
-          <p class="hint range-zone">
-            Dates are in your AO3 time zone, <strong>{{ ao3Zone }}</strong> - change it in User settings.
-          </p>
-
           @if (action() === 'quick') {
+            <p class="hint">
+              Both ends count. This run will fetch <strong>{{ dateRange() }}</strong>.
+            </p>
+            <!-- the dates are the person's own, in the zone AO3 dates fics in for them, so the
+                 two are compared as typed - see User settings -->
+            <p class="hint range-zone">
+              Dates are in your AO3 time zone, <strong>{{ ao3Zone }}</strong> - change it in User settings.
+            </p>
             <!--
               the quick scan's own method, given two dates instead of an earlier scan: both
               walks run from the newest bookmark down to the older end of the range
@@ -488,29 +508,10 @@
               checked against your files, and anything missing or behind is downloaded - each
               fic once.
             </p>
-          } @else if (reindex()) {
-            <p class="hint">
-              Indexing reads your bookmarks sorted by when AO3 last updated each work, and
-              @if (dateFrom()) {
-                stops at the first fic older than <strong>{{ dateFrom() }}</strong> -
-                everything past that point is outside the range by definition.
-              } @else {
-                with no <em>on or after</em> date to stop at, <strong>reads the whole
-                listing</strong>. Give it an earliest date to keep the run short.
-              }
-            </p>
           } @else {
-            <p class="hint">
-              With indexing skipped, this picks works out of your existing index without
-              reading AO3's listing at all - so a fic whose entry is out of date can be
-              picked, or missed, on the strength of that entry.
-            </p>
-          }
-
-          @if (action() !== 'quick') {
-            <p class="hint">
-              Whichever fics it picks are then re-read one at a time, newest first, and
-              anything missing or behind is downloaded.
+            <p class="hint range-hint">
+              Reads a slice of your bookmarks to find new or updated works (date inclusive). This
+              run will fetch <strong>{{ dateRange() }}</strong>.
             </p>
           }
         }
@@ -520,6 +521,20 @@
         <fieldset class="bare" [disabled]="resuming()" [hidden]="resuming()">
 
         @if (picksPages()) {
+          <fieldset class="listing-order">
+            <legend>Order by</legend>
+            <label class="check">
+              <input type="radio" name="listingOrder" value="bookmarked"
+                     [checked]="listingOrder() === 'bookmarked'" (change)="setListingOrder('bookmarked')" />
+              <span>Date bookmarked</span>
+            </label>
+            <label class="check">
+              <input type="radio" name="listingOrder" value="updated"
+                     [checked]="listingOrder() === 'updated'" (change)="setListingOrder('updated')" />
+              <span>Date updated</span>
+            </label>
+          </fieldset>
+
           <label class="field">
             <span>Start on page number</span>
             <input
@@ -544,9 +559,8 @@
             />
           </label>
 
-          <p class="hint">
-            Both are positions in the whole listing, so you can cover a slice in the middle
-            of it - useful for picking up where a stopped run left off. This run will fetch
+          <p class="hint slice-hint">
+            Reads a slice of your bookmarks to find new or updated works. This run will fetch
             <strong>{{ pageRange() }}</strong>.
           </p>
         }

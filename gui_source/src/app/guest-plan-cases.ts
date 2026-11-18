@@ -1,7 +1,7 @@
 // written by powershell_source/ao3_download_helper/dev/guest_plan_cases.py - do not edit.
 // the helper's own checklist (server.step_plan) for each run and the choices that shape
 // it: guest mode's pretend runs list the same (guest-runs.spec.ts, test_guest_steps.py)
-export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: Record<string, boolean>; plan: [string, string][] }[] = [
+export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: Record<string, boolean | string>; plan: [string, string][] }[] = [
  {
   "action": "bookmarks",
   "filetypes": [
@@ -1048,6 +1048,55 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
   ],
   "options": {
    "dates": true,
+   "order": "bookmarked"
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Index bookmarks added in that date range"
+   ],
+   [
+    "read",
+    "Find indexed works bookmarked in that date range"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "update",
+    "Download or update each fic as necessary"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON",
+   "HTML"
+  ],
+  "options": {
+   "dates": true,
    "nonBookmarks": true
   },
   "plan": [
@@ -1062,6 +1111,60 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
    [
     "read",
     "Find indexed works updated in that date range"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "nonbookmarks",
+    "Check remaining non-bookmarks for updates"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "update",
+    "Download or update each fic as necessary"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON",
+   "HTML"
+  ],
+  "options": {
+   "dates": true,
+   "nonBookmarks": true,
+   "order": "bookmarked"
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Index bookmarks added in that date range"
+   ],
+   [
+    "read",
+    "Find indexed works bookmarked in that date range"
    ],
    [
     "series",
@@ -1425,6 +1528,54 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
   ],
   "options": {
    "dates": true,
+   "order": "bookmarked"
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Index bookmarks added in that date range"
+   ],
+   [
+    "read",
+    "Find indexed works bookmarked in that date range"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "update",
+    "Download or update each fic as necessary"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON"
+  ],
+  "options": {
+   "dates": true,
    "nonBookmarks": true
   },
   "plan": [
@@ -1439,6 +1590,59 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
    [
     "read",
     "Find indexed works updated in that date range"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "nonbookmarks",
+    "Check remaining non-bookmarks for updates"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "update",
+    "Download or update each fic as necessary"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON"
+  ],
+  "options": {
+   "dates": true,
+   "nonBookmarks": true,
+   "order": "bookmarked"
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Index bookmarks added in that date range"
+   ],
+   [
+    "read",
+    "Find indexed works bookmarked in that date range"
    ],
    [
     "series",
@@ -1618,6 +1822,50 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
    [
     "read",
     "Find indexed works updated in that date range"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "update",
+    "Download or update each fic as necessary"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "HTML"
+  ],
+  "options": {
+   "dates": true,
+   "order": "bookmarked"
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "read",
+    "Find indexed works bookmarked in that date range"
    ],
    [
     "series",

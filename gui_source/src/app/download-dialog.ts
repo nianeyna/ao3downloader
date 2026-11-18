@@ -377,7 +377,7 @@ export class DownloadDialog implements OnDestroy {
         `${ceiling} - fics dated after that are left for your next scan.`;
     } else if (run.action === 'custom' && ranged) {
       const end = day(options['dateTo']);
-      dates = `Fics AO3 updated from ${day(options['dateFrom']) || 'any date'} to ` +
+      dates = `${options['order'] === 'bookmarked' ? 'Fics you bookmarked' : 'Fics AO3 updated'} from ${day(options['dateFrom']) || 'any date'} to ` +
         `${end && end < began ? end : began}.`;
     } else if (['bookmarks', 'custom', 'quick', 'sync', 'new'].includes(run.action)) {
       dates = `Up to ${began}, when its first attempt started - bookmarks after that are left ` +
@@ -487,6 +487,25 @@ export class DownloadDialog implements OnDestroy {
    * narrows what is picked out of the index afterwards.
    */
   protected readonly betweenDates = signal(false);
+  /**
+   * The order a custom run reads your bookmarks listing in, one for each shape so each starts
+   * at what that shape always did: a slice of pages by date bookmarked, a date range by date
+   * updated. Nothing changes for a run where it is left alone.
+   */
+  protected readonly pagesOrder = signal<'bookmarked' | 'updated'>('bookmarked');
+  protected readonly datesOrder = signal<'bookmarked' | 'updated'>('updated');
+  /** the order offered, and sent, for the shape chosen - a custom run's slice or range alone */
+  protected readonly offersOrder = computed(
+    () => this.action() === 'custom' && (this.coverage() === 'pages' || this.coverage() === 'dates'),
+  );
+  protected readonly listingOrder = computed(() =>
+    this.coverage() === 'dates' ? this.datesOrder() : this.pagesOrder());
+  protected setListingOrder(order: 'bookmarked' | 'updated'): void {
+    (this.coverage() === 'dates' ? this.datesOrder : this.pagesOrder).set(order);
+  }
+  /** the date a custom range is read by, as its boxes say it; a quick scan's are updated */
+  protected readonly rangeWord = computed(() =>
+    this.action() === 'custom' && this.datesOrder() === 'bookmarked' ? 'Bookmarked' : 'Updated');
   protected readonly dateFrom = signal('');
   protected readonly dateTo = signal('');
 
@@ -1035,20 +1054,21 @@ export class DownloadDialog implements OnDestroy {
   /**
    * The window this run covers, in words - the date range's answer to `pageRange`.
    *
-   * Read newest first, because that is the direction the run works in: it walks the
-   * listing down from the most recently updated fic and stops at the older end.
+   * Said oldest first, as a reader says a range - though the run walks the other way, down
+   * from the newest and stopping at the older end.
    */
   protected readonly dateRange = computed(() => {
     const oldest = this.dateFrom();
     const newest = this.betweenDates() ? this.dateTo() : '';
-    // a quick scan picks by either date; a custom run's window is by date updated alone
-    const what = this.action() === 'quick' ? 'bookmarked or updated' : 'updated';
+    // a quick scan picks by either date; a custom run's range by the order it reads in
+    const what = this.action() === 'quick' ? 'bookmarked or updated' : this.rangeWord().toLowerCase();
     if (!oldest) {
       return newest
         ? `any works that were ${what} on or before ${newest}, however long ago`
         : `any works, whenever they were ${what}`;
     }
-    return `any works that were ${what} between ${newest || 'today'} and ${oldest}`;
+    // oldest first, as a reader says a range
+    return `any works that were ${what} between ${oldest} and ${newest || 'today'}`;
   });
 
   /**
@@ -1089,8 +1109,10 @@ export class DownloadDialog implements OnDestroy {
       });
     } else if (this.picksDates() && this.useDates()) {
       rows.push({ label: 'Covers', value: this.dateRange() });
+      rows.push({ label: 'Ordered by', value: `date ${this.listingOrder()}` });
     } else if (this.picksPages()) {
       rows.push({ label: 'Covers', value: this.pageRange() });
+      rows.push({ label: 'Ordered by', value: `date ${this.listingOrder()}` });
     } else if (this.action() === 'custom' && this.coverage() === 'existing') {
       rows.push({ label: 'Covers', value: 'every work already in your index' });
     } else if (this.picksDates() || this.action() === 'quick') {
@@ -2137,6 +2159,8 @@ export class DownloadDialog implements OnDestroy {
         // a window of time and a slice of the listing are alternatives, so the one not
         // chosen is not sent at all rather than sent and ignored
         dates: this.picksDates() && this.useDates(),
+        // a custom run's slice or range, read in the order chosen for it; '' otherwise
+        order: this.offersOrder() ? this.listingOrder() : '',
         // typed in the person's AO3 zone, sent as the UTC moments that day begins and the
         // newer end's ends - how the helper keeps them; it dates them in that zone again
         dateFrom: this.useDates() ? zonedDayToUtc(this.dateFrom()) : '',

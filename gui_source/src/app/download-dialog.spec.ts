@@ -1014,6 +1014,8 @@ describe('DownloadDialog', () => {
       nonBookmarks: false,
       // the date window is a custom run's alternative to pages; nothing else offers it
       dates: false,
+      // a custom run's slice or range alone is read in an order chosen for it
+      order: '',
       dateFrom: '',
       dateTo: '',
       // only a quick scan pointed at an earlier scan sends one
@@ -1081,8 +1083,9 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
     await chooseWindow('2024-01-01', '2024-06-30');
 
-    expect(element.querySelector('.range-zone')?.textContent).toContain('Australia/Sydney');
-    // and the dates go to the helper as the UTC moments they stand for
+    // the custom run no longer says so beside the boxes, at the owner's request
+    expect(element.querySelector('.range-zone')).toBeNull();
+    // the dates go to the helper as the UTC moments they stand for
     await advanceTo('running');
     // typed in the AO3 zone, sent as the UTC moment that day begins there
     expect(jobs.started[0].options.dateFrom).toBe('2023-12-31T13:00:00+00:00');
@@ -1128,32 +1131,35 @@ describe('DownloadDialog', () => {
     await chooseWindow('2024-01-01');
 
     expect(element.textContent).toContain(
-      'any works that were updated between today and 2024-01-01',
+      'any works that were updated between 2024-01-01 and today',
     );
 
     await chooseWindow('2024-01-01', '2024-06-30');
 
+    // oldest first, as a reader says a range
     expect(element.textContent).toContain(
-      'any works that were updated between 2024-06-30 and 2024-01-01',
+      'any works that were updated between 2024-01-01 and 2024-06-30',
     );
   });
 
   // the earliest date is what the indexing walk stops at, so without one it reads the lot
-  it('warns that a window with no earliest date indexes the whole listing', async () => {
+  it('says in one line what a custom date range reads, and what it will fetch', async () => {
     await open('custom');
     await advanceTo('options');
     await chooseWindow('');
 
-    expect(element.textContent).toContain('reads the whole listing');
-
-    await chooseWindow('2024-01-01');
-
+    const hint = () => element.querySelector('.range-hint')!.textContent!.replace(/\s+/g, ' ');
+    expect(hint()).toContain('Reads a slice of your bookmarks to find new or updated works (date inclusive).');
+    expect(hint()).toContain('This run will fetch any works, whenever they were updated');
+    // the longer account of the walk is gone, at the owner's request
     expect(element.textContent).not.toContain('reads the whole listing');
-    expect(element.textContent).toContain('stops at the first fic older than');
+    expect(element.textContent).not.toContain('re-read one at a time');
+    expect(element.textContent).toContain("Updated on or after (leave empty to read all remaining)");
+
+    await chooseWindow('2024-01-01', '2024-06-30');
+    expect(element.textContent).toContain("Updated on or before (leave empty to use today's date)");
   });
 
-  // the two are alternatives, so choosing the window has to take the page inputs away
-  // rather than leave a slice showing that the run will not honour
   it('hides the page inputs while the date window is chosen', async () => {
     await toPageOptions();
 
@@ -1181,7 +1187,7 @@ describe('DownloadDialog', () => {
     await advanceTo('running');
 
     expect(element.textContent).toContain(
-      'any works that were updated between today and 2024-01-01',
+      'any works that were updated between 2024-01-01 and today',
     );
   });
 
@@ -2686,20 +2692,67 @@ describe('DownloadDialog', () => {
     const said = element.querySelector('.body')?.textContent ?? '';
     expect(said).toContain('by date bookmarked');
     expect(said).toContain('by date updated');
-    expect(said).toContain('any works that were bookmarked or updated between today and 2026-01-01');
+    expect(said).toContain('any works that were bookmarked or updated between 2026-01-01 and today');
     // the custom run's single-walk wording does not belong here
     expect(said).not.toContain('re-read one at a time');
   });
 
-  it('keeps the custom run date range worded as a single walk by date updated', async () => {
+  it('reads a custom date range by date updated unless asked to read it by date bookmarked', async () => {
     await open('custom');
     await advanceTo('options');
     checkbox('choose my own date range')!.click();
     await fixture.whenStable();
 
-    const said = element.querySelector('.body')?.textContent ?? '';
-    expect(said).toContain('sorted by when AO3 last updated each work');
-    expect(said).not.toContain('by date bookmarked');
+    // above the range's own choices, and starting on what a range always did
+    const body = element.querySelector('.body')!;
+    const order = body.querySelector('fieldset.listing-order')!;
+    expect(order.compareDocumentPosition(body.querySelector('input[name=window]')!) &
+      Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(checkbox('Date updated')!.checked).toBe(true);
+    expect(body.textContent).toContain('Everything updated since a date');
+
+    checkbox('Date bookmarked')!.click();
+    await fixture.whenStable();
+    await chooseWindow('2024-01-01', '2024-06-30');
+    expect(body.textContent).toContain('Everything bookmarked since a date');
+    expect(body.textContent).toContain("Bookmarked on or before (leave empty to use today's date)");
+    expect(body.textContent).toContain('Bookmarked on or after (leave empty to read all remaining)');
+    expect(body.textContent).toContain('any works that were bookmarked between 2024-01-01 and 2024-06-30');
+
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ dates: true, order: 'bookmarked' });
+  });
+
+  it('reads a slice of pages by date bookmarked unless asked to read it by date updated', async () => {
+    await open('custom');
+    await advanceTo('options');
+    checkbox('choose my own page range')!.click();
+    await fixture.whenStable();
+
+    // above the page numbers, starting on what a slice always did
+    const body = element.querySelector('.body')!;
+    const order = body.querySelector('fieldset.listing-order')!;
+    expect(order.compareDocumentPosition(body.querySelector('input[name=start]')!) &
+      Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(checkbox('Date bookmarked')!.checked).toBe(true);
+    expect(element.querySelector('.slice-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'Reads a slice of your bookmarks to find new or updated works. This run will fetch all pages');
+    expect(element.textContent).not.toContain('positions in the whole listing');
+
+    checkbox('Date updated')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('.slice-order-hint')!.textContent).toContain(
+      'in the order AO3 last updated them, newest first');
+
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ dates: false, order: 'updated' });
+  });
+
+  it('sends no order for a run that covers all bookmarks', async () => {
+    await open('custom');
+    await advanceTo('running');
+
+    expect(jobs.started[0].options.order).toBe('');
   });
 
   it('gives a quick scan over a date range its own caveats', async () => {

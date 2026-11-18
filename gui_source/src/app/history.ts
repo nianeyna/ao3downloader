@@ -347,6 +347,8 @@ export class History {
     }
     if (options['pages']) said.push(`up to page ${options['pages']}`);
     if (Number(options['start'] ?? 1) > 1) said.push(`from page ${options['start']}`);
+    if (options['order'] === 'updated' && !options['dates']) said.push('read by date updated');
+    if (options['order'] === 'bookmarked' && options['dates']) said.push('read by date bookmarked');
     if (options['collectionWorks']) said.push('indexed and downloaded the works in them');
     if (options['subcollections']) said.push('with subcollections');
     if (options['parentCollections']) said.push('with parent collections');
