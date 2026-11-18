@@ -361,6 +361,56 @@
             <button type="button" class="link-button download-now" (click)="downloadNow(work)">download it now</button>.
           }
         </p>
+      } @else if (work.unindexed) {
+        <!--
+          a file in works/ that no index entry matches: what its name says, and when the file
+          last changed if its name has no date. Resolve issues looks it up and gives it an entry
+        -->
+        <div class="blurb-corner">
+          <p class="corner-line">
+            <span class="datetime" [title]="unindexedDateTitle(work)">{{ work.date_updated }}@if (work.unindexed_date === 'guessed') {<span class="date-source"> (best guess from filename)</span>} @else if (work.unindexed_date === 'file') {<span class="date-source"> (best guess from filedate)</span>}</span>
+            <span class="origin-icon external" role="img" [attr.aria-label]="originLabel(work)" [title]="originLabel(work)">
+              <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5v8.5M4.8 6.8L8 10l3.2-3.2M2.5 10.5v3h11v-3"/></svg>
+            </span>
+          </p>
+        </div>
+        <div class="blurb-titles unindexed-titles">
+          <p class="provenance">
+            @if (isHidden(work)) {
+              <span class="badge hidden-badge">Hidden</span>
+            }
+            <span class="badge not-in-index" title="Only what its file name says is known">Not in your index</span>
+          </p>
+          <h4 class="heading">
+            <a class="title" [href]="work.link || null" [class.local]="hasLocalCopy(work)"
+              [title]="hasLocalCopy(work) ? 'Open your downloaded copy' : (work.link ? 'Open on AO3' : '')"
+              (click)="openWork(work, $event)">{{ work.title }}</a>
+            <ng-container *ngTemplateOutlet="formatButtons; context: { $implicit: work }"></ng-container>
+            @if (work.authors.length) {
+              <span class="by">by</span> {{ work.authors.join(', ') }}
+            }
+          </h4>
+        </div>
+        <p class="not-indexed unindexed-note">
+          A file in your library with no index entry. We've tried to infer its details from the
+          filename.
+          @if (isLoose(work)) {
+            Its name has no work number, so it cannot be matched to a work on AO3.
+          } @else {
+            <button type="button" class="link-button resolve-now" [disabled]="runGoing()"
+              [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
+              (click)="resolveIssues()">Look up its index from AO3 here</button>, or
+            <button type="button" class="link-button download-now" [disabled]="runGoing()"
+              [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
+              (click)="downloadNow(work)">download the latest version of this work</button>.
+          }
+        </p>
+        <!-- every file the entry was made from, named in full: the name is all that is known -->
+        <ul class="unindexed-files">
+          @for (name of unindexedNames(work); track name) {
+            <li><code>{{ name }}</code></li>
+          }
+        </ul>
       } @else {
         <!-- top right: the date, then where the entry came from; FicHub beneath, at the far right -->
         <div class="blurb-corner">
@@ -620,7 +670,7 @@
         by' box (positioned, with a background, and later in the page) painted over them on
         every bookmark of yours, which left only series showing them
       -->
-      @if ((canHide() || canSelect()) && work.id) {
+      @if ((canHide() || canSelect()) && work.id && !isLoose(work)) {
         <div class="entry-actions">
           <!-- hiding takes it out of this listing only: its files and index entry stay -->
           @if (canHide()) {

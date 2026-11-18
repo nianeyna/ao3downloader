@@ -198,18 +198,24 @@
         }
 
         @if (run.indexFailures?.length) {
-          <div class="index-gaps">
-            <p>
-              <strong>Indexing did not finish.</strong>
-              Everything it indexed is kept and was downloaded, but the run never reached the
-              rest - so it is not a starting point for a quick scan.
-            </p>
-            <ul>
-              @for (gap of run.indexFailures; track $index) {
-                <li>{{ describeGap(gap) }}</li>
-              }
-            </ul>
-          </div>
+          <!-- folded, and drawn only once opened: a long history can hold hundreds of these -->
+          <details class="index-gaps" (toggle)="toggleList(run.file + ':gaps', $any($event.target).open)">
+            <summary>
+              <strong>Indexing did not finish</strong>
+              ({{ run.indexFailures!.length }} {{ run.indexFailures!.length === 1 ? 'place' : 'places' }})
+            </summary>
+            @if (openLists().has(run.file + ':gaps')) {
+              <p>
+                Everything it indexed is kept and was downloaded, but the run never reached the
+                rest - so it is not a starting point for a quick scan.
+              </p>
+              <ul>
+                @for (gap of run.indexFailures; track $index) {
+                  <li>{{ describeGap(gap) }}</li>
+                }
+              </ul>
+            }
+          </details>
         }
 
         @if (run.progress?.stepLabel && run.status !== 'success') {

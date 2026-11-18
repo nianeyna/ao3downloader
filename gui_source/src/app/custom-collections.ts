@@ -1,4 +1,5 @@
 import { Injectable, computed, inject } from '@angular/core';
+import { LOOSE_PREFIX } from './unindexed-works';
 import { Library } from './library';
 import { Bookmark, bookmarkTypeOf } from './bookmarks';
 import { Collection, flattenCollection, isCustomCollection } from './collections';
@@ -124,12 +125,13 @@ export interface Added {
  * collection is `canCollect`'s to say.
  */
 export function canTick(entry: Bookmark): boolean {
-  return !!entry.id && !entry.error;
+  // a file with no work number in its name has nothing to tick it by
+  return !!entry.id && !entry.error && !entry.id.startsWith(LOOSE_PREFIX);
 }
 
 /** whether an entry can be put in a custom collection at all */
 export function canCollect(entry: Bookmark): boolean {
-  return !!entry.id && !entry.error && bookmarkTypeOf(entry) !== 'series bookmark';
+  return canTick(entry) && bookmarkTypeOf(entry) !== 'series bookmark';
 }
 
 @Injectable({ providedIn: 'root' })

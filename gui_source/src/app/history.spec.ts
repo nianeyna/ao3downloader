@@ -916,7 +916,14 @@ describe('History', () => {
     }] })]);
 
     expect(element.querySelector('.run-status')?.textContent?.trim()).toBe('Partly Finished');
-    const said = (element.querySelector('.index-gaps')?.textContent ?? '').replace(/\s+/g, ' ');
+    // folded to begin with, saying only how many places, and drawn only once opened
+    const gaps = element.querySelector<HTMLDetailsElement>('details.index-gaps')!;
+    expect(gaps.open).toBe(false);
+    expect(gaps.textContent?.replace(/\s+/g, ' ').trim()).toBe('Indexing did not finish (1 place)');
+    gaps.open = true;
+    gaps.dispatchEvent(new Event('toggle'));
+    fixture.detectChanges();
+    const said = (gaps.textContent ?? '').replace(/\s+/g, ' ');
     expect(said).toContain('Indexing did not finish');
     expect(said).toContain('Your bookmarks stopped at page 13 of 80: the page would not load.');
     expect(said).toContain('Pages 1 to 12 were indexed (240 works).');
