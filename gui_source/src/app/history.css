@@ -401,7 +401,11 @@
 
 .index-gaps p,
 .index-gaps ul {
-  margin: 0 0 6px;
+  margin: 6px 0;
+}
+
+.index-gaps summary {
+  cursor: pointer;
 }
 
 
