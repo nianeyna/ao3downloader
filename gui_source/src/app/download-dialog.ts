@@ -15,7 +15,7 @@ import {
 import { WorkLink } from './work-link';
 import { Chime } from './chime';
 
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import {
   ActiveRun,
   AnswerChoice,
@@ -87,6 +87,8 @@ type Step =
   | 'link'
   | 'filetypes'
   | 'options'
+  /** a custom run's remaining options, on a page after what it covers */
+  | 'more-options'
   /** a quick scan choosing which earlier scan to measure back to */
   | 'floor'
   /** a quick scan whose floor would be a scan that could not download some works */
@@ -182,7 +184,7 @@ const MAX_LOG = 200;
 
 @Component({
   selector: 'app-download-dialog',
-  imports: [DecimalPipe, WorkLink],
+  imports: [DecimalPipe, NgTemplateOutlet, WorkLink],
   templateUrl: './download-dialog.html',
   styleUrl: './download-dialog.css',
 })
@@ -982,6 +984,16 @@ export class DownloadDialog implements OnDestroy {
    * want and then changing one behind you reads as the dialog overruling you. The rest
    * follow the same order because two orders is one more than anybody needs to learn.
    */
+  /** a custom run splits its options: what it covers first, everything else on the next page */
+  protected readonly splitOptions = computed(() => this.action() === 'custom');
+  /** whether that next page has anything on it - a retry takes every choice from its run */
+  protected readonly hasMoreOptions = computed(
+    () =>
+      this.splitOptions() &&
+      !this.resuming() &&
+      (this.picksSeries() || this.picksNonBookmarks() || this.picksOverwrite() || this.picksImages()),
+  );
+
   protected readonly firstStep = computed<Step>(() => {
     if (this.needsLink()) return 'link';
     if (this.hasOptions()) return 'options';
@@ -1702,6 +1714,11 @@ export class DownloadDialog implements OnDestroy {
       this.toRetryList();
       return;
     }
+    // a custom run asks the rest of its options on a page of their own
+    if (this.step() === 'options' && this.hasMoreOptions()) {
+      this.step.set('more-options');
+      return;
+    }
     if (this.picksFloorRun()) {
       this.toFloorPage();
       return;
@@ -1818,6 +1835,7 @@ export class DownloadDialog implements OnDestroy {
     const earlier: Step[] = [];
     if (this.needsLink()) earlier.push('link');
     if (this.hasOptions()) earlier.push('options');
+    if (this.hasMoreOptions()) earlier.push('more-options');
     if (this.picksFloorRun()) earlier.push('floor');
     if (this.resuming()) earlier.push('resume', 'retry-how');
     if (this.picksFiletypes()) earlier.push('filetypes');

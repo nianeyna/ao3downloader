@@ -644,6 +644,26 @@
           </p>
         }
 
+        <!-- the rest of the options: a custom run asks them on a page of their own, after what it
+             covers - one page held too much -->
+        @if (!splitOptions()) {
+          <ng-container [ngTemplateOutlet]="laterOptions" />
+        }
+
+        </fieldset>
+
+
+      </section>
+      <footer>
+        <button type="button" class="button subtle" (click)="backFrom('options')">
+          {{ hasStepBefore('options') ? 'Back' : 'Cancel' }}
+        </button>
+        <button type="button" class="button primary" (click)="afterOptions()">Continue</button>
+      </footer>
+    }
+
+    <!-- a custom run's options after what it covers: the same ones a full scan shows on one page -->
+    <ng-template #laterOptions>
         @if (picksSeries()) {
           <label class="check">
             <input type="checkbox" [checked]="series()" (change)="series.set($any($event.target).checked)" />
@@ -713,15 +733,14 @@
             </p>
           }
         }
+    </ng-template>
 
-        </fieldset>
-
-
+    @if (step() === 'more-options') {
+      <section class="body">
+        <ng-container [ngTemplateOutlet]="laterOptions" />
       </section>
       <footer>
-        <button type="button" class="button subtle" (click)="backFrom('options')">
-          {{ hasStepBefore('options') ? 'Back' : 'Cancel' }}
-        </button>
+        <button type="button" class="button subtle" (click)="backFrom('more-options')">Back</button>
         <button type="button" class="button primary" (click)="afterOptions()">Continue</button>
       </footer>
     }

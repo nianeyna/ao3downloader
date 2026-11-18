@@ -223,7 +223,7 @@ function currentStep(): string {
  * the file types and everything else asks them after, and several runs put an
  * acknowledgement in between. Counting clicks made every test quietly depend on which.
  */
-async function advanceTo(target: 'options' | 'filetypes' | 'credentials' | 'running') {
+async function advanceTo(target: 'options' | 'more-options' | 'filetypes' | 'credentials' | 'running') {
   for (let guard = 0; guard < 8; guard++) {
     const at = currentStep();
     if (at === target || at === 'running') return;
@@ -558,7 +558,7 @@ describe('DownloadDialog', () => {
   for (const action of ['bookmarks', 'custom'] as JobAction[]) {
     it(`says a ${action} run's overwrite takes in the non-bookmarks only when both are ticked`, async () => {
       await open(action);
-      await advanceTo('options');
+      await advanceTo(action === 'custom' ? 'more-options' : 'options');
       const note = () => element.querySelector('.overwrite-non-bookmarks')?.textContent ?? '';
       expect(note()).toBe('');
 
@@ -595,7 +595,7 @@ describe('DownloadDialog', () => {
   it('offers the rest of each series on every run that indexes works', async () => {
     for (const action of ['bookmarks', 'quick', 'custom', 'work'] as const) {
       await open(action);
-      await advanceTo('options');
+      await advanceTo(action === 'custom' ? 'more-options' : 'options');
 
       expect(checkbox('download all its other works too'), action).toBeTruthy();
     }
@@ -607,7 +607,7 @@ describe('DownloadDialog', () => {
 
   it('offers saving images separately only on a custom run', async () => {
     await open('custom');
-    await advanceTo('options');
+    await advanceTo('more-options');
     expect(checkbox('images separately')).toBeTruthy();
 
     for (const action of ['bookmarks', 'sync', 'new', 'update'] as const) {
@@ -620,7 +620,7 @@ describe('DownloadDialog', () => {
   it('says plainly what saving images costs and what it is not, once it is ticked', async () => {
     // most people do not want this: the pictures are already inside the downloaded work
     await open('custom');
-    await advanceTo('options');
+    await advanceTo('more-options');
     expect(element.querySelector('.body')?.textContent).not.toContain('already embedded');
 
     checkbox('images separately')!.click();
@@ -1078,7 +1078,7 @@ describe('DownloadDialog', () => {
 
   it('sends a custom run told to save images separately', async () => {
     await open('custom');
-    await advanceTo('options');
+    await advanceTo('more-options');
     checkbox('images separately')!.click();
     await fixture.whenStable();
 
@@ -2110,7 +2110,7 @@ describe('DownloadDialog', () => {
 
   it('reads back the options chosen on the way in', async () => {
     await open('custom');
-    await advanceTo('options');
+    await advanceTo('more-options');
     checkbox('Overwrite existing downloads')!.click();
     await fixture.whenStable();
 
@@ -2615,7 +2615,7 @@ describe('DownloadDialog', () => {
     'lets a %s run overwrite files nothing says are out of date',
     async (action) => {
       await open(action);
-      await advanceTo('options');
+      await advanceTo(action === 'custom' ? 'more-options' : 'options');
 
       checkbox('Overwrite existing downloads')!.click();
       await fixture.whenStable();
@@ -2650,7 +2650,7 @@ describe('DownloadDialog', () => {
     'lets a %s run check non-bookmarks for updates, saying what it checks',
     async (action) => {
       await open(action);
-      await advanceTo('options');
+      await advanceTo(action === 'custom' ? 'more-options' : 'options');
 
       const box = checkbox('Check all non-bookmarks for updates too');
       expect(element.querySelector('.dialog .body')?.textContent).toContain(
@@ -2677,12 +2677,19 @@ describe('DownloadDialog', () => {
   // re-reading a work writes its entry, which skipping the indexing has ruled out
   it('does not offer it to a custom run told to skip indexing', async () => {
     await open('custom');
-    await advanceTo('options');
-
+    await advanceTo('more-options');
     checkbox('Check all non-bookmarks for updates too')!.click();
-    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
 
+    // back to what it covers, and choosing to skip the indexing takes it off the next page
+    button('Back')!.click();
+    await fixture.whenStable();
+    checkbox('Just update existing works')!.click();
+    await fixture.whenStable();
+    button('Continue')!.click();
+    await fixture.whenStable();
+
+    expect(currentStep()).toBe('more-options');
     expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
     await advanceTo('running');
     expect(jobs.started[0].options.nonBookmarks).toBe(false);
@@ -3179,7 +3186,11 @@ describe('DownloadDialog', () => {
 
     button('Continue')!.click();
     await fixture.whenStable();
+    // the rest of its options come on a page of their own, after what it covers
+    expect(currentStep()).toBe('more-options');
 
+    button('Continue')!.click();
+    await fixture.whenStable();
     expect(currentStep()).toBe('filetypes');
   });
 
@@ -3210,9 +3221,7 @@ describe('DownloadDialog', () => {
     // json *is* the index, so a run that indexes writes it and a run that does not cannot
     debugOn();
     await open('custom');
-    await advanceTo('options');
-    button('Continue')!.click();
-    await fixture.whenStable();
+    await advanceTo('filetypes');
 
     const json = checkbox('JSON')!;
     expect(json.checked).toBe(true);
@@ -3228,8 +3237,7 @@ describe('DownloadDialog', () => {
     // looking every work up on AO3 (the default) writes the index; the index choice does not
     checkbox('Check for outdated against current index')!.click();
     await fixture.whenStable();
-    button('Continue')!.click();
-    await fixture.whenStable();
+    await advanceTo('filetypes');
 
     const json = checkbox('JSON')!;
     expect(json.checked).toBe(false);
@@ -3363,7 +3371,7 @@ describe('DownloadDialog', () => {
 
   it('words the overwrite and series options plainly', async () => {
     await open('custom');
-    await advanceTo('options');
+    await advanceTo('more-options');
     const label = (text: string) => checkbox(text)!.closest('label')!.parentElement!.textContent!.replace(/\s+/g, ' ');
     expect(checkbox('Overwrite existing downloads')).toBeTruthy();
     expect(label('Overwrite existing downloads')).toContain(
@@ -4160,11 +4168,14 @@ describe('DownloadDialog', () => {
     checkbox('Retry an earlier run')!.click();
     await fixture.whenStable();
 
-    for (const label of ['Overwrite existing downloads',
-                         'download all its other works too']) {
-      // disabled by the fieldset around them, which the property does not reflect
-      expect(checkbox(label)!.matches(':disabled')).toBe(true);
+    // a custom run asks them on a page of their own, and a retry takes them all from its run -
+    // so they are not on this page, and Continue goes to the runs to retry rather than to them
+    for (const label of ['Overwrite existing downloads', 'download all its other works too']) {
+      expect(checkbox(label)).toBeUndefined();
     }
+    button('Continue')!.click();
+    await fixture.whenStable();
+    expect(currentStep()).not.toBe('more-options');
   });
 
   it('says under a run that cannot be retried why not, where it is listed', async () => {
