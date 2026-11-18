@@ -405,6 +405,12 @@
               (click)="downloadNow(work)">download the latest version of this work</button>.
           }
         </p>
+        <!-- every file the entry was made from, named in full: the name is all that is known -->
+        <ul class="unindexed-files">
+          @for (name of unindexedNames(work); track name) {
+            <li><code>{{ name }}</code></li>
+          }
+        </ul>
       } @else {
         <!-- top right: the date, then where the entry came from; FicHub beneath, at the far right -->
         <div class="blurb-corner">

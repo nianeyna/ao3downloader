@@ -937,6 +937,12 @@ export class WorkList {
    * The work's newest copy in a format: from the library's copies by work number, or - for a
    * file no index entry matches - from the files its row was made from.
    */
+  /** the full names of the files an unindexed row was made from, in AO3's format order */
+  protected unindexedNames(work: Bookmark): string[] {
+    const files = work.unindexed_files ?? {};
+    return OPENABLE_FORMATS.flatMap((format) => (files[format] ? [copyName(files[format]!)] : []));
+  }
+
   /** opens Resolve issues, which looks a file with no index entry up on AO3 */
   protected resolveIssues(): void {
     if (!this.runGoing()) this.jobs.resolveIssuesAsked.update((n) => n + 1);

@@ -1109,3 +1109,12 @@
   color: var(--text-dim);
   font-style: italic;
 }
+
+/* the files an unindexed entry was made from, each named in full */
+.unindexed-files {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}

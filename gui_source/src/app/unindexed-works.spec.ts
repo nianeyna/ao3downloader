@@ -120,6 +120,8 @@ describe('files no index entry matches', () => {
     expect(element.querySelector('.datetime')?.getAttribute('title')).toBe('The date in its file name');
     expect(element.querySelector('.download-now')?.textContent).toContain('download the latest version of this work');
     expect(element.querySelector('.resolve-now')?.textContent).toContain('Look up its index from AO3 here');
+    expect(Array.from(element.querySelectorAll('.unindexed-files li')).map((li) => li.textContent?.trim()))
+      .toEqual(['123 A Title - Writer 2024-05-06.html', '123 A Title - Writer 2024-05-06.pdf']);
   });
 
   it('says where a date came from when it is not written the apps way', async () => {
