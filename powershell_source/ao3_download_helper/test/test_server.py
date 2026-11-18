@@ -105,7 +105,7 @@ def test_html_is_offered_by_default_but_can_be_turned_off():
 def test_resolve_options_defaults_match_the_console_defaults():
     assert server.resolve_options(None) == {
         'start': 1, 'pages': 0, 'series': False, 'images': False, 'workdates': False,
-        'reindex': True, 'dates': False, 'skipLogin': False, 'dateFrom': '', 'dateTo': '',
+        'reindex': True, 'dates': False, 'recheck': False, 'skipLogin': False, 'dateFrom': '', 'dateTo': '',
         'overwrite': False, 'floorRun': '', 'nonBookmarks': False, 'resume': '', 'retryMode': '',
         'collectionWorks': False, 'subcollections': False, 'parentCollections': False,
         'replaceOutdated': False, 'indexOnly': [],
@@ -120,7 +120,7 @@ def test_resolve_options_reads_what_was_asked_for():
          'collectionWorks': True, 'subcollections': True, 'parentCollections': True})
 
     assert result == {'start': 5, 'pages': 8, 'series': True, 'images': True,
-                      'workdates': True, 'reindex': False, 'dates': True, 'skipLogin': False,
+                      'workdates': True, 'reindex': False, 'dates': True, 'recheck': False, 'skipLogin': False,
                       'dateFrom': '2026-01-01', 'dateTo': '2026-06-30',
                       'overwrite': True, 'floorRun': '', 'nonBookmarks': True,
                       'resume': '', 'retryMode': '', 'collectionWorks': True, 'subcollections': True,
@@ -1417,6 +1417,69 @@ def test_a_custom_run_told_to_skip_indexing_reads_no_listing(fake_environment):
 
     ao3.get_metadata.assert_not_called()
     assert [x['id'] for x in download.call_args.args[3]] == ['111']
+
+
+# region looking every indexed work up on AO3 (`recheck`)
+
+def test_a_custom_run_told_to_recheck_looks_every_indexed_work_up_dated_or_not(fake_environment):
+    # no listing walked; every work in the index, the undated one too, goes through the
+    # per-fic pass that re-reads it on AO3, rewrites its entry and judges its files by that
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options({'reindex': False, 'recheck': True}))
+    ao3 = MagicMock()
+    ao3.series_marked = {}
+    undated = finished('222')
+    undated.pop('date_updated', None)
+
+    with patch.object(server, 'Ao3', return_value=ao3), \
+         patch.object(server.shared, 'read_index', return_value=[finished('111'), undated]), \
+         patch.object(server, 'index_series_and_non_bookmarks', return_value=[]), \
+         patch.object(server, 'download_planned') as planned, \
+         patch.object(server, 'refresh_and_download') as pass_:
+        server.run_custom(job, fake_environment['fileops'], fake_environment['repo'], None)
+
+    ao3.get_metadata.assert_not_called()
+    planned.assert_not_called()
+    assert sorted(x['id'] for x in pass_.call_args.args[3]) == ['111', '222']
+
+
+def test_a_recheck_lists_its_own_steps():
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options({'reindex': False, 'recheck': True}))
+
+    plan = dict(server.step_plan(job))
+
+    assert list(plan) == ['login', 'index', 'read', 'series', 'check', 'update', 'fichub',
+                          'cleanup', 'report']
+    assert plan['read'] == strings.STEP_READ_RECHECK
+
+
+@pytest.mark.parametrize('options', [
+    {'recheck': True},                                     # indexing: the walk reads them
+    {'reindex': False, 'recheck': True, 'dates': True},     # a window re-reads its own
+])
+def test_recheck_means_nothing_outside_a_custom_run_skipping_its_indexing(options):
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options(options))
+
+    assert not server.rechecks(job)
+
+
+def test_a_recheck_keeps_json_and_leaves_non_bookmarks_to_itself():
+    # it rewrites every entry it reads, so json stays; and it reads every non-bookmark anyway
+    sent, [job], _ = start_request(server.ACTION_CUSTOM, '', reindex=False, recheck=True,
+                                   nonBookmarks=True)
+
+    assert 'JSON' in job.filetypes
+    assert job.options['recheck'] is True
+    assert job.options['nonBookmarks'] is False
+
+
+def test_recheck_is_cleared_for_any_other_run():
+    _, [job], _ = start_request(server.ACTION_CUSTOM, '', recheck=True)
+    assert job.options['recheck'] is False
+
+# endregion
 
 
 def test_a_custom_run_indexes_by_default(fake_environment):

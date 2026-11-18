@@ -294,18 +294,37 @@ export class DownloadDialog implements OnDestroy {
   /** the combined run's note only: turns it off for next time, once accepted */
   protected readonly dontAskAgain = signal(false);
 
-  /** a custom run may work from the index rather than reading AO3's listing again */
-  protected readonly reindex = signal(true);
+  /**
+   * A custom run may work from the index rather than reading AO3's listing again - its own
+   * choice of what the run covers (`coverage` 'existing'), or, on a retry, whatever the run it
+   * retries did (`retryReindex`)
+   */
+  protected readonly reindex = computed(() =>
+    this.resuming() ? this.retryReindex() : this.coverage() !== 'existing');
+  private readonly retryReindex = signal(true);
+  /**
+   * Skipping the indexing, how a custom run judges the files of the works in the index: against
+   * the index as it stands (`index`, nothing read from AO3), or against AO3 now (`ao3`: each work
+   * looked up, its entry rewritten - `recheck`, the default and listed first, at the owner's request)
+   */
+  protected readonly existingCheck = signal<'index' | 'ao3'>('ao3');
+  /** a custom run looking every indexed work up on AO3 rather than walking the listing */
+  protected readonly recheck = computed(() =>
+    this.picksReindex() && !this.resuming() && this.coverage() === 'existing' &&
+    this.existingCheck() === 'ao3');
+  /** whether the run writes the index: by indexing, or by rewriting each work it looks up */
+  protected readonly writesIndex = computed(() => this.reindex() || this.recheck());
   /**
    * What this run reaches for, as one choice rather than several flags.
    *
-   * 'all' is the whole listing, 'pages' a slice of it, 'dates' a window of time. They are
+   * 'all' is the whole listing, 'pages' a slice of it, 'dates' a window of time, 'existing' no
+   * listing at all - only the works already in the index (a custom run skipping its indexing). They are
    * alternatives - a run cannot be walking a listing and not walking it - so one signal
    * with three values cannot hold a combination that means nothing, which two booleans
    * could. A quick scan uses the same signal for its own pair: 'all' there means back to
    * its last completed run.
    */
-  protected readonly coverage = signal<'all' | 'pages' | 'dates' | 'run' | 'resume'>('all');
+  protected readonly coverage = signal<'all' | 'pages' | 'dates' | 'run' | 'resume' | 'existing'>('all');
   /**
    * A custom run picking up where an unfinished run left off. It then runs as that run -
    * its workflow, file types and options - so nothing else on the way in is a choice.
@@ -377,7 +396,9 @@ export class DownloadDialog implements OnDestroy {
       skipLogin: 'without logging in',
     };
     const on = Object.entries(named).filter(([key]) => options[key] === true).map(([, name]) => name);
-    if (options['reindex'] === false) on.push('skip indexing');
+    if (options['reindex'] === false) {
+      on.push(options['recheck'] ? 'skip indexing, each indexed work looked up on AO3' : 'skip indexing');
+    }
     const settings = [
       `${run.actionName || run.action}, as it was run`,
       `File types: ${(run.filetypes ?? []).join(', ') || 'none'}`,
@@ -992,7 +1013,9 @@ export class DownloadDialog implements OnDestroy {
     if (this.workdates()) chosen.push('look up publication dates');
     if (this.picksSeries() && this.series()) chosen.push('the rest of each series');
     if (this.picksImages() && this.images()) chosen.push('save images separately');
-    if (this.picksReindex() && !this.reindex()) chosen.push('no reindexing');
+    if (this.picksReindex() && !this.reindex()) {
+      chosen.push(this.recheck() ? 'each indexed work looked up on AO3' : 'no reindexing');
+    }
     if (this.picksOverwrite() && this.overwrite()) chosen.push('overwrite existing files');
     if (this.picksNonBookmarks() && this.nonBookmarks()) chosen.push('check non-bookmarks');
     if (this.picksCollectionWorks() && this.collectionWorks()) chosen.push('the works in them');
@@ -1068,6 +1091,8 @@ export class DownloadDialog implements OnDestroy {
       rows.push({ label: 'Covers', value: this.dateRange() });
     } else if (this.picksPages()) {
       rows.push({ label: 'Covers', value: this.pageRange() });
+    } else if (this.action() === 'custom' && this.coverage() === 'existing') {
+      rows.push({ label: 'Covers', value: 'every work already in your index' });
     } else if (this.picksDates() || this.action() === 'quick') {
       // the third choice: no slice and no window, so it reaches as far as the run can
       rows.push({
@@ -1083,7 +1108,9 @@ export class DownloadDialog implements OnDestroy {
         label: 'Indexing',
         value: this.reindex()
           ? "reading AO3's listing"
-          : 'skipped - working from the saved index',
+          : this.recheck()
+            ? 'listing skipped - each indexed work looked up on AO3, its entry updated'
+            : 'skipped - working from the saved index',
       });
     }
     if (this.picksCollectionWorks()) {
@@ -1572,7 +1599,7 @@ export class DownloadDialog implements OnDestroy {
 
   protected isSelected(filetype: string): boolean {
     if (this.resuming()) return (this.chosenResume()?.filetypes ?? []).includes(filetype);
-    if (this.picksReindex() && filetype === METADATA) return this.reindex();
+    if (this.picksReindex() && filetype === METADATA) return this.writesIndex();
     return this.selected().includes(filetype);
   }
 
@@ -1589,7 +1616,7 @@ export class DownloadDialog implements OnDestroy {
     if (!this.isLocked(filetype)) return '';
     if (this.resuming()) return 'from the earlier run';
     if (this.picksReindex() && filetype === METADATA) {
-      return this.reindex() ? 'with indexing' : 'not indexing';
+      return this.reindex() ? 'with indexing' : this.recheck() ? 'each work looked up' : 'not indexing';
     }
     return 'always on';
   }
@@ -1620,7 +1647,7 @@ export class DownloadDialog implements OnDestroy {
     if (!this.picksFiletypes()) return [METADATA];
     if (!this.picksReindex()) return this.selected();
     const rest = this.selected().filter((x) => x !== METADATA);
-    return this.reindex() ? [METADATA, ...rest] : rest;
+    return this.writesIndex() ? [METADATA, ...rest] : rest;
   });
 
   protected readonly baselineOf = baselineOf;
@@ -1735,7 +1762,7 @@ export class DownloadDialog implements OnDestroy {
     this.images.set(!!options['images']);
     this.overwrite.set(!!options['overwrite']);
     this.nonBookmarks.set(!!options['nonBookmarks']);
-    this.reindex.set(options['reindex'] !== false);
+    this.retryReindex.set(options['reindex'] !== false);
     // a retry logs in as the run it retries did: one that went without asks for no password,
     // and one reading your own listing is found by the account it read
     this.skipLogin.set(!!options['skipLogin']);
@@ -2105,6 +2132,8 @@ export class DownloadDialog implements OnDestroy {
         nonBookmarks: this.picksNonBookmarks() && this.nonBookmarks(),
         // only a custom run can turn this off; everything else always indexes
         reindex: this.picksReindex() ? this.reindex() : true,
+        // skipping the indexing, every indexed work may still be looked up on AO3
+        recheck: this.recheck(),
         // a window of time and a slice of the listing are alternatives, so the one not
         // chosen is not sent at all rather than sent and ignored
         dates: this.picksDates() && this.useDates(),

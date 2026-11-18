@@ -510,6 +510,10 @@ def resolve_options(requested) -> dict:
         # both: one picks works by where they sit in the listing and the other by when ao3
         # last touched them, and a run cannot be walking a listing and not walking it.
         'dates': bool(given.get('dates')),
+        # a custom run skipping the indexing may still look every indexed work up on AO3, one
+        # at a time, and judge its files against what AO3 says now (`rechecks`) rather than
+        # against the index as it stands
+        'recheck': bool(given.get('recheck')),
         # any run may go without logging in - see USERNAME_ACTIONS for what it still needs
         'skipLogin': bool(given.get('skipLogin')),
         # a typed range: the page sends each end as the UTC moment it begins (from) or ends
@@ -1206,7 +1210,7 @@ def step_plan(job: Job) -> list[tuple[str, str]]:
         indexing = job.action != ACTION_CUSTOM or job.options['reindex']
         # the custom run's window is its own shape; a quick scan's window keeps the quick
         # scan's two walks, so it falls through to the branch below
-        if job.action == ACTION_CUSTOM and job.options['dates']:
+        if job.action == ACTION_CUSTOM and (job.options['dates'] or rechecks(job)):
             # a window of time chooses from the index and re-reads each one it picked -
             # the unfinished-fics shape rather than a scan. The walk that brings the index
             # up to date first is only there when the run was not told to skip indexing
@@ -1216,7 +1220,8 @@ def step_plan(job: Job) -> list[tuple[str, str]]:
             # workflow simply never had is only noise. `run_custom_dates` marks it skipped
             if metadata:
                 window.append(('index', strings.STEP_INDEX_WINDOW))
-            window.extend([('read', strings.STEP_READ_WINDOW),
+            window.extend([('read', strings.STEP_READ_RECHECK if rechecks(job)
+                            else strings.STEP_READ_WINDOW),
                            ('series', strings.STEP_SERIES)])
             if checks_non_bookmarks(job):
                 window.append(('nonbookmarks', strings.STEP_NON_BOOKMARKS))
@@ -3589,7 +3594,7 @@ def run_custom(job: Job, fileops: FileOps, repo: Repository, report) -> None:
     # the run record reads its fic lists off this when the run ends
     job.ao3 = ao3
 
-    if job.options['dates']:
+    if job.options['dates'] or rechecks(job):
         run_custom_dates(job, fileops, ao3, downloadtypes, report)
         finish_run(job, fileops, ao3, report)
         return
@@ -4969,6 +4974,17 @@ def refresh_and_download(job: Job, fileops: FileOps, ao3: Ao3, records: list[dic
     job.steps.skip('update') if skipped_step else job.steps.done('update')
 
 
+def rechecks(job: 'Job') -> bool:
+    """A custom run that skips walking the listing but looks every indexed work up on AO3 -
+    each one re-read, its entry rewritten, and its files judged against what AO3 says now. The
+    date window's per-fic pass with no window: every work in the index, dated or not. Only
+    without indexing (a walk would have read them) and without a window (which re-reads its
+    own works anyway)."""
+
+    return job.action == ACTION_CUSTOM and bool(job.options.get('recheck')) and \
+        not job.options.get('reindex', True) and not job.options.get('dates')
+
+
 def run_custom_dates(job: Job, fileops: FileOps, ao3: Ao3, downloadtypes: list[str],
                      report) -> None:
     """The custom run's other shape: a window of time rather than a slice of the listing.
@@ -5027,10 +5043,14 @@ def run_custom_dates(job: Job, fileops: FileOps, ao3: Ao3, downloadtypes: list[s
 
     job.steps.start('read')
     progress.report(report, progress.PHASE, name=progress.SCANNING)
-    print(strings.AO3_INFO_DATE_WINDOW.format(start or strings.AO3_INFO_DATE_ANY,
-                                              end or strings.AO3_INFO_DATE_ANY))
-
-    chosen = works_updated_between(shared.read_index(fileops), start, end)
+    recheck = rechecks(job)
+    if recheck:
+        # every indexed work, dated or not: each is looked up on AO3 before anything is judged
+        chosen = newest_first(shared.read_index(fileops))
+    else:
+        print(strings.AO3_INFO_DATE_WINDOW.format(start or strings.AO3_INFO_DATE_ANY,
+                                                  end or strings.AO3_INFO_DATE_ANY))
+        chosen = works_updated_between(shared.read_index(fileops), start, end)
     job.steps.done('read')
 
     # the works the window picked out of the index were not all read on the walk, so their
@@ -5041,13 +5061,14 @@ def run_custom_dates(job: Job, fileops: FileOps, ao3: Ao3, downloadtypes: list[s
         chosen, index_series_and_non_bookmarks(job, fileops, ao3, report)))
 
     if not chosen:
-        print(strings.AO3_INFO_DATE_NONE)
+        print(strings.AO3_INFO_RECHECK_NONE if recheck else strings.AO3_INFO_DATE_NONE)
         # an empty window is an answer, not a failure
         job.steps.skip('check')
         job.steps.skip('update')
         return
 
-    print(strings.AO3_INFO_DATE_FOUND.format(len(chosen)))
+    print(strings.AO3_INFO_RECHECK.format(len(chosen)) if recheck
+          else strings.AO3_INFO_DATE_FOUND.format(len(chosen)))
     refresh_and_download(job, fileops, ao3, chosen, downloadtypes, report)
 
 
@@ -6003,15 +6024,20 @@ class Handler(BaseHTTPRequestHandler):
         elif not options['collectionWorks']: options['series'] = False
         # a chosen floor is checked by the run, once it can read the history through the page:
         # one that turns out not to qualify falls back to the usual rules and says so
-        # a custom run told to skip indexing writes no json, because json is the index
-        indexing_run = options['reindex'] or action != ACTION_CUSTOM
+        # only a custom run skipping its indexing, with no window, looks every indexed work up
+        if action != ACTION_CUSTOM or options['reindex'] or options['dates']:
+            options['recheck'] = False
+        # a custom run told to skip indexing writes no json, because json is the index - unless
+        # it looks every indexed work up on AO3, which rewrites each entry it reads
+        indexing_run = options['reindex'] or action != ACTION_CUSTOM or options['recheck']
         filetypes = resolve_filetypes(body.get('filetypes'), force=indexing_run)
         # a collections run that is not indexing their works downloads nothing, so its record
         # must not say it saved html
         if action in COLLECTION_ACTIONS and not options['collectionWorks']:
             filetypes = list(FORCED_FILETYPES)
         # re-reading a non-bookmark writes its entry, which a run told not to index has ruled out
-        if not indexing_run: options['nonBookmarks'] = False
+        # (and one looking every indexed work up re-reads the non-bookmarks among them anyway)
+        if not indexing_run or options['recheck']: options['nonBookmarks'] = False
 
         url = (body.get('url') or '').strip()
         # checked here rather than on the thread, so a bad link is a straight answer to the

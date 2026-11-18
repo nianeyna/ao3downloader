@@ -342,7 +342,9 @@ export class History {
   protected settingsOf(run: RunHistory): string[] {
     const options = run.options ?? {};
     const said: string[] = [];
-    if (options['reindex'] === false) said.push('no reindexing');
+    if (options['reindex'] === false) {
+      said.push(options['recheck'] ? 'no reindexing - each indexed work looked up on AO3' : 'no reindexing');
+    }
     if (options['pages']) said.push(`up to page ${options['pages']}`);
     if (Number(options['start'] ?? 1) > 1) said.push(`from page ${options['start']}`);
     if (options['collectionWorks']) said.push('indexed and downloaded the works in them');

@@ -708,6 +708,99 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
    "HTML"
   ],
   "options": {
+   "reindex": false
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Read the index already saved"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "download",
+    "Download or update works as necessary"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON",
+   "HTML"
+  ],
+  "options": {
+   "recheck": true,
+   "reindex": false
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Index works AO3 has updated since that date"
+   ],
+   [
+    "read",
+    "Read every work in your index"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "update",
+    "Download or update each fic as necessary"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON",
+   "HTML"
+  ],
+  "options": {
    "nonBookmarks": true
   },
   "plan": [
@@ -766,6 +859,55 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
    [
     "index",
     "Index every bookmark"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "download",
+    "Download or update works as necessary"
+   ],
+   [
+    "images",
+    "Save embedded images separately"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON",
+   "HTML"
+  ],
+  "options": {
+   "images": true,
+   "reindex": false
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Read the index already saved"
    ],
    [
     "series",
@@ -990,6 +1132,89 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
    "JSON"
   ],
   "options": {
+   "reindex": false
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Read the index already saved"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON"
+  ],
+  "options": {
+   "recheck": true,
+   "reindex": false
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Index works AO3 has updated since that date"
+   ],
+   [
+    "read",
+    "Read every work in your index"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "update",
+    "Download or update each fic as necessary"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON"
+  ],
+  "options": {
    "nonBookmarks": true
   },
   "plan": [
@@ -1039,6 +1264,46 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
    [
     "index",
     "Index every bookmark"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "images",
+    "Save embedded images separately"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "JSON"
+  ],
+  "options": {
+   "images": true,
+   "reindex": false
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "index",
+    "Read the index already saved"
    ],
    [
     "series",
@@ -1231,6 +1496,50 @@ export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; options: R
    [
     "download",
     "Download or update works as necessary"
+   ],
+   [
+    "fichub",
+    "Try FicHub for works AO3 would not give us"
+   ],
+   [
+    "cleanup",
+    "Cleanup"
+   ],
+   [
+    "report",
+    "Report any failures"
+   ]
+  ]
+ },
+ {
+  "action": "custom",
+  "filetypes": [
+   "HTML"
+  ],
+  "options": {
+   "recheck": true,
+   "reindex": false
+  },
+  "plan": [
+   [
+    "login",
+    "Log in to AO3"
+   ],
+   [
+    "read",
+    "Read every work in your index"
+   ],
+   [
+    "series",
+    "Index works in series marked for walkthrough"
+   ],
+   [
+    "check",
+    "Read your existing downloaded files"
+   ],
+   [
+    "update",
+    "Download or update each fic as necessary"
    ],
    [
     "fichub",

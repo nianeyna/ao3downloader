@@ -281,6 +281,10 @@
               <span>
                 @if (action() === 'quick') {
                   (Recommended) Anything that has changed since my last run
+                  <span class="hint coverage-hint">
+                    A work with no index entry yet is picked up and checked only if it is one of your
+                    AO3 bookmarks, bookmarked or updated on AO3 since your last scan.
+                  </span>
                 } @else {
                   All bookmarks
                 }
@@ -291,14 +295,25 @@
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'pages'"
                        (change)="coverage.set('pages')" />
-                <span>A slice of your bookmarks listing - in the order you bookmarked them, newest first</span>
+                <span>A slice of your bookmarks listing - choose my own page range</span>
               </label>
+              @if (coverage() === 'pages') {
+                <p class="hint nested slice-order-hint">
+                  Orders your bookmarks in the order you bookmarked them, newest first.
+                </p>
+              }
             } @else {
               <!-- the next page lists the scans that can be measured back to -->
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'run'"
                        (change)="coverage.set('run')" />
-                <span>Choose which earlier scan to measure back to</span>
+                <span>
+                  Choose which earlier scan to measure back to
+                  <span class="hint coverage-hint">
+                    A work with no index entry yet is picked up and checked only if it is one of your
+                    AO3 bookmarks, bookmarked or updated on AO3 since the scan you choose.
+                  </span>
+                </span>
               </label>
             }
 
@@ -310,11 +325,68 @@
                   @if (action() === 'quick') {
                     <!-- only reachable with the debug tools on; see picksDates -->
                     [DEBUG] Choose my own date range
+                    <span class="hint coverage-hint">
+                      A work with no index entry yet is picked up and checked only if it is one of
+                      your AO3 bookmarks, bookmarked or updated on AO3 within the range.
+                    </span>
                   } @else {
-                    Choose my own date range
+                    A slice of your bookmarks listing - choose my own date range
                   }
                 </span>
               </label>
+            }
+
+            <!-- no listing at all: the works already in the index (it skips the indexing) -->
+            @if (action() === 'custom') {
+              <label class="check">
+                <input type="radio" name="coverage" [checked]="coverage() === 'existing'"
+                       (change)="coverage.set('existing')" />
+                <span>Just update existing works</span>
+              </label>
+              <!-- once chosen, how its files are judged sits under it, nested -->
+              @if (coverage() === 'existing') {
+                <div class="existing-options">
+                  <p class="hint skip-index-hint">
+                    Only checks existing works in FicFairy for downloads/updates (skips 'walking' your
+                    bookmarks). A good choice if you just need to download new formats for existing works in your library. Checks all
+                    works with an index in the library, including non-bookmarks.
+                  </p>
+                  <fieldset class="existing-check">
+                    <legend>How to tell if a file is outdated</legend>
+                    <label class="check">
+                      <input type="radio" name="existingCheck" value="ao3" [checked]="existingCheck() === 'ao3'"
+                             (change)="existingCheck.set('ao3')" />
+                      <span>Check for outdated against latest on AO3</span>
+                    </label>
+                    @if (existingCheck() === 'ao3') {
+                      <p class="hint nested recheck-hint no-entry-hint">
+                        Looks up every work on AO3 for changes. One at a time, each index entry (the work
+                        summary, chapter count, tags shown in FicFairy) is updated, and any downloaded files
+                        are judged against the most recent that AO3 has to offer to check whether they need
+                        updating. Will not download or update works that do not have an index.
+                      </p>
+                    }
+                    <label class="check">
+                      <input type="radio" name="existingCheck" value="index" [checked]="existingCheck() === 'index'"
+                             (change)="existingCheck.set('index')" />
+                      <span>Check for outdated against current index</span>
+                    </label>
+                    @if (existingCheck() === 'index') {
+                      <p class="hint nested no-entry-hint">
+                        Does not check AO3 directly to see if there has been any update - instead, checks
+                        downloaded files against your last index to determine whether or not an update needs
+                        to be fetched. Will not download or update works that do not have an index. Indexes
+                        (the work summary, chapter count, tags shown in FicFairy) do not get updated.
+                      </p>
+                      <p class="hint warn skip-index-warning nested">
+                        This only brings fics up to date to their latest index. A fic with an outdated index
+                        may not be caught and brought completely up to date - it will miss any update from
+                        AO3 that is more recent than its last index.
+                      </p>
+                    }
+                  </fieldset>
+                </div>
+              }
             }
 
             <!-- last: it takes every other choice from the run it retries. not for a guest: the
@@ -484,29 +556,6 @@
           never in the listing. only a full scan goes the long way round, so it is the only
           run where ticking this could do anything
         -->
-        @if (picksReindex()) {
-          <label class="check">
-            <input
-              type="checkbox"
-              name="reindex"
-              [checked]="!reindex()"
-              (change)="reindex.set(!$any($event.target).checked)"
-            />
-            <span>Skip indexing - work from what is already indexed</span>
-          </label>
-          <p class="hint">
-            Useful for downloading your fics in a new format, or to fill in any blanks in
-            your downloaded files if your index is already up-to-date
-          </p>
-          @if (!reindex()) {
-            <p class="hint warn skip-index-warning">
-              Your files are only checked against your last index, not against live AO3 data:
-              a fic AO3 has updated since it was last indexed will not be seen as needing an
-              update.
-            </p>
-          }
-        }
-
         @if (picksCollectionWorks()) {
           <label class="check">
             <input
@@ -571,15 +620,15 @@
         @if (picksSeries()) {
           <label class="check">
             <input type="checkbox" [checked]="series()" (change)="series.set($any($event.target).checked)" />
-            <span>Get all works from encountered series</span>
+            <span>If a work is a part of a series, download all its other works too</span>
           </label>
           <p class="hint">
             @if (picksCollectionWorks()) {
-              If a work in the collection belongs to a series, download the rest of the series
-              too - even if its other works are not in the collection.
+              Downloads all works whenever a series is found - even if its other works are not in
+              the collection.
             } @else {
-              If a bookmarked work belongs to a series, download the rest of the series too - even
-              if its other works are not bookmarked.
+              Downloads all works whenever a series is found - even if its other works are not
+              bookmarked by you.
             }
           </p>
         }
@@ -610,11 +659,11 @@
               [checked]="overwrite()"
               (change)="overwrite.set($any($event.target).checked)"
             />
-            <span>Overwrite existing downloads, even if there has been no update</span>
+            <span>Overwrite existing downloads</span>
           </label>
           <p class="hint">
-            Check this if you are concerned about file integrity issues and would like to
-            re-download each file again, in the formats you ask for.
+            Choose which formats get replaced on the next page. Check this if you are concerned
+            about file integrity issues and would like to re-download each file again.
           </p>
           <!-- the non-bookmarks it re-reads are downloaded with the rest, so they are overwritten too -->
           @if (overwrite() && picksNonBookmarks() && nonBookmarks()) {

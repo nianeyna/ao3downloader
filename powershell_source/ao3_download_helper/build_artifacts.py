@@ -537,33 +537,37 @@ reached, and the run may have to fall back on FicHub. A run reading your own boo
 collections still asks for your username, but never your password.
 
 **Custom run** is the full scan with its parts made optional. It covers exactly one of
-three things, which it asks before anything else: **all bookmarks**, a **slice** of your
-listing by page number, or a **date range**. They are alternatives rather than settings that
+four things, which it asks before anything else: **all bookmarks**, a **slice** of your
+listing by page number, a **date range**, or **just the works already in your index**
+(*Just update existing works*). They are alternatives rather than settings that
 combine - a run cannot be walking a listing and not walking it - so choosing one puts the
 others away.
 
 A date range comes in two shapes, everything updated since a date or between two dates, and
 both ends count.
 
-On top of whichever it covers, the run can **skip reading ao3 at all** and work from what is
-already indexed. That costs no requests to decide anything, but judges everything against
-however old your index is - useful for downloading your fics in a new format, or filling in
-blanks in your downloaded files when the index is already up to date.
+The last of those **skips walking your bookmarks** and works through every work already
+indexed, bookmarked or not, and asks how a file is judged outdated. **Against the latest on
+ao3**, the default, looks each work up on ao3, one at a time, updates its index entry and
+judges its files against that - one request per work, so slow on a large library. **Against
+the current index** reads nothing from ao3, but judges everything against however old your
+index is, and leaves the index as it was - useful for downloading your fics in a new format,
+or filling in blanks in your downloaded files when the index is already up to date. Either
+way, a work with no index entry is not downloaded or updated.
 
-Unless you tick *skip indexing*, the run indexes first. It reads your bookmarks **sorted by
+With a date range, the run indexes first. It reads your bookmarks **sorted by
 when ao3 last updated each work** and stops at the first fic older than the earliest date
 you gave, because everything past that point is outside the range by definition. Give it no
 earliest date and there is nothing to stop at, so it reads the whole listing. It then picks
 the works in range out of the index, re-reads them one at a time newest first, and downloads
 whatever turns out to be missing or behind.
 
-With indexing skipped it reads no listing at all, and a fic whose index entry is behind ao3
-can be picked or missed on the strength of that entry. Works with no recorded update date
-are never covered either way, since there is nothing to compare.
+Works with no recorded update date are never covered by a date range, since there is nothing
+to compare.
 
-Skipping the indexing decides a file type as well: json is the index, so a run that does not
-index does not write it, and the json box is ticked or unticked to match and locked either
-way. Every run asks its options first and its file types second for that reason, and a run
+Skipping the indexing can decide a file type as well: json is the index, so a run that neither
+indexes nor looks each work up on ao3 does not write it, and the json box is ticked or
+unticked to match and locked either way. Every run asks its options first and its file types second for that reason, and a run
 with nothing to choose skips the options step rather than showing an empty one.
 
 It is also the only run that offers **saving embedded images separately**. That fetches each
@@ -628,7 +632,7 @@ downloaded. Ticked, every work in the collection's works and bookmarked items is
 the pages the crawl reads anyway, then downloaded or updated as a scan would; a work you
 have not bookmarked is indexed as not bookmarked, and somebody else's bookmark notes are
 never written in as yours. External works among its bookmarked items are indexed as well,
-beside your own, and never downloaded. It then offers **Get all works from encountered series** and asks
+beside your own, and never downloaded. It then offers **If a work is a part of a series, download all its other works too** and asks
 for file types, and reads every collection's works again even when its count is unchanged.
 Leave it off for a collection of your own bookmarks, whose works are already indexed; it is
 recommended for a collection you think holds works or bookmarks outside your own.

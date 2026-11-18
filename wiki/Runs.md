@@ -9,7 +9,7 @@ A **run** is one press of a button: it logs in to AO3, indexes, downloads, and r
 | **Download/update a specific fic** | Bookmarks | One fic, by link or work number. Always re-downloads it | One fic |
 | **Download/update several fics** | Bookmarks | A pasted list of links or work numbers (any separators, up to 500). Always re-downloads them | One fic each |
 | **Import works found in your library** | Offered when a library opens, and under the tabs | Files in `works/` with no index entry: date them, index them, add formats | One fic each |
-| **Custom run** | Bookmarks | A slice of pages, a date range, or working from the index without reading AO3 | Depends |
+| **Custom run** | Bookmarks | A slice of your bookmarks by page range or date range, or just the works already in your index | Depends |
 | **Index my collections** | Collections | Your own collections | 1 request per 20 works |
 | **Index collection by URL** | Collections | Any collection, from a link | 1 request per 20 works |
 
@@ -32,10 +32,14 @@ It then downloads whatever either walk found. With nothing to measure back to, t
 Each run asks its options, then which file types, then your login.
 
 - **File types** - JSON is the index and always on. HTML starts ticked. Untick everything else for a metadata-only run, about a twentieth of the requests.
-- **Get all works from encountered series** - also downloads the rest of each series.
+- **If a work is a part of a series, download all its other works too** - downloads every work of each series found, even ones you haven't bookmarked.
 - **Check all non-bookmarks for updates too** - re-checks works you have indexed but not bookmarked: works added by URL or id, imported works, works indexed from a collection (with *Index and download encountered works*), and works in a series you have indexed. Their series are read first; it is not limited by a date range.
-- **Overwrite existing downloads** - full scan and custom run only. Fetches every format again, for when you suspect a damaged file. If a file you have is **newer** than the version it would be replaced with, the run asks first (no, keep it, if you don't answer). The fic runs, which always replace, ask the same.
-- **Skip indexing** - custom run only. Works from your index as it is, without reading AO3 first: your files are only checked against your last index, so a fic AO3 has updated since it was last indexed is not seen as needing an update.
+- **Overwrite existing downloads** - full scan and custom run only. Replaces everything, whether or not AO3 updated it, in the formats you choose on the next page, for when you suspect a damaged file. If a file you have is **newer** than the version it would be replaced with, the run asks first (no, keep it, if you don't answer). The fic runs, which always replace, ask the same.
+- **Just update existing works** - custom run only, one of its choices under *What this run covers*. Works through every work already in your index, bookmarked or not, without reading AO3's listing first. Then choose how a file is judged outdated:
+  - **Check for outdated against latest on AO3** - each work is looked up on AO3, one at a time, its index entry updated, and its files judged against that. One request per work, so slow on a large library. This is the default.
+  - **Check for outdated against current index** - missing formats are downloaded, and a file whose name is dated before your index's date is replaced. Nothing is looked up on AO3, so a fic AO3 has updated since it was last indexed is not seen as needing an update, and the index itself is not updated. A work with no date in its index entry can't be judged; only its missing formats are downloaded, named with no date. A file of a work with no index entry at all is never touched.
+
+  Either way, works AO3 won't give are offered to FicHub at the end, as on every run.
 - **Save embedded images separately** - custom run only. Usually unnecessary: images are already inside the downloaded work.
 - **Index and download encountered works** - collection runs only. Off: just records which works the collection holds. On: indexes and downloads them too.
 - **Include subcollections / parent collections** - collection runs only. Follows the family, each collection once, up to 200.
@@ -51,7 +55,7 @@ Three dates are involved whenever a run decides whether to download a format:
 
 Each format is judged on its own, so a work can have a current HTML and an outdated EPUB, and only the EPUB is fetched. A new file is named with the incoming date, and an older copy is deleted only once the new one is saved whole.
 
-**Where AO3's date comes from.** Every scan reads it off your bookmarks listing (or a collection's) as it walks it. The fic runs and the pass over unfinished fics open each fic's own page. Two exceptions use an older date: a **Custom run with *Skip indexing***, which judges files against your index as it stands, and a **retry carrying on an earlier attempt's downloads**, which uses what that attempt read - unless you answer yes when it asks whether to read each work again first.
+**Where AO3's date comes from.** Every scan reads it off your bookmarks listing (or a collection's) as it walks it. The fic runs and the pass over unfinished fics open each fic's own page. Two exceptions use an older date: a **Custom run with *Just update existing works***, which judges files against your index as it stands, and a **retry carrying on an earlier attempt's downloads**, which uses what that attempt read - unless you answer yes when it asks whether to read each work again first.
 
 **More than one file of a format - the nominated file for comparison.** When a work has two or more files of the same format, a run picks one of them to compare against what is coming in (from AO3 or FicHub, overwriting or not), its **nominated file for comparison**:
 
