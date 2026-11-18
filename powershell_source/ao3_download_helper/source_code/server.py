@@ -510,6 +510,10 @@ def resolve_options(requested) -> dict:
         # both: one picks works by where they sit in the listing and the other by when ao3
         # last touched them, and a run cannot be walking a listing and not walking it.
         'dates': bool(given.get('dates')),
+        # the order a custom run reads your bookmarks listing in, for a slice of pages or a
+        # date range: by when you bookmarked each work, or by when ao3 last updated it. '' is
+        # each shape's own order as it always was - see `listing_order`
+        'order': given.get('order') if given.get('order') in LISTING_ORDERS else '',
         # a custom run skipping the indexing may still look every indexed work up on AO3, one
         # at a time, and judge its files against what AO3 says now (`rechecks`) rather than
         # against the index as it stands
@@ -639,7 +643,6 @@ def read_settings(fileops: FileOps) -> dict:
         'maxRetries': fileops.get_ini_value_integer(strings.INI_MAX_RETRIES, 0),
         'maxTimeouts': fileops.get_ini_value_integer(strings.INI_MAX_TIMEOUTS, 3),
         'debugLogging': fileops.get_ini_value_boolean(strings.INI_DEBUG_LOGGING, False),
-        'debugTools': fileops.get_ini_value_boolean(strings.INI_DEBUG_TOOLS, False),
         'consoleLogging': fileops.get_ini_value_boolean(strings.INI_CONSOLE_LOGGING, False),
         # how long a paused background run is kept before it is abandoned - the page warns
         # with this number before a background run is paused
@@ -1218,9 +1221,13 @@ def step_plan(job: Job) -> list[tuple[str, str]]:
             # listed whenever the run could index, even when it was told not to: a step
             # the user actively turned off is worth seeing struck through, where one this
             # workflow simply never had is only noise. `run_custom_dates` marks it skipped
+            # a range of dates bookmarked reads the listing, and picks works, by that date
+            bookmarked = listing_order(job) == 'bookmarked' and not rechecks(job)
             if metadata:
-                window.append(('index', strings.STEP_INDEX_WINDOW))
+                window.append(('index', strings.STEP_INDEX_BOOKMARKED_WINDOW if bookmarked
+                               else strings.STEP_INDEX_WINDOW))
             window.extend([('read', strings.STEP_READ_RECHECK if rechecks(job)
+                            else strings.STEP_READ_BOOKMARKED_WINDOW if bookmarked
                             else strings.STEP_READ_WINDOW),
                            ('series', strings.STEP_SERIES)])
             if checks_non_bookmarks(job):
@@ -2706,6 +2713,20 @@ def bookmarks_link(job: Job) -> str:
     return f'{strings.AO3_BASE_URL}/users/{job.username}/bookmarks'
 
 
+# the two orders a custom run can read your bookmarks listing in
+LISTING_ORDERS = ('bookmarked', 'updated')
+
+
+def listing_order(job: Job) -> str:
+    """The order a custom run reads your bookmarks listing in: as asked, else each shape's
+    own - a date range by date updated, everything else by date bookmarked - so a run that
+    was not asked (an older page, a retry of an older run) does exactly what it always did."""
+
+    asked = job.options.get('order')
+    if asked in LISTING_ORDERS: return asked
+    return 'updated' if job.options.get('dates') else 'bookmarked'
+
+
 def sorted_bookmarks_link(job: Job) -> str:
     """Your bookmarks, newest bookmarked first - asked for by name.
 
@@ -3615,8 +3636,15 @@ def run_custom(job: Job, fileops: FileOps, repo: Repository, report) -> None:
     if job.options['reindex'] and metadata:
         progress.report(report, progress.PHASE, name=progress.INDEXING)
         print(strings.AO3_INFO_INDEXING)
-        records = walk_listing(job, fileops, ao3, 'all', sorted_bookmarks_link(job),
-                               anchored=True, ceiling=retry_ceiling(job), own_bookmarks=True)
+        # a slice may be read by date updated instead: the same walk, a different listing.
+        # a fic ao3 updates moves to the top there, so a broken walk starts again rather than
+        # being picked up from a page (`anchored`)
+        by_updated = job.action == ACTION_CUSTOM and listing_order(job) == 'updated'
+        records = walk_listing(job, fileops, ao3, 'all',
+                               f'{bookmarks_link(job)}?{strings.AO3_SORT_BY_UPDATED}' if by_updated
+                               else sorted_bookmarks_link(job),
+                               anchored=not by_updated, ceiling=retry_ceiling(job),
+                               own_bookmarks=True)
         walked = not ao3.walk_skipped
         walk_broke = ao3.walk_failed
     else:
@@ -5024,17 +5052,29 @@ def run_custom_dates(job: Job, fileops: FileOps, ao3: Ao3, downloadtypes: list[s
             job.steps.skip('update')
         return
 
+    # a range of dates bookmarked rather than dates updated: the listing read newest
+    # bookmarked first, stopping at the first bookmark made before the range, and the works
+    # picked by the date each was bookmarked
+    bookmarked = listing_order(job) == 'bookmarked' and not rechecks(job)
     if job.options['reindex'] and metadata:
         job.steps.start('index')
         progress.report(report, progress.PHASE, name=progress.INDEXING)
-        print(strings.AO3_INFO_DATE_INDEXING.format(start) if start
-              else strings.AO3_INFO_DATE_NO_FLOOR)
-        # the whole index is read below rather than just what came back here: a fic in the
-        # window that is no longer bookmarked is still one the window asked for. a retry
-        # starts at the window's end: nothing updated after it is chosen
-        walk_listing(job, fileops, ao3, 'updated',
-                     f'{bookmarks_link(job)}?{strings.AO3_SORT_BY_UPDATED}', anchored=False,
-                     ceiling=retry_ceiling(job, end), stop_before=start, own_bookmarks=True)
+        if bookmarked:
+            print(strings.AO3_INFO_DATE_INDEXING_BOOKMARKED.format(start) if start
+                  else strings.AO3_INFO_DATE_NO_FLOOR)
+            # the quick scan's first walk, given the range's older end as its floor
+            walk_listing(job, fileops, ao3, 'bookmarked', sorted_bookmarks_link(job),
+                         anchored=True, ceiling=retry_ceiling(job, end), stop_before=start,
+                         stop_on='bookmarked', own_bookmarks=True)
+        else:
+            print(strings.AO3_INFO_DATE_INDEXING.format(start) if start
+                  else strings.AO3_INFO_DATE_NO_FLOOR)
+            # the whole index is read below rather than just what came back here: a fic in
+            # the window that is no longer bookmarked is still one the window asked for. a
+            # retry starts at the window's end: nothing updated after it is chosen
+            walk_listing(job, fileops, ao3, 'updated',
+                         f'{bookmarks_link(job)}?{strings.AO3_SORT_BY_UPDATED}', anchored=False,
+                         ceiling=retry_ceiling(job, end), stop_before=start, own_bookmarks=True)
         finish_walk_step(job, ao3, 'index')
     elif metadata:
         # asked for, and turned off - so it is shown as skipped rather than dropped
@@ -5047,6 +5087,13 @@ def run_custom_dates(job: Job, fileops: FileOps, ao3: Ao3, downloadtypes: list[s
     if recheck:
         # every indexed work, dated or not: each is looked up on AO3 before anything is judged
         chosen = newest_first(shared.read_index(fileops))
+    elif bookmarked:
+        print(strings.AO3_INFO_DATE_WINDOW_BOOKMARKED.format(start or strings.AO3_INFO_DATE_ANY,
+                                                             end or strings.AO3_INFO_DATE_ANY))
+        # only a bookmark has a date bookmarked: a work you never bookmarked, or one whose
+        # entry predates the field, is not in a range of them
+        chosen = newest_first(works_dated_between(shared.read_index(fileops), 'date_bookmarked',
+                                                  start, end))
     else:
         print(strings.AO3_INFO_DATE_WINDOW.format(start or strings.AO3_INFO_DATE_ANY,
                                                   end or strings.AO3_INFO_DATE_ANY))

@@ -542,3 +542,11 @@ select.zone-select {
   flex-basis: 100%;
   margin: 0;
 }
+
+/* which sound: a dropdown in the same row as the switch and Play it */
+.sound-choice .chime-sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}

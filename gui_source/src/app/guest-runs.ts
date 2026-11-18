@@ -45,6 +45,7 @@ export const GUEST_STEP_LABELS = {
   STEP_READ_INDEX: 'Read existing index for unfinished fics',
   STEP_INDEX_WINDOW: 'Index works AO3 has updated since that date',
   STEP_READ_WINDOW: 'Find indexed works updated in that date range',
+  STEP_READ_BOOKMARKED_WINDOW: 'Find indexed works bookmarked in that date range',
   STEP_READ_RECHECK: 'Read every work in your index',
   STEP_UPDATE_WINDOW: 'Download or update each fic as necessary',
   STEP_UPDATE: 'Re-index each fic, then download or update as necessary',
@@ -129,8 +130,11 @@ export function guestPlan(action: JobAction, filetypes: string[], options: Optio
     const recheck = action === 'custom' && !!options['recheck'] && !reindexes(options) && !options['dates'];
     if (action === 'custom' && (options['dates'] || recheck)) {
       const window: GuestStep[] = [step('login', L.STEP_LOGIN)];
-      if (metadata) window.push(step('index', L.STEP_INDEX_WINDOW));
-      window.push(step('read', recheck ? L.STEP_READ_RECHECK : L.STEP_READ_WINDOW), step('series', L.STEP_SERIES));
+      // a range of dates bookmarked reads the listing, and picks works, by that date
+      const bookmarked = options['order'] === 'bookmarked' && !recheck;
+      if (metadata) window.push(step('index', bookmarked ? L.STEP_INDEX_BOOKMARKED_WINDOW : L.STEP_INDEX_WINDOW));
+      window.push(step('read', recheck ? L.STEP_READ_RECHECK : bookmarked ? L.STEP_READ_BOOKMARKED_WINDOW : L.STEP_READ_WINDOW),
+        step('series', L.STEP_SERIES));
       if (nonBookmarks) window.push(step('nonbookmarks', L.STEP_NON_BOOKMARKS));
       window.push(
         step('check', L.STEP_CHECK_FILES),

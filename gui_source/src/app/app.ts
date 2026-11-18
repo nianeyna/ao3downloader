@@ -417,16 +417,14 @@ export class App {
   protected readonly canRun = computed(() => !!this.library.store());
 
   /**
-   * Whether settings.ini has turned the debug tools on.
+   * Whether debug mode is on - which once was settings.ini's `EnableDebugTools`.
    *
    * Gates the runs that are kept for working on the app rather than for using it.
    * They still work, and they are still the passes the recommended run is built
    * from - but offering them beside it invites picking one of the parts when the
    * whole is what was wanted.
    */
-  protected readonly debugTools = computed(
-    () => !!this.jobs.config()?.settings?.debugTools,
-  );
+  protected readonly debugTools = computed(() => this.debugMode.on());
 
   constructor() {
     // the selection bar is pinned above the version bar, which wraps onto more lines on a

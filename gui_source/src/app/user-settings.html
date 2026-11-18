@@ -212,6 +212,14 @@
         <input type="checkbox" name="waitChime" [checked]="chime.on()" (change)="setChime($any($event.target).checked)" />
         Play a sound when the page is waiting for you
       </label>
+      <label class="field chime-sound">
+        <span>Sound</span>
+        <select name="waitChimeSound" (change)="setChimeSound($any($event.target).value)">
+          @for (sound of chimeSounds; track sound.id) {
+            <option [value]="sound.id" [selected]="chime.sound() === sound.id">{{ sound.name }}</option>
+          }
+        </select>
+      </label>
       <button type="button" class="button subtle play-chime" (click)="chime.sample()">Play it</button>
       <p class="hint">A short ding when a run asks you a question, or Resolve issues stops to ask which copy to keep - so you know to come back to this tab.</p>
     </div>
@@ -503,8 +511,7 @@
 
   <!-- always the last section on the page, folded away. A guest's holds only the owner's way in
        (`GuestMode.openLogin`); anyone else's holds the file naming (a helper on this computer
-       only) and debug mode (on a downloaded app only when settings.ini's EnableDebugTools is
-       true, `DebugMode.allowed`) - neither ever shown to a guest, a preview included -->
+       only) and debug mode (`DebugMode.allowed`, the one switch for every debug tool) - neither ever shown to a guest, a preview included -->
   @if (guest()) {
     @if (guestMode.loginOffered()) {
       <details class="group advanced guest-faded">
@@ -648,7 +655,7 @@
                    (change)="setDebugMode($any($event.target).checked)" />
             <span>
               Turn on debug mode
-              <span class="hint">Shows a banner at the top and a DEBUG tab with tools for trying the app out - such as a mock of Resolve issues found in your library that touches no real files.</span>
+              <span class="hint">Shows a banner at the top and a DEBUG tab with tools for trying the app out - such as a mock of Resolve issues found in your library that touches no real files. It also turns on the [DEBUG] runs, the quick scan's date range and a debug panel in the run window, for working on the app rather than using it.</span>
             </span>
           </label>
         </div>

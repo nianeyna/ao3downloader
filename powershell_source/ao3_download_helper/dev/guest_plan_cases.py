@@ -22,9 +22,11 @@ TARGET = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '.
 FILETYPES = (['JSON', 'HTML'], ['JSON'], ['HTML'])
 # the choices step_plan reads, each on and off
 CHOICES = ('collectionWorks', 'series', 'replaceOutdated', 'reindex', 'dates', 'images', 'nonBookmarks',
-           'skipIndex', 'recheck')
+           'skipIndex', 'recheck', 'orderBookmarked')
 # a choice whose 'on' sends a false option: a custom run told to skip its indexing
 SENT_FALSE = {'skipIndex': 'reindex'}
+# a choice whose 'on' sends a value: a custom run's range read by date bookmarked
+SENT_VALUE = {'orderBookmarked': ('order', 'bookmarked')}
 ACTIONS = ('bookmarks', 'quick', 'custom', 'new', 'sync', 'update', 'work', 'works',
            'import', 'collections', 'collection')
 
@@ -37,6 +39,8 @@ def cases() -> list[dict]:
                 options = {name: on for name, on in zip(CHOICES, flags) if on}
                 for choice, option in SENT_FALSE.items():
                     if options.pop(choice, False): options[option] = False
+                for choice, (option, value) in SENT_VALUE.items():
+                    if options.pop(choice, False): options[option] = value
                 job = server.Job(action, list(filetypes), 'Someone', server.resolve_options(options))
                 found.append({'action': action, 'filetypes': filetypes, 'options': options,
                               'plan': [[step, label] for step, label in server.step_plan(job)]})
@@ -55,7 +59,7 @@ def text() -> str:
             '// the helper\'s own checklist (server.step_plan) for each run and the choices that shape\n'
             '// it: guest mode\'s pretend runs list the same (guest-runs.spec.ts, test_guest_steps.py)\n'
             'export const GUEST_PLAN_CASES: { action: string; filetypes: string[]; '
-            'options: Record<string, boolean>; plan: [string, string][] }[] = '
+            'options: Record<string, boolean | string>; plan: [string, string][] }[] = '
             + json.dumps(cases(), indent=1) + ';\n')
 
 

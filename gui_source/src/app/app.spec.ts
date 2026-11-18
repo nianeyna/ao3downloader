@@ -287,9 +287,10 @@ describe('App', () => {
         maxRetries: 0,
         maxTimeouts: 3,
         debugLogging: false,
-        debugTools: true,
       },
     });
+    // debug mode is the one switch for the debug runs now - settings.ini's EnableDebugTools is gone
+    TestBed.inject(DebugMode).set(true);
 
     const element = await withFolder();
 
@@ -1230,7 +1231,6 @@ describe('App', () => {
   });
 
   it('never asks for a folder on the DEBUG tab, where dummy data is turned off with none open', async () => {
-    TestBed.inject(Jobs).config.set({ ...BUILT_IN_CONFIG, settings: { debugTools: true } } as ServerConfig);
     TestBed.inject(DebugMode).set(true);
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
@@ -1752,7 +1752,6 @@ describe('App', () => {
     expect(element.querySelector('.debug-banner')).toBeNull();
     expect(tab(element, 'DEBUG')).toBeUndefined();
 
-    TestBed.inject(Jobs).config.set({ ...BUILT_IN_CONFIG, settings: { debugTools: true } } as ServerConfig);
     TestBed.inject(DebugMode).set(true);
     await settled(fixture);
     const banner = element.querySelector('.debug-banner')!;

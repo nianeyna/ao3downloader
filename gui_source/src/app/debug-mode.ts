@@ -2,16 +2,15 @@
  * Debug mode itself: this browser's alone (`DEBUG_MODE_KEY`), turned on and off in User
  * settings. Apart from debug.ts so the library can ask about it without importing the mock.
  *
- * **On a downloaded app it is only offered when settings.ini allows it** (`EnableDebugTools`,
- * which the helper reports as `settings.debugTools`): someone using the app never meets it,
- * and whoever works on it turns it on in the file. The hosted copy is its owner's alone, so it
- * is always offered there - but never to a guest (`guest.ts`). Where it is not allowed it is off,
- * whatever this browser saved.
+ * **It is the one switch for every debug tool** - the DEBUG tab and banner, the quick scan's
+ * date range, the [DEBUG] run buttons and the run window's debug panel - which settings.ini's
+ * `EnableDebugTools` used to turn on, until it was taken out at the owner's request. Offered
+ * everywhere but to a guest (`guest.ts`), from User settings' *Advanced*, folded away; where it
+ * is not allowed it is off, whatever this browser saved.
  */
 
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HelperConnection } from './helper-connection';
-import { Jobs } from './jobs';
 import { safeGet, safeRemove, safeSet } from './storage';
 
 export const DEBUG_MODE_KEY = 'ao3.debugMode';
@@ -19,13 +18,10 @@ export const DEBUG_MODE_KEY = 'ao3.debugMode';
 @Injectable({ providedIn: 'root' })
 export class DebugMode {
   private readonly helper = inject(HelperConnection);
-  private readonly jobs = inject(Jobs);
   /** what this browser chose */
   readonly chosen = signal(safeGet(DEBUG_MODE_KEY) === 'on');
-  /** whether it may be offered here: always on the hosted copy, on an app only by settings.ini */
-  readonly allowed = computed(
-    () => !this.helper.guest() && (!this.helper.isLocal() || !!this.jobs.config()?.settings?.debugTools),
-  );
+  /** whether it may be offered here: to anyone but a guest */
+  readonly allowed = computed(() => !this.helper.guest());
   /** in force: chosen, and allowed */
   readonly on = computed(() => this.chosen() && this.allowed());
 
