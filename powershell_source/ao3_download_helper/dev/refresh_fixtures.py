@@ -95,7 +95,7 @@ IGNORED_SELECTORS = [
     'script',
 ]
 
-USER_AGENT = "ao3downloader-ci (+https://github.com/alexandria-p/ficfairy)"
+USER_AGENT = "ao3downloader-ci (+https://github.com/alexandria-p/FicFairy)"
 TIMEOUT = 60
 MAX_RETRIES = 10
 CLOUDFLARE_ABORT_THRESHOLD = 3

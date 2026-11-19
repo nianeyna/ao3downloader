@@ -173,7 +173,7 @@ describe('Feedback', () => {
     await make();
     await openForm();
     const link = element.querySelector<HTMLAnchorElement>('.hint.public a');
-    expect(link?.href).toBe('https://github.com/alexandria-p/ficfairy/issues/');
+    expect(link?.href).toBe('https://github.com/alexandria-p/FicFairy/issues/');
     expect(element.querySelector('.hint.public')?.textContent).toContain('posted publicly');
   });
 

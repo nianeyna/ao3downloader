@@ -1358,6 +1358,63 @@ describe('ImportDialog', () => {
     });
   });
 
+  describe('skipping AO3 for files the index cannot date', () => {
+    const indexed = () => TestBed.inject(Library).worksById.set(new Map([
+      ['7', { id: '7', title: 'The Fic', authors: ['Writer'], date_updated: '14 Dec 2024' } as Bookmark]]));
+    const box = () => element.querySelector<HTMLInputElement>('input[name="skipAo3Check"]');
+
+    it('is offered only under the index choice, and hides the AO3 and FicHub choices', async () => {
+      indexed();
+      await open([], false, INDEXED_UNDATED);
+      await click('Continue');
+      await click('Repair remaining from AO3');
+      await click('Continue');
+      expect(box()).toBeNull();
+      expect(element.querySelector('input[name="repairAo3"]')).not.toBeNull();
+
+      element.querySelector<HTMLInputElement>('input[name="indexFirst"]')!.click();
+      await fixture.whenStable();
+      expect(box()!.checked).toBe(false);
+      expect(box()!.closest('label')!.textContent).toContain('Skip any check from AO3 for remaining files');
+      const hint = () => element.querySelector('.repair-index')!.textContent!.replace(/\s+/g, ' ');
+      expect(hint()).toContain('If there is no index, then it attempts to connect to AO3, and then FicHub instead.');
+      box()!.click();
+      await fixture.whenStable();
+
+      expect(hint()).toContain('If there is no index, the file is left as it is.');
+      expect(hint()).not.toContain('attempts to connect to AO3');
+      expect(element.querySelector('input[name="repairAo3"]')).toBeNull();
+      expect(element.querySelector('input[name="repairFallback"]')).toBeNull();
+    });
+
+    it('sends the run none of the files the index has no date for', async () => {
+      indexed();
+      await open(unindexedWorks(['works/2 C - D.html'], new Set()), false, INDEXED_UNDATED);
+      await click('Continue');
+      await click('Repair remaining from AO3');
+      await click('Continue');
+      element.querySelector<HTMLInputElement>('input[name="indexFirst"]')!.click();
+      await fixture.whenStable();
+      box()!.click();
+      await fixture.whenStable();
+      await click('Continue');
+      // work 2 is no longer indexed by a repair, so the index page asks about it
+      expect(step()).toBe('index');
+      element.querySelector<HTMLInputElement>('input[name="lookup"][value="later"]')!.click();
+      await fixture.whenStable();
+      await click('Continue');
+      element.querySelector<HTMLInputElement>('input[name="updateFetch"][value="skip"]')?.click();
+      await fixture.whenStable();
+      primary().click();
+      await settle();
+
+      expect(store.renamed).toEqual([['works/7 old name.html', 'works/7 The Fic - Writer 2024-12-14.html']]);
+      expect(primary().textContent!.trim()).toBe('Done');
+      await click('Done');
+      expect(started).toEqual([]);
+    });
+  });
+
   it('runs for a file to repair even with nothing else for a run to do', async () => {
     await open([], false, INDEXED_UNDATED);
     await click('Continue');

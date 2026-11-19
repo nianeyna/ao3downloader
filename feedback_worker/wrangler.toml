@@ -8,6 +8,6 @@ compatibility_date = "2026-10-01"
 workers_dev = true
 
 [vars]
-GITHUB_REPO = "alexandria-p/ficfairy"
+GITHUB_REPO = "alexandria-p/FicFairy"
 # the hosted page, and the page the apps and the bundle serve on this computer
 ALLOWED_ORIGINS = "https://alexandria-p.github.io,http://localhost:4200"
