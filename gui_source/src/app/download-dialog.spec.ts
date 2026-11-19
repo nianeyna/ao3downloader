@@ -1177,15 +1177,56 @@ describe('DownloadDialog', () => {
     await chooseWindow('2024-01-01');
 
     expect(element.textContent).toContain(
-      'any works that were updated between 2024-01-01 and today',
+      'any works that were updated between 1 January 2024 and today',
     );
 
     await chooseWindow('2024-01-01', '2024-06-30');
 
     // oldest first, as a reader says a range
     expect(element.textContent).toContain(
-      'any works that were updated between 2024-01-01 and 2024-06-30',
+      'any works that were updated between 1 January 2024 and 30 June 2024',
     );
+  });
+
+  it('will not go on with an on or after date later than the on or before date, the same day being fine', async () => {
+    await open('custom');
+    await advanceTo('options');
+    await chooseWindow('2024-06-30', '2024-01-01');
+
+    const problem = element.querySelector('.range-problem')!;
+    expect(problem.textContent).toContain(
+      'The updated on or after date (30 June 2024) is later than the on or before date (1 January 2024). Please fix this to continue.');
+    const next = element.querySelector<HTMLButtonElement>('footer .button.primary')!;
+    expect(next.disabled).toBe(true);
+    expect(TestBed.inject(VisitLog).text()).toContain('Date range held: The updated on or after date (30 June 2024)');
+
+    const lower = element.querySelector<HTMLInputElement>('input[name="dateFrom"]')!;
+    lower.value = '2024-01-01';
+    lower.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(element.querySelector('.range-problem')).toBeNull();
+    expect(element.querySelector<HTMLButtonElement>('footer .button.primary')!.disabled).toBe(false);
+  });
+
+  it('holds a backwards range read by date bookmarked the same way', async () => {
+    await open('custom');
+    await advanceTo('options');
+    await pickSlice('Choose my own date range');
+    await fixture.whenStable();
+    checkbox('Date bookmarked')!.click();
+    await fixture.whenStable();
+    await chooseWindow('2024-06-30', '2024-01-01');
+    expect(element.querySelector('.range-problem')!.textContent).toBe(
+      'The bookmarked on or after date (30 June 2024) is later than the on or before date (1 January 2024). Please fix this to continue.');
+    expect(element.querySelector<HTMLButtonElement>('footer .button.primary')!.disabled).toBe(true);
+  });
+
+  it('will not go on with an on or after date later than today, when on or before is left empty', async () => {
+    await open('custom');
+    await advanceTo('options');
+    await chooseWindow('2999-01-01');
+    expect(element.querySelector('.range-problem')!.textContent).toContain('is later than today. Please fix this to continue.');
+    expect(element.querySelector<HTMLButtonElement>('footer .button.primary')!.disabled).toBe(true);
   });
 
   // the earliest date is what the indexing walk stops at, so without one it reads the lot
@@ -1233,7 +1274,7 @@ describe('DownloadDialog', () => {
     await advanceTo('running');
 
     expect(element.textContent).toContain(
-      'any works that were updated between 2024-01-01 and today',
+      'any works that were updated between 1 January 2024 and today',
     );
   });
 
@@ -1713,6 +1754,20 @@ describe('DownloadDialog', () => {
     // a short list is open to begin with
     expect((element.querySelector('details.fichub-older') as HTMLDetailsElement).open).toBe(true);
     expect(element.querySelector('.question')).toBeNull();
+  });
+
+  it('lists at the end the files a name clash kept from being repaired', async () => {
+    await open('bookmarks');
+    await advanceTo('running');
+    jobs.push!({ type: 'repairClashes', repairClashes: [
+      { id: '1', link: 'https://archiveofourown.org/works/1', format: 'EPUB', site: 'AO3',
+        file: '1 Fic.epub', wanted: '1 Fic - Someone 2026-05-01.epub' }] } as JobEvent);
+    jobs.push!({ type: 'finished' } as JobEvent);
+    await fixture.whenStable();
+
+    const said = element.querySelector('.repair-clashes')?.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(said).toContain('1 file failed to repair from AO3/FicHub due to a name clash');
+    expect(said).toContain('EPUB: failed to repair from AO3 due to a name clash - 1 Fic - Someone 2026-05-01.epub is already another file');
   });
 
   it('asks about a file whose date is only guessed, saying what it thinks and recommends', async () => {
@@ -2745,7 +2800,7 @@ describe('DownloadDialog', () => {
     const said = element.querySelector('.body')?.textContent ?? '';
     expect(said).toContain('by date bookmarked');
     expect(said).toContain('by date updated');
-    expect(said).toContain('any works that were bookmarked or updated between 2026-01-01 and today');
+    expect(said).toContain('any works that were bookmarked or updated between 1 January 2026 and today');
     // the custom run's single-walk wording does not belong here
     expect(said).not.toContain('re-read one at a time');
   });
@@ -2770,7 +2825,7 @@ describe('DownloadDialog', () => {
     expect(body.textContent).toContain('Everything bookmarked since a date');
     expect(body.textContent).toContain("Bookmarked on or before (leave empty to use today's date)");
     expect(body.textContent).toContain('Bookmarked on or after (leave empty to go all the way back)');
-    expect(body.textContent).toContain('any works that were bookmarked between 2024-01-01 and 2024-06-30');
+    expect(body.textContent).toContain('any works that were bookmarked between 1 January 2024 and 30 June 2024');
 
     await advanceTo('running');
     expect(jobs.started[0].options).toMatchObject({ dates: true, order: 'bookmarked' });
@@ -2970,10 +3025,10 @@ describe('DownloadDialog', () => {
       expect(currentStep()).toBe('credentials');
       expect(element.querySelector('h2')?.textContent).toContain('Resolve issues found in your library');
       const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
+      // the formats are not said; the works updated are those not only looked up
       expect(lines).toEqual([
-        'Lookup 2 works with missing index',
-        'Download EPUB for any fics found to have date issues in this import',
-        'Will replace any outdated files with newer ones, if they exist',
+        'Look-up 2 works with missing index',
+        'Search 1 work for updates',
       ]);
       expect(button('Start repair')).toBeTruthy();
       // nothing about remembering a username on a repair
@@ -3052,12 +3107,59 @@ describe('DownloadDialog', () => {
       expect(sent.options.overwrite).toBe(false);
     });
 
+    it('says it will re-download and overwrite existing files when told to overwrite', async () => {
+      await openImport({ ...IMPORT, overwrite: true });
+      const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
+      expect(lines).toEqual([
+        'Look-up 2 works with missing index',
+        'Search 1 work for updates',
+        'Will re-download and overwrite existing files to repair them',
+      ]);
+    });
+
     it('keeps every copy you have unless told to replace outdated ones', async () => {
       await openImport({ ...IMPORT, filetypes: ['JSON'], replaceOutdated: false, scope: 'skip' });
       const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
-      expect(lines).toEqual(['Lookup 2 works with missing index']);
+      expect(lines).toEqual(['Look-up 2 works with missing index']);
       await advanceTo('running');
       expect(jobs.started[0].options.replaceOutdated).toBe(false);
+    });
+
+    it('says what it will repair from AO3, and whether FicHub may stand in, and sends both', async () => {
+      await openImport({ ...IMPORT, filetypes: ['JSON'], replaceOutdated: false, scope: 'skip',
+                         repair: ['1 A.html', '2 B.pdf'], repairFicHub: true, repairFicHubUndated: false });
+      const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
+      expect(lines).toEqual([
+        'Look-up 2 works with missing index',
+        'Repair 2 files with no date from AO3, replacing each with the latest version',
+        "Where AO3 can't, overwrite with FicHub's copy - only when the date guessed from the file's name is the same or older",
+      ]);
+      await advanceTo('running');
+      expect(jobs.started[0].options.repair).toEqual(['1 A.html', '2 B.pdf']);
+      expect(jobs.started[0].options.repairFicHub).toBe(true);
+      expect(jobs.started[0].options.repairFicHubUndated).toBe(false);
+      expect(jobs.started[0].options.repairFicHubOlder).toBe(true);
+      expect(jobs.started[0].options.repairFicHubRename).toBe(false);
+    });
+
+    it("says, and sends, that a file AO3 can't give is named with FicHub's date instead", async () => {
+      await openImport({ ...IMPORT, filetypes: ['JSON'], replaceOutdated: false, scope: 'skip',
+                         repair: ['1 A.html'], repairFicHubRename: true, repairFicHubOlder: false,
+                         repairFicHubUndated: true });
+      const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
+      expect(lines).toContain("Where AO3 can't, name the file with FicHub's date - only when no date can be guessed from the file's name");
+      await advanceTo('running');
+      expect(jobs.started[0].options.repairFicHubRename).toBe(true);
+    });
+
+    it('says, and sends, that files AO3 has are only named with its date', async () => {
+      await openImport({ ...IMPORT, filetypes: ['JSON'], replaceOutdated: false, scope: 'skip',
+                         repair: ['1 A.html', '2 B.pdf'], repairRenameOnly: true });
+      const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
+      expect(lines).toContain("Name 2 files with no date with AO3's date for the work - nothing downloaded");
+      await advanceTo('running');
+      expect(jobs.started[0].options.repairRenameOnly).toBe(true);
+      expect(jobs.started[0].options.repairFicHubCheck).toBe(true);
     });
 
     it('is the only run that sends whether to replace outdated copies', async () => {
@@ -3065,6 +3167,7 @@ describe('DownloadDialog', () => {
       await advanceTo('running');
       expect('replaceOutdated' in jobs.started[0].options).toBe(false);
       expect('indexOnly' in jobs.started[0].options).toBe(false);
+      expect('repair' in jobs.started[0].options).toBe(false);
     });
   });
 

@@ -9,4 +9,4 @@
 - [[Troubleshooting]]
 - [[Glossary]]
 
-[Report a bug](https://github.com/alexandria-p/ficfairy/issues)
+[Report a bug](https://github.com/alexandria-p/FicFairy/issues)

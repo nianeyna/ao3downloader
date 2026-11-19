@@ -6,7 +6,7 @@ import { Component, computed, effect, inject, signal, untracked, output } from '
 import { WorkLink } from './work-link';
 import { DecimalPipe } from '@angular/common';
 import { ActiveRun, IndexGap, Jobs, RunChoice, RunHistory, RunRemoval } from './jobs';
-import { describeGap, fichubOlderWords, issueCount, issuesOf, issuesReport, saveText } from './issues';
+import { describeGap, fichubOlderWords, issueCount, issuesOf, issuesReport, repairClashWords, saveText } from './issues';
 import { Library } from './library';
 import { StorageChoice } from './storage-choice';
 import { VisitLog } from './visit-log';
@@ -50,6 +50,7 @@ export class History {
   protected readonly writtenDate = writtenDate;
   protected readonly recentRunLogs = RECENT_RUN_LOGS;
   protected readonly fichubOlderWords = fichubOlderWords;
+  protected readonly repairClashWords = repairClashWords;
   private readonly library = inject(Library);
   /** dummy data on screen: a retry would start a real run, so it is held as every run is */
   protected readonly dummy = inject(DummyData).active;

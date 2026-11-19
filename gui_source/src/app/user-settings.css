@@ -543,6 +543,11 @@ select.zone-select {
   margin: 0;
 }
 
+.limit-warning {
+  color: var(--warn-text);
+  font-size: 0.85rem;
+}
+
 /* which sound: a dropdown in the same row as the switch and Play it */
 .sound-choice .chime-sound {
   display: inline-flex;

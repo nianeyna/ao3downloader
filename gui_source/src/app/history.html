@@ -511,6 +511,23 @@
           </details>
         }
 
+        @if (run.repairClashes?.length) {
+          <details class="ids repair-clashes">
+            <summary>
+              Failed to repair: name clash
+              <span class="ids-count">{{ run.repairClashes!.length | number }}</span>
+            </summary>
+            <ul class="reason-list">
+              @for (item of run.repairClashes; track $index) {
+                <li>
+                  <a [href]="item.link" [appWorkLink]="item.id" target="_blank" rel="noopener">{{ item.id }}</a>
+                  <span class="reason">{{ repairClashWords(item) }}</span>
+                </li>
+              }
+            </ul>
+          </details>
+        }
+
         @if (run.rescued?.length) {
           <details class="ids">
             <summary>

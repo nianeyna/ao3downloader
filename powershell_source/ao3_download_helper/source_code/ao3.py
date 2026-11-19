@@ -256,6 +256,9 @@ class Ao3:
         # for the work: {id, link, title, formats, fichub, latest, latestFrom}. taken anyway (an
         # older version beats none), and warned about, since it may be an older cached copy
         self.fichub_older: list[dict] = []
+        # Resolve issues' repairs not done: the name the file would get is another file's
+        # ({id, link, file, wanted, site}) - reported at the end (`report_failures`)
+        self.repair_clashes: list[dict] = []
         # new copies that arrived while the older copy they replace could not be removed.
         # nothing is lost, but there are now two copies, so the run names each one
         self.kept_copies: list[dict] = []
@@ -2449,7 +2452,9 @@ class Ao3:
             # only decides the wording. a folder that cannot be asked is not a failed download
             existed = False
 
-        saved = self.fileops.save_bytes(name, content)
+        # a file already there under this name is never written over directly: if the write went
+        # wrong partway, that copy would be gone with nothing whole in its place (`swap_in`)
+        saved = self.swap_in(name, content) if existed is True else self.fileops.save_bytes(name, content)
         if isinstance(saved, str): self.written.append(saved)
         new = os.path.basename(saved) if isinstance(saved, str) else name
         work = parse_text.get_work_number(work_url)
@@ -2497,6 +2502,51 @@ class Ao3:
         if work: self.saved_formats.setdefault(str(work), set()).add(filetype.upper())
         return saved
 
+
+    def swap_in(self, name: str, content: bytes) -> str:
+        """Put a download in place of the file already at `name`, never losing that file.
+
+        Written beside it first (`SWAP_NEW_SUFFIX`) and checked whole; only then is the old copy
+        moved aside (`SWAP_OLD_SUFFIX`), the new one moved into its name, and the old one
+        deleted. Each step is a whole operation, so at every moment one whole copy exists under
+        some name: a write that goes wrong is deleted with the old copy untouched, and a move
+        that fails puts the old copy back. Raises `SavedFileException` (a failure for the work,
+        the copy kept) when the new file cannot be put in place. An aside left by a step that
+        could not be undone is a name nothing reads as a work: an old copy left aside by an earlier
+        swap is put back before this one starts (the copy in its name may not be whole), and
+        Resolve issues puts any others right.
+        """
+
+        target = os.path.join(self.fileops.downloadfolder, name)
+        shown = os.path.basename(name)
+        aside = target + strings.SWAP_OLD_SUFFIX
+        # an earlier swap left your copy aside: it is put back first, whatever is in its name now
+        if self.fileops.exists(aside) is True:
+            if not (self.fileops.delete_file(target) is True and self.fileops.rename_file(aside, target) is True):
+                print(strings.INFO_SWAP_FAILED.format(shown))
+                raise exceptions.SavedFileException(strings.SWAP_FAILED_REASON.format(shown, shown))
+            print(strings.INFO_SWAP_RESTORED.format(shown))
+        fresh = self.fileops.save_bytes(name + strings.SWAP_NEW_SUFFIX, content)
+        try:
+            intact = self.fileops.saved_intact(fresh, len(content)) is True
+        except Exception:
+            intact = False
+        if not intact:
+            problem = self.fileops.saved_problem(fresh, len(content))
+            self.fileops.delete_file(fresh)
+            print(strings.INFO_DAMAGED_KEPT_OLD.format(shown))
+            raise exceptions.SavedFileException(
+                strings.DAMAGED_REASON_KEPT_OLD.format(shown, problem, shown))
+
+        moved_aside = self.fileops.rename_file(target, aside) is True
+        if moved_aside and self.fileops.rename_file(fresh, target) is True:
+            self.fileops.delete_file(aside)
+            return target
+        # could not swap: the old copy goes back (if it moved) and the new one is dropped
+        if moved_aside: self.fileops.rename_file(aside, target)
+        self.fileops.delete_file(fresh)
+        print(strings.INFO_SWAP_FAILED.format(shown))
+        raise exceptions.SavedFileException(strings.SWAP_FAILED_REASON.format(shown, shown))
 
     def note_kept(self, work: str | None, work_url: str, new: str, old: str,
                   reason: str) -> None:

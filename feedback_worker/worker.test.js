@@ -204,16 +204,17 @@ describe('the issue', () => {
     }
   });
 
-  it('lists only the quick questions answered, each 1 to 5, and passes over anything else', () => {
+  it('lists only the quick questions answered, each by the word chosen, and passes over anything else', () => {
     const { form } = readForm({
       ...FORM,
       ratings: { easy: 4, complete: 2, useful: 9, confusing: 2.5, made_up: 3 },
     });
     assert.deepEqual(form.ratings, { easy: 4, complete: 2 });
     const issue = issueFor(form);
-    assert.match(issue.body, /\*\*Quick questions\*\* \(1 to 5\)/);
-    assert.match(issue.body, /How easy is FicFairy to use\? \*\*4\*\* \(1 = very hard, 5 = very easy\)/);
-    assert.match(issue.body, /Does it do everything you want\? \*\*2\*\*/);
+    assert.match(issue.body, /\*\*Quick questions\*\*\n/);
+    assert.match(issue.body, /How easy is FicFairy to use\? \*\*Easy\*\*/);
+    assert.match(issue.body, /Does it do everything you want\? \*\*Missing some\*\*/);
+    assert.doesNotMatch(issue.body, /\(1 = /);
     assert.doesNotMatch(issue.body, /useful|confusing/);
   });
 

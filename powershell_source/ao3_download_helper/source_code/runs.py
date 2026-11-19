@@ -217,6 +217,8 @@ class RunRecord:
             'keptCopies': [],
             # formats taken from FicHub that may be older cached copies (`Ao3.fichub_older`)
             'fichubOlder': [],
+            # Resolve issues' repairs not done because the name they would give was taken
+            'repairClashes': [],
             # older copies of a work the run decided to remove, and what became of each:
             # `pending` until the cleanup step, then `removed`, or `kept` with the reason.
             # written the moment they are marked, so a run that dies first still says which
@@ -346,6 +348,8 @@ class RunRecord:
         self.data['keptCopies'] = list(kept) if isinstance(kept, list) else []
         older = getattr(ao3, 'fichub_older', None)
         self.data['fichubOlder'] = list(older) if isinstance(older, list) else []
+        clashes = getattr(ao3, 'repair_clashes', None)
+        self.data['repairClashes'] = list(clashes) if isinstance(clashes, list) else []
         # where indexing broke off - which listing or collection, which pages were read,
         # which failed, how far back in date it got
         self.data['indexFailures'] = index_gaps(ao3)

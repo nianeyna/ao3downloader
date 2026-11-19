@@ -34,7 +34,7 @@ import { VisitLog } from './visit-log';
  * has neither, and a form that could never be sent is not offered.
  */
 
-/** what kind of feedback it is - one has to be chosen; the Worker labels the issue by it */
+/** what kind of feedback it is - general to begin with; the Worker labels the issue by it */
 export type FeedbackKind = 'general' | 'feature' | 'bug';
 
 export const FEEDBACK_KINDS: { value: FeedbackKind; label: string; title: string }[] = [
@@ -43,20 +43,24 @@ export const FEEDBACK_KINDS: { value: FeedbackKind; label: string; title: string
   { value: 'bug', label: 'Bug report', title: 'Bug report' },
 ];
 
-/** a quick question, answered 1 to 5 on a slider - the Worker's `RATINGS`, keyed the same */
+/** a quick question, answered 1 to 5 by one of five words - the Worker's `RATINGS`, keyed the same */
 export type RatingKey = 'easy' | 'useful' | 'confusing' | 'complete';
 
 /**
- * The optional quick questions, folded away to begin with. Each slider starts in the middle
- * (`RATING_MIDDLE`) and counts as unanswered - and is not sent - until it is moved.
+ * The optional quick questions, folded away to begin with. Each is five radio buttons, its
+ * words in `scale` (1 first - the Worker's `scale`, which the issue says), none picked to begin
+ * with: unanswered until one is, and not sent unless one is. Clear unpicks it.
  */
-export const RATING_QUESTIONS: { key: RatingKey; question: string; low: string; high: string }[] = [
-  { key: 'easy', question: 'How easy is FicFairy to use?', low: 'Very hard', high: 'Very easy' },
-  { key: 'useful', question: 'How useful do you find it?', low: 'Not useful', high: 'Very useful' },
-  { key: 'confusing', question: 'How confusing do you find it?', low: 'Not at all confusing', high: 'Very confusing' },
-  { key: 'complete', question: 'Does it do everything you want?', low: 'Missing a lot', high: 'Does everything I want' },
+export const RATING_QUESTIONS: { key: RatingKey; question: string; scale: string[] }[] = [
+  { key: 'easy', question: 'How easy is FicFairy to use?',
+    scale: ['Very hard', 'Hard', 'Neutral', 'Easy', 'Very easy'] },
+  { key: 'useful', question: 'How useful do you find it?',
+    scale: ['Not useful', 'Slightly useful', 'Neutral', 'Useful', 'Very useful'] },
+  { key: 'confusing', question: 'How confusing do you find it?',
+    scale: ['Not at all confusing', 'Slightly confusing', 'Neutral', 'Confusing', 'Very confusing'] },
+  { key: 'complete', question: 'Does it do everything you want?',
+    scale: ['Missing a lot', 'Missing some', 'Neutral', 'Mostly', 'Does everything I want'] },
 ];
-export const RATING_MIDDLE = 3;
 
 /** what is said in place of the AO3 username in an attached log */
 export const USERNAME_REMOVED = '[your AO3 username]';
@@ -225,6 +229,7 @@ export function runSummary(record: Record<string, unknown>): string[] {
     [issues.notRemoved.length, 'older copies not removed'],
     [issues.skipped.length, 'bookmarks that are not works'],
     [issues.fichubOlder?.length ?? 0, 'from an older FicHub copy'],
+    [issues.repairClashes?.length ?? 0, 'not repaired: name clash'],
   ];
   const said = kinds.filter(([n]) => n).map(([n, what]) => `${n} ${what}`);
   lines.push(`Issues: ${said.length ? said.join('; ') : 'none'}`);
@@ -233,21 +238,29 @@ export function runSummary(record: Record<string, unknown>): string[] {
   return lines;
 }
 
+/**
+ * A run still going, asked of the helper by the record's path: its file is saved only every
+ * couple of minutes, and only as lines arrive, so it can be far behind what the run window shows.
+ * Null when the run is not going, or the helper does not answer - the file is read then.
+ */
+export type LiveRecord = (path: string) => Promise<Record<string, unknown> | null>;
+
 /** The newest run record in the library, or null when there is none or it will not read. */
-export async function readLatestLog(store: LibraryStore): Promise<LatestLog | null> {
+export async function readLatestLog(store: LibraryStore, live?: LiveRecord): Promise<LatestLog | null> {
   try {
     // named for when they started, so the newest is last by name
     const newest = (await store.list('runs', false)).filter((path) => /\.json$/i.test(path)).sort().pop();
-    return newest ? await readRunLog(store, newest) : null;
+    return newest ? await readRunLog(store, newest, live) : null;
   } catch {
     return null;
   }
 }
 
 /** One run record's log, by its path in the library, or null when it will not read. */
-export async function readRunLog(store: LibraryStore, path: string): Promise<LatestLog | null> {
+export async function readRunLog(store: LibraryStore, path: string, live?: LiveRecord): Promise<LatestLog | null> {
   try {
-    const record = JSON.parse((await store.read(path)) ?? '') as Record<string, unknown>;
+    const going = live ? await live(path).catch(() => null) : null;
+    const record = (going ?? JSON.parse((await store.read(path)) ?? '')) as Record<string, unknown>;
     if (!record || typeof record !== 'object') return null;
     const text = (value: unknown) => (typeof value === 'string' ? value : '');
     return {
@@ -333,12 +346,11 @@ export class Feedback implements OnDestroy {
   protected readonly open = signal(false);
   protected readonly stage = signal<Stage>('form');
 
-  protected readonly kind = signal<FeedbackKind | ''>('');
+  protected readonly kind = signal<FeedbackKind | ''>('general');
   protected readonly kinds = FEEDBACK_KINDS;
   /** the quick questions moved off the middle - only these are sent */
   protected readonly ratings = signal<Partial<Record<RatingKey, number>>>({});
   protected readonly ratingQuestions = RATING_QUESTIONS;
-  protected readonly ratingMiddle = RATING_MIDDLE;
   protected readonly message = signal('');
   protected readonly name = signal('');
   protected readonly attachLog = signal(false);
@@ -554,6 +566,16 @@ export class Feedback implements OnDestroy {
     return `${run.actionName || run.action} - ${at} - ${run.status}`;
   }
 
+  /**
+   * A run still going is read from the helper, as History's Download log reads it - found among
+   * the runs going by the id its file name ends with (`<started>-<id8>.json`)
+   */
+  private async liveRecord(path: string): Promise<Record<string, unknown> | null> {
+    const short = path.replace(/\.json$/i, '').split('-').pop() ?? '';
+    const run = short ? this.jobs.activeRuns().find((active) => active.id.startsWith(short)) : undefined;
+    return run ? this.jobs.liveRecord(run.id) : null;
+  }
+
   /** the log as it will be sent, for whichever run is chosen; empty (and Send held) until there is one */
   private async loadLogPreview(): Promise<void> {
     const read = ++this.previewRead;
@@ -565,7 +587,10 @@ export class Feedback implements OnDestroy {
     if (!store) return;
     const choosing = this.logChoice() === 'choose';
     if (choosing && !this.chosenRun()) return;
-    const log = choosing ? await readRunLog(store, `runs/${this.chosenRun()}`) : await readLatestLog(store);
+    const live = (path: string) => this.liveRecord(path);
+    const log = choosing
+      ? await readRunLog(store, `runs/${this.chosenRun()}`, live)
+      : await readLatestLog(store, live);
     if (read !== this.previewRead || !this.attachLog()) return;
     if (!log || !log.lines.length) {
       this.logNote.set(choosing ? 'That run has no log to attach.' : 'There is no run log in this library to attach yet.');
@@ -688,12 +713,12 @@ export class Feedback implements OnDestroy {
     return 'no library open';
   }
 
-  /** a quick question moved: answered from now on, even if moved back to the middle */
+  /** a quick question's word picked: answered from now on, until cleared */
   protected setRating(key: RatingKey, value: number): void {
     this.ratings.update((r) => ({ ...r, [key]: value }));
   }
 
-  /** back to unanswered: the slider returns to the middle and nothing is sent for it */
+  /** back to unanswered: no word picked, and nothing is sent for it */
   protected clearRating(key: RatingKey): void {
     this.ratings.update((r) => {
       const next = { ...r };
@@ -712,7 +737,7 @@ export class Feedback implements OnDestroy {
   /** the answers as lines, for the saved copy of a feedback that could not be sent */
   private ratingLines(): string[] {
     return RATING_QUESTIONS.filter((q) => this.ratings()[q.key] !== undefined).map(
-      (q) => `${q.question} ${this.ratings()[q.key]} (1 = ${q.low}, 5 = ${q.high})`,
+      (q) => `${q.question} ${q.scale[(this.ratings()[q.key] ?? 1) - 1]}`,
     );
   }
 
@@ -743,7 +768,7 @@ export class Feedback implements OnDestroy {
 
   private reset(): void {
     this.stage.set('form');
-    this.kind.set('');
+    this.kind.set('general');
     this.ratings.set({});
     this.message.set('');
     this.name.set('');

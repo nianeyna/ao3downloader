@@ -16,7 +16,8 @@
  *   changed - and the row says which (`unindexed_date`). Shown, never acted on.
  */
 
-import { Injectable, computed, inject } from '@angular/core';
+import { Injectable, computed, effect, inject, untracked } from '@angular/core';
+import { VisitLog } from './visit-log';
 import { AO3_BASE_URL, Bookmark, dateFromFilename, placeholderWork, workIdFromFilename } from './bookmarks';
 import { inferDate } from './imports';
 import { LocalCopy, Library, OpenableFormat, WorksFile } from './library';
@@ -131,5 +132,15 @@ export class UnindexedWorks {
     // an external work's number is AO3's for something hosted elsewhere, never a work's
     const byId = this.library.worksById();
     return unindexedRows(this.library.worksFiles(), (id) => byId.has(id));
+  });
+
+  private readonly visit = inject(VisitLog);
+  private lastNoted = 0;
+  /** how many such rows the Works tab lists, said in the visit log whenever it changes */
+  private readonly noteRows = effect(() => {
+    const count = this.rows().length;
+    if (count === this.lastNoted) return;
+    this.lastNoted = count;
+    untracked(() => this.visit.note(`Works tab: ${count} entr${count === 1 ? 'y' : 'ies'} listed from files with no index entry`));
   });
 }

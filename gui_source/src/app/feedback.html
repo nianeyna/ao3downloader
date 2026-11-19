@@ -31,16 +31,14 @@
           </footer>
         } @else {
           <section class="body">
-            <fieldset class="kind" aria-required="true">
-              <legend>What kind of feedback is this? <span class="required">(required)</span></legend>
-              @for (choice of kinds; track choice.value) {
-                <label [class.chosen]="kind() === choice.value">
-                  <input type="radio" name="kind" [value]="choice.value" [checked]="kind() === choice.value"
-                    (change)="kind.set(choice.value)" />
-                  {{ choice.label }}
-                </label>
-              }
-            </fieldset>
+            <label class="field kind">
+              <span>What kind of feedback is this?</span>
+              <select name="kind" (change)="kind.set($any($event.target).value)">
+                @for (choice of kinds; track choice.value) {
+                  <option [value]="choice.value" [selected]="kind() === choice.value">{{ choice.label }}</option>
+                }
+              </select>
+            </label>
 
             <label class="field">
               <span>Your feedback</span>
@@ -74,30 +72,34 @@
               </p>
             }
 
-            <!-- optional, folded away; a slider left in the middle is not answered, and not sent -->
+            <!-- optional, folded away; a question with no word picked is not answered, and not sent -->
             <details class="quick-questions">
               <summary>
                 <em>(Optional)</em> Quick questions about your experience
                 @if (ratedCount()) { <span class="dim">- {{ ratedCount() }} answered</span> }
               </summary>
-              <p class="hint">Move a slider to answer it. One you leave in the middle is not sent.</p>
+              <p class="hint">Pick an answer for any you like. One you leave unpicked is not sent.</p>
               @for (q of ratingQuestions; track q.key) {
-                <div class="rating" [attr.data-rating]="q.key" [class.answered]="ratingOf(q.key) !== undefined">
-                  <label [attr.for]="'rating-' + q.key">{{ q.question }}</label>
-                  <input type="range" [id]="'rating-' + q.key" min="1" max="5" step="1"
-                    [value]="ratingOf(q.key) ?? ratingMiddle"
-                    [attr.aria-valuetext]="ratingOf(q.key) === undefined ? 'Not answered' : ratingOf(q.key) + ' of 5'"
-                    (input)="setRating(q.key, +$any($event.target).value)" />
-                  <div class="rating-ends"><span>{{ q.low }}</span><span>{{ q.high }}</span></div>
+                <fieldset class="rating" [attr.data-rating]="q.key" [class.answered]="ratingOf(q.key) !== undefined">
+                  <legend>{{ q.question }}</legend>
+                  <div class="rating-choices">
+                    @for (word of q.scale; track $index) {
+                      <label [class.chosen]="ratingOf(q.key) === $index + 1">
+                        <input type="radio" [name]="'rating-' + q.key" [value]="$index + 1"
+                          [checked]="ratingOf(q.key) === $index + 1" (change)="setRating(q.key, $index + 1)" />
+                        {{ word }}
+                      </label>
+                    }
+                  </div>
                   <p class="rating-said">
                     @if (ratingOf(q.key) === undefined) {
                       <span class="dim">Not answered</span>
                     } @else {
-                      {{ ratingOf(q.key) }} of 5
+                      Answered
                       <button type="button" class="clear-rating" (click)="clearRating(q.key)">Clear</button>
                     }
                   </p>
-                </div>
+                </fieldset>
               }
             </details>
 
@@ -107,7 +109,7 @@
               Attach a run's log <em>(optional)</em>
             </label>
             @if (!canAttach()) {
-              <p class="hint">Open your library to attach a run's log - the logs are kept in it.</p>
+              <p class="hint">Open your library first (either your local filesystem, or Dropbox) - this is where run logs are kept.</p>
             }
             @if (attachLog()) {
               <div class="log-choice" role="radiogroup" aria-label="Which run's log">
@@ -175,9 +177,8 @@
               Attach what I did on this visit <em>(optional)</em>
             </label>
             <p class="hint">
-              For a problem outside a run: the tabs you opened, library reads, windows, runs
-              started and the settings you changed (with what you chose) since this page was
-              opened. It is kept by this page alone and gone when you close or reload it.
+              What actions you took this session: the tabs you opened, library reads, windows, runs
+              started and the settings you changed.
             </p>
             @if (attachVisit()) {
               <label class="field log-amount">
@@ -225,11 +226,7 @@
             </p>
             <p class="hint privacy">
               An attached log never includes your AO3 username or password, your IP address, email
-              addresses, your AO3 time zone, file paths on your computer, or where your library is
-              kept (its folder's name or location) - anything like these is stripped out before it is sent. The issue also
-              says which browser you used, this app's version, and whether your library is in
-              Dropbox or on this computer. Your IP address is only seen by the bot check, and is
-              never posted. What you type above is sent as written.
+              addresses, your AO3 time zone, or file paths on your computer.
             </p>
           </section>
 

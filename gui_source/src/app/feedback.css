@@ -135,34 +135,9 @@ em {
   font-size: 0.82rem;
 }
 
-.kind {
-  display: flex;
-  gap: 8px;
-  margin: 0 0 14px;
-  padding: 0;
-  border: none;
-}
-
-.kind legend {
-  margin-bottom: 6px;
-  color: var(--text-dim);
-  font-size: 0.82rem;
-}
-
-.kind label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: 3px;
-  background: var(--surface-2);
-  cursor: pointer;
-}
-
-.kind label.chosen {
-  border-color: var(--accent-line);
-  background: var(--accent-bg);
+.kind select {
+  display: block;
+  margin-top: 4px;
 }
 
 .field {
@@ -363,14 +338,6 @@ a.button {
   flex-wrap: wrap;
 }
 
-.kind {
-  flex-wrap: wrap;
-}
-
-.kind legend .required {
-  font-size: 0.78rem;
-}
-
 /* the optional quick questions: folded away to begin with */
 .quick-questions {
   margin: 0 0 14px;
@@ -385,28 +352,40 @@ a.button {
 
 .rating {
   margin: 12px 0;
+  padding: 0;
+  border: none;
 }
 
-.rating > label {
-  display: block;
-  margin-bottom: 4px;
+.rating legend {
+  margin-bottom: 6px;
+  padding: 0;
 }
 
-.rating input[type='range'] {
-  width: 100%;
-  accent-color: var(--accent);
-}
-
-/* unanswered, the slider sits in the middle, faded, so it reads as untouched */
-.rating:not(.answered) input[type='range'] {
-  opacity: 0.55;
-}
-
-.rating-ends {
+.rating-choices {
   display: flex;
-  justify-content: space-between;
-  color: var(--text-dim);
-  font-size: 0.78rem;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rating-choices label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  background: var(--surface-2);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.rating-choices label.chosen {
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+}
+
+.rating-choices input {
+  accent-color: var(--accent);
 }
 
 .rating-said {

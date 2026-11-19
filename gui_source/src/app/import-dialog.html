@@ -8,9 +8,59 @@
   </header>
 
   <!-- 1: what was found, in a sentence each - the lists come on the pages after -->
+  <!-- 0: files a download was left part-way through replacing, put right before anything else -->
+  @if (step() === 'leftovers') {
+    <section class="body">
+      <!-- once done, only what was done: the library is read again, and the list goes with it -->
+      @if (!leftoversResult()) {
+        <p>
+          A download that replaces a file of yours puts the new copy in beside it, then sets yours
+          aside while the new one takes its place. These were left part-way, when the app stopped:
+        </p>
+        <ul class="leftovers">
+          @for (leftover of leftovers(); track leftover.path) {
+            <li>
+              <code>{{ leftoverName(leftover.path) }}</code> -
+              @if (leftoverAction(leftover) === 'restore' && leftover.inPlace) {
+                your copy was set aside while a new one took its place: the new copy will be removed, in
+                case it is damaged, and yours put back
+              } @else if (leftoverAction(leftover) === 'restore') {
+                your copy was set aside and the new one never arrived: it will be put back
+              } @else {
+                an unfinished new copy is beside it: it will be removed, and your file kept
+              }
+            </li>
+          }
+        </ul>
+      }
+      @if (leftoversResult(); as result) {
+        <p class="leftovers-said" role="status">
+          Put back {{ result.restored | number }} {{ result.restored === 1 ? 'file' : 'files' }},
+          removed {{ result.removed | number }}.
+          @if (result.failed.length) {
+            Could not tidy: {{ result.failed.join(', ') }} - it will be offered again.
+          }
+        </p>
+      }
+      @if (busy()) {
+        <p class="warning busy-note" role="note">A run is in progress. It has to finish before anything can be put right.</p>
+      }
+    </section>
+    <footer>
+      @if (leftoversResult()) {
+        <button type="button" class="button primary" (click)="fromLeftovers(false)">Continue</button>
+      } @else {
+        <button type="button" class="button subtle" [disabled]="leftoversBusy()" (click)="fromLeftovers(true)">Skip this step</button>
+        <button type="button" class="button primary" [disabled]="busy() || leftoversBusy()" (click)="tidyLeftovers()">
+          {{ leftoversBusy() ? 'Putting right...' : 'Put back and tidy up' }}
+        </button>
+      }
+    </footer>
+  }
+
   @if (step() === 'overview') {
     <section class="body overview">
-      @if (misnamedFound().formats.length || groups().length || undated().length || works().length) {
+      @if (issueLines().length) {
         <p class="overview-heading"><strong>Issues found in import:</strong></p>
         <ul class="overview-issues">
           @for (line of issueLines(); track line.kind) {
@@ -516,25 +566,51 @@
         your copy is outdated.
       </p>
       <p class="hint">
-        Not sure? Tick Skip. A skipped file keeps its name, and the import leaves it alone.
-        Every file needs a date or a tick before you can continue.
+        Not sure? A skip will leave the file alone. Or, you can fetch the latest information from
+        AO3. Every file needs a decision before you can continue.
       </p>
-      <div class="bulk">
-        <label>
-          <span>Date for all</span>
-          <input type="date" name="bulkDate" [value]="bulkDate()"
-                 (input)="bulkDate.set($any($event.target).value)" />
-        </label>
-        <button type="button" class="button" [disabled]="!bulkValid()" (click)="applyToAll()">
-          Use for all
-        </button>
-        <button type="button" class="button" (click)="skipAll()">Skip all</button>
-        <button type="button" class="button infer" [disabled]="inferring()" (click)="inferDates()"
-                title="Read a date out of each file's name, however it is written">
-          @if (inferring()) { <span class="spinner" aria-hidden="true"></span> }
-          Infer date
-        </button>
-      </div>
+      <!-- every button answers only the rows with no date, Skip or Repair tick yet -->
+      <details class="bulk-actions">
+        <summary>Bulk actions</summary>
+        <p class="bulk-what">
+          There {{ needsAnswer().length === 1 ? 'is' : 'are' }} {{ needsAnswer().length | number }}
+          remaining {{ needsAnswer().length === 1 ? 'file that still needs' : 'files that still need' }}
+          to be resolved.
+        </p>
+        <div class="bulk" role="group" aria-label="For the remaining files">
+          <button type="button" class="button infer" [disabled]="inferring() || !needsAnswer().length"
+                  (click)="inferDates()" title="Read a date out of each remaining file's name, however it is written">
+            @if (inferring()) { <span class="spinner" aria-hidden="true"></span> }
+            Infer date for remaining
+          </button>
+          <button type="button" class="button" [disabled]="!needsAnswer().length" (click)="skipRemaining()">
+            Skip remaining
+          </button>
+          <button type="button" class="button repair-rest" [disabled]="!needsAnswer().length" (click)="repairRemaining()">
+            Repair remaining from AO3
+          </button>
+          <button type="button" class="button untick-skips" [disabled]="!anySkipped()" (click)="untickAllSkips()">
+            Untick Skip on all
+          </button>
+          <button type="button" class="button choose-date" [disabled]="!needsAnswer().length"
+                  [attr.aria-expanded]="pickingDate()" (click)="pickingDate.set(!pickingDate())">
+            Choose my own date...
+          </button>
+        </div>
+        <!-- shown in place, not as a window over this one -->
+        @if (pickingDate()) {
+          <div class="bulk-date">
+            <label>
+              <span>Date for the remaining files</span>
+              <input type="date" name="bulkDate" [value]="bulkDate()"
+                     (input)="bulkDate.set($any($event.target).value)" />
+            </label>
+            <button type="button" class="button" [disabled]="!bulkValid() || !needsAnswer().length"
+                    (click)="dateRemaining()">Use for remaining</button>
+            <button type="button" class="button subtle" (click)="pickingDate.set(false)">Cancel</button>
+          </div>
+        }
+      </details>
       @if (inferredCount() !== null) {
         <p class="infer-said" role="status">
           @if (inferredCount()) {
@@ -552,22 +628,28 @@
       <div class="dating-wrap" [class.scrolling]="!paged()">
         <table class="dating">
           <thead>
-            <tr><th>File</th><th>Date</th><th>Skip</th></tr>
+            <tr><th>File</th><th>Date</th><th>Skip</th><th>Repair from AO3</th></tr>
           </thead>
           <tbody>
             @for (file of shownRows(); track file.path) {
               <tr [attr.data-file]="file.path" [class.skipped]="isSkipped(file)"
+                  [class.repaired]="isRepaired(file)"
                   [class.inferred]="isInferred(file)" [class.needs-answer]="needsAnswerFor(file)">
                 <td class="file-name" [title]="file.name">{{ file.name }}</td>
                 <td>
                   <input type="date" [attr.aria-label]="'Date for ' + file.name"
-                         [value]="dateOf(file)" [disabled]="isSkipped(file)"
+                         [value]="dateOf(file)" [disabled]="isSkipped(file) || isRepaired(file)"
                          (input)="setDate(file, $any($event.target).value)" />
                 </td>
                 <td>
                   <input type="checkbox" [attr.aria-label]="'Skip ' + file.name"
                          [checked]="isSkipped(file)"
                          (change)="setSkipped(file, $any($event.target).checked)" />
+                </td>
+                <td>
+                  <input type="checkbox" name="repair" [attr.aria-label]="'Repair ' + file.name + ' from AO3'"
+                         [checked]="isRepaired(file)"
+                         (change)="setRepaired(file, $any($event.target).checked)" />
                 </td>
               </tr>
             }
@@ -584,12 +666,10 @@
       @if (needsAnswer().length; as left) {
         <div class="needs-answer-note" role="alert">
           <span>
-            {{ left | number }} {{ left === 1 ? 'file has' : 'files have' }} no date and no Skip tick
-            (highlighted). Give {{ left === 1 ? 'it' : 'each' }} a date or tick Skip to continue.
+            {{ left | number }} {{ left === 1 ? 'file' : 'files' }} (highlighted above)
+            {{ left === 1 ? 'has' : 'have' }} no date, Skip or Repair. Answer {{ left === 1 ? 'it' : 'each' }},
+            or use <strong>Bulk actions</strong> above.
           </span>
-          <button type="button" class="button" (click)="skipUndatedRows()">
-            Skip {{ left === 1 ? 'it' : 'all ' + (left | number) }}
-          </button>
         </div>
       }
       <label class="check remember-skips">
@@ -608,9 +688,146 @@
     <footer>
       <button type="button" class="button subtle" (click)="backFrom('dates')">Back</button>
       <button type="button" class="button primary" [disabled]="inferring() || busy() || needsAnswer().length > 0"
-              [attr.title]="needsAnswer().length ? 'Give every file a date, or tick Skip' : null" (click)="fromDates()">
-        {{ toDate().length ? 'Date ' + (toDate().length | number) + (toDate().length === 1 ? ' file' : ' files') + ' and continue' : 'Skip this step' }}
+              [attr.title]="needsAnswer().length ? 'Give every file a date, or tick Skip or Repair from AO3' : null" (click)="fromDates()">
+        {{ allSkippedDates() ? 'Skip this step' : 'Continue' }}
       </button>
+    </footer>
+  }
+
+  <!-- 2b: the files to repair - how, where AO3 has the work, and where FicHub has to stand in -->
+  @if (step() === 'repair') {
+    <section class="body repair-fichub">
+      @if (toRepair().length; as repairs) {
+        <p>
+          <strong>How should {{ repairs === 1 ? 'the file' : 'the ' + (repairs | number) + ' files' }}
+          you chose to repair be repaired?</strong>
+        </p>
+        <fieldset class="repair-fallback repair-index">
+          <legend>If an index exists for the work</legend>
+          <label class="check">
+            <input type="checkbox" name="indexFirst" [checked]="indexFirst()"
+                   (change)="indexFirst.set($any($event.target).checked)" />
+            <span>
+              Try to date the file from an existing FicFairy index?
+              <span class="hint">
+                Your file keeps what it holds, and is renamed to include the last known updated date
+                that FicFairy retrieved from AO3. That date may not be the version your file actually
+                holds.
+              </span>
+              <span class="hint">
+                If there is no index, then it attempts to connect to AO3, and then FicHub instead.
+              </span>
+              <span class="hint index-first-count">
+                {{ indexDateCount() | number }} of the {{ repairs | number }}
+                {{ repairs === 1 ? 'file has' : 'files have' }} a date in your index.
+              </span>
+            </span>
+          </label>
+        </fieldset>
+        <fieldset class="repair-fallback repair-ao3">
+          <legend>{{ indexFirst() ? 'Then, if AO3 has the work' : 'If AO3 has the work' }}</legend>
+          <label class="check">
+            <input type="radio" name="repairAo3" value="rename" [checked]="repairAo3() === 'rename'"
+                   (change)="repairAo3.set('rename')" />
+            <span>
+              Only rename the file
+              <span class="hint">
+                Your file keeps what it holds, and is renamed to include the date AO3 last updated the
+                work. That date may not be the version your file actually holds.
+              </span>
+            </span>
+          </label>
+          <label class="check">
+            <input type="radio" name="repairAo3" value="overwrite" [checked]="repairAo3() === 'overwrite'"
+                   (change)="repairAo3.set('overwrite')" />
+            <span>
+              Overwrite and rename the file
+              <span class="hint">Replaced with the newest version on AO3, named with its date.</span>
+            </span>
+          </label>
+        </fieldset>
+        <fieldset class="repair-fallback">
+          <legend>If AO3 can't give it, and FicHub has to be used</legend>
+          <p class="warning repair-warning" role="note">
+            FicHub keeps cached copies, which may be older than the newest version on AO3.
+          </p>
+          <label class="check">
+            <input type="radio" name="repairFallback" value="keep" [checked]="repairFallback() === 'keep'"
+                   (change)="repairFallback.set('keep')" />
+            <span>Leave my file as it is</span>
+          </label>
+          <label class="check">
+            <input type="radio" name="repairFallback" value="rename" [checked]="repairFallback() === 'rename'"
+                   (change)="repairFallback.set('rename')" />
+            <span>
+              Only rename the file
+              <span class="hint">
+                Your file keeps what it holds, and is renamed to include the date FicHub can find the
+                work was last updated at. That date may not be the version your file actually holds.
+              </span>
+            </span>
+          </label>
+          @if (repairFallback() === 'rename') {
+            <div class="fichub-answers nested">
+              <label>
+                <span>Rename files that seem to have an older date than FicHub's?</span>
+                <select name="renameOlder" [value]="renameOlder() ? 'yes' : 'no'"
+                        (change)="renameOlder.set($any($event.target).value === 'yes')">
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label>
+                <span>Rename files that have no date that can be guessed?</span>
+                <select name="renameUndated" [value]="renameUndated() ? 'yes' : 'no'"
+                        (change)="renameUndated.set($any($event.target).value === 'yes')">
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <span class="hint">A file whose name seems to have a later date than FicHub's is never renamed.</span>
+            </div>
+          }
+          <label class="check">
+            <input type="radio" name="repairFallback" value="replace" [checked]="repairFallback() === 'replace'"
+                   (change)="repairFallback.set('replace')" />
+            <span>
+              Overwrite and rename the file
+              <span class="hint">Replaced with FicHub's copy, named with its date.</span>
+            </span>
+          </label>
+          @if (repairFallback() === 'replace') {
+            <div class="fichub-answers nested">
+              <label>
+                <span>Overwrite files that seem to have an older date than FicHub's?</span>
+                <select name="replaceOlder" [value]="replaceOlder() ? 'yes' : 'no'"
+                        (change)="replaceOlder.set($any($event.target).value === 'yes')">
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label>
+                <span>Overwrite files that have no date that can be guessed?</span>
+                <select name="replaceUndated" [value]="replaceUndated() ? 'yes' : 'no'"
+                        (change)="replaceUndated.set($any($event.target).value === 'yes')">
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <span class="hint">
+                A file whose name seems to have a later date than FicHub's is never overwritten. With no
+                date to compare, FicHub's copy may be older than yours.
+              </span>
+            </div>
+          }
+        </fieldset>
+      }
+    </section>
+    <footer>
+      @if (canGoBack()) {
+        <button type="button" class="button subtle" (click)="backFrom('repair')">Back</button>
+      }
+      <button type="button" class="button primary" [disabled]="busy()" (click)="fromRepair()">Continue</button>
     </footer>
   }
 
@@ -619,17 +836,33 @@
     <section class="body">
       @if (dating()) {
         <p class="dating-progress" role="status">
-          Dating files... {{ datingProgress().done | number }} of {{ datingProgress().total | number }}
+          {{ datingRound() === 'index' ? 'Dating files from your FicFairy index...' : 'Dating files...' }}
+          {{ datingProgress().done | number }} of {{ datingProgress().total | number }}
         </p>
       }
       <div class="bar" role="progressbar" [attr.aria-valuenow]="datingProgress().done"
            [attr.aria-valuemax]="datingProgress().total">
         <span [style.width.%]="datingProgress().total ? (datingProgress().done / datingProgress().total) * 100 : 0"></span>
       </div>
-      @if (!dating() && dated(); as d) {
+      @if (!dating() && round(); as d) {
         <p class="dated-said">
-          Dated {{ d.renamed.length | number }} {{ d.renamed.length === 1 ? 'file' : 'files' }}.
+          Dated {{ d.renamed.length | number }} {{ d.renamed.length === 1 ? 'file' : 'files' }}{{
+            datingRound() === 'index' ? ' from your FicFairy index' : '' }}.
         </p>
+        @if (datingRound() === 'index' && indexClashes().length; as clashed) {
+          <details class="dating-failures index-clashes" [open]="clashed <= 5">
+            <summary>
+              {{ clashed | number }} {{ clashed === 1 ? 'file' : 'files' }} failed to repair from your
+              FicFairy index due to a name clash
+            </summary>
+            <p class="hint">The name each would be given is already taken by another file, so both were kept as they are.</p>
+            <ul>
+              @for (clash of indexClashes(); track clash.path) {
+                <li><span class="file-name" [title]="clash.path">{{ clash.path }}</span> - {{ clash.wanted }} is already taken</li>
+              }
+            </ul>
+          </details>
+        }
         @if (d.failed.length) {
           <details class="dating-failures">
             <summary>
@@ -646,7 +879,7 @@
     </section>
     <footer>
       <button type="button" class="button primary" [disabled]="dating()" (click)="fromDating()">
-        Continue
+        {{ datingRound() === 'index' && !runs() ? 'Done' : 'Continue' }}
       </button>
     </footer>
   }
@@ -654,36 +887,76 @@
   <!-- 4: the works with no index entry - look them up now, later, or never? -->
   @if (step() === 'index') {
     <section class="body">
-      <fieldset>
-        <legend>Fetch their index entries from AO3 now?</legend>
-        <p class="hint">
-          {{ works().length | number }} {{ works().length === 1 ? 'work has' : 'works have' }} no index entry.
-        </p>
-        <label class="check">
-          <input type="radio" name="lookup" value="yes" [checked]="lookup() === 'yes'" (change)="lookup.set('yes')" />
-          <span>Yes - look each work up on AO3 now and index it</span>
-        </label>
-        <label class="check">
-          <input type="radio" name="lookup" value="later" [checked]="lookup() === 'later'" (change)="lookup.set('later')" />
-          <span>Not now - they stay unindexed, and this is offered again</span>
-        </label>
-        <label class="check">
-          <input type="radio" name="lookup" value="never" [checked]="lookup() === 'never'" (change)="lookup.set('never')" />
-          <span>
-            No, and do not ask again for these works
-            <span class="hint">
-              They are added to <code>import-excluded.json</code> at the top of your library and
-              left out of every import after this. Their files stay as they are.
+      <!-- what an index entry is, before anything is asked about one -->
+      <p class="index-count">
+        {{ toLookUp().length | number }} {{ toLookUp().length === 1 ? 'work has' : 'works have' }} no index entry.
+      </p>
+      <p class="hint index-about">
+        An index entry is what FicFairy keeps about a work: its title, author, summary, tags, word and
+        chapter counts, and when it was last updated on AO3. It lets you browse, search and filter
+        your works here.
+      </p>
+      @if (focus(); as works) {
+        <!-- opened from one work's 'Look up its index from AO3 here' -->
+        <fieldset class="lookup-for">
+          <legend>Which works?</legend>
+          <label class="check">
+            <input type="radio" name="lookupFor" value="this" [checked]="lookupFor() === 'this'" (change)="lookupFor.set('this')" />
+            @if (works.length === 1) {
+              <span>Just for this work <span class="dim">(work {{ works[0] }})</span></span>
+            } @else {
+              <span>Just for these works <span class="dim">({{ works.length | number }})</span></span>
+            }
+          </label>
+          <label class="check">
+            <input type="radio" name="lookupFor" value="all" [checked]="lookupFor() === 'all'" (change)="lookupFor.set('all')" />
+            <span>For all missing indexes <span class="dim">({{ allUnindexed() | number }})</span></span>
+          </label>
+          @if (ignored().length) {
+            <label class="check">
+              <input type="radio" name="lookupFor" value="ignored" [checked]="lookupFor() === 'ignored'" (change)="lookupFor.set('ignored')" />
+              <span>For all missing indexes, even if you added some to an ignore-list previously <span class="dim">({{ withIgnored() | number }})</span></span>
+            </label>
+          }
+        </fieldset>
+      }
+      @if (!focus()) {
+        <fieldset>
+          <legend>Fetch their index entries from AO3 now?</legend>
+          @if (repairIndexes().length; as more) {
+            <p class="hint repair-indexes">
+              {{ more | number }} more {{ more === 1 ? 'work has' : 'works have' }} no index entry, but
+              {{ more === 1 ? 'is' : 'are' }} indexed anyway: a file of {{ more === 1 ? 'it is' : 'theirs is' }}
+              being repaired from AO3.
+            </p>
+          }
+          <label class="check">
+            <input type="radio" name="lookup" value="yes" [checked]="lookup() === 'yes'" (change)="lookup.set('yes')" />
+            <span>Yes - look each work up on AO3 now and index it</span>
+          </label>
+          <label class="check">
+            <input type="radio" name="lookup" value="later" [checked]="lookup() === 'later'" (change)="lookup.set('later')" />
+            <span>Not now - they stay unindexed, and this is offered again</span>
+          </label>
+          <label class="check">
+            <input type="radio" name="lookup" value="never" [checked]="lookup() === 'never'" (change)="lookup.set('never')" />
+            <span>
+              No, and do not ask again for these works
+              <span class="hint">
+                They are added to <code>import-excluded.json</code> at the top of your library and
+                left out of every import after this. Their files stay as they are.
+              </span>
             </span>
-          </span>
-        </label>
-      </fieldset>
+          </label>
+        </fieldset>
+      }
       @if (busy()) {
         <p class="warning busy-note" role="note">A run is in progress. It has to finish before an import can start.</p>
       }
     </section>
     <footer>
-      @if (canGoBack()) {
+      <!-- opened for one work's look-up, this is the window's first page: nothing to go back to -->
+      @if (!focus() && (canGoBack() || toRepair().length)) {
         <button type="button" class="button subtle" (click)="backFrom('index')">Back</button>
       }
       <button type="button" class="button primary"
@@ -698,63 +971,126 @@
     <section class="body">
       <fieldset class="update-scope">
         <legend>Update the works found?</legend>
+        <!-- said before the choices, while fetching is the one picked -->
+        @if (scopeChosen() !== 'skip') {
+          <p class="hint fetch-hint">
+            This only updates files that have a date in their name. A file with no date in its name is kept as-is.
+          </p>
+          <!-- the index question came before this page: a work left unindexed there is passed over -->
+          @if (!focus() && toLookUp().length) {
+            <p class="hint index-only-hint">
+              Only works with an index entry can be updated. If you are concerned that some works are
+              missing indexes, go back to the previous step and tick <em>Yes</em> so they can be caught.
+            </p>
+          }
+        }
         <label class="check">
-          <input type="radio" name="updateScope" value="all" [checked]="scopeChosen() === 'all'" (change)="updateScope.set('all')" />
-          <span>Update all fics found to have issues in this import <span class="dim">({{ allIssues().length | number }})</span></span>
+          <input type="radio" name="updateFetch" value="fetch" [checked]="scopeChosen() !== 'skip'" (change)="fetchLatest()" />
+          <span>Try and fetch the latest version of each fic from AO3?</span>
         </label>
-        @if (dateIssues().length) {
-          <label class="check">
-            <input type="radio" name="updateScope" value="dates" [checked]="scopeChosen() === 'dates'" (change)="updateScope.set('dates')" />
-            <span>Update just the fics found to have date issues <span class="dim">({{ dateIssues().length | number }})</span></span>
-          </label>
-        }
-        @if (indexIssues().length) {
-          <label class="check">
-            <input type="radio" name="updateScope" value="index" [checked]="scopeChosen() === 'index'" (change)="updateScope.set('index')" />
-            <span>Update just the fics found to have indexing issues <span class="dim">({{ indexIssues().length | number }})</span></span>
-          </label>
+        <!-- which fics, nested under fetching and shown only once it is picked -->
+        @if (scopeChosen() !== 'skip') {
+          <div class="scope-options">
+            @if (focus()) {
+              <!-- opened for a work's own look-up: which of the works with no index entry -->
+              <label class="check">
+                <input type="radio" name="updateFor" value="this" [checked]="updateFor() === 'this'" (change)="updateFor.set('this')" />
+                @if ((focus() ?? []).length === 1) {
+                  <span>Just this fic</span>
+                } @else {
+                  <span>Just these fics <span class="dim">({{ (focus() ?? []).length | number }})</span></span>
+                }
+              </label>
+              <label class="check">
+                <input type="radio" name="updateFor" value="all" [checked]="updateFor() === 'all'" (change)="updateFor.set('all')" />
+                <span>All fics with a missing index <span class="dim">({{ allUnindexed() | number }})</span></span>
+              </label>
+              @if (ignored().length) {
+                <label class="check">
+                  <input type="radio" name="updateFor" value="ignored" [checked]="updateFor() === 'ignored'" (change)="updateFor.set('ignored')" />
+                  <span>All fics with a missing index, including any added to an ignore-list <span class="dim">({{ withIgnored() | number }})</span></span>
+                </label>
+              }
+            } @else {
+              <label class="check">
+                <input type="radio" name="updateScope" value="all" [checked]="scopeChosen() === 'all'" (change)="chooseScope('all')" />
+                <span>For all fics found to have issues in this import <span class="dim">({{ allIssues().length | number }})</span></span>
+              </label>
+              @if (dateIssues().length) {
+                <label class="check">
+                  <input type="radio" name="updateScope" value="dates" [checked]="scopeChosen() === 'dates'" (change)="chooseScope('dates')" />
+                  <span>Just the fics that had an improperly formatted date <span class="dim">({{ dateIssues().length | number }})</span></span>
+                </label>
+              }
+              @if (indexIssues().length) {
+                <label class="check">
+                  <input type="radio" name="updateScope" value="index" [checked]="scopeChosen() === 'index'" (change)="chooseScope('index')" />
+                  <span>Just the fics with a missing index <span class="dim">({{ indexIssues().length | number }})</span></span>
+                </label>
+              }
+            }
+          </div>
         }
         <label class="check">
-          <input type="radio" name="updateScope" value="skip" [checked]="scopeChosen() === 'skip'" (change)="updateScope.set('skip')" />
+          <input type="radio" name="updateFetch" value="skip" [checked]="scopeChosen() === 'skip'" (change)="updateScope.set('skip')" />
           <span>Skip this step</span>
         </label>
       </fieldset>
-      @if (scopeChosen() !== 'skip') {
-        <fieldset class="formats">
-          <legend>Also download them in other formats?</legend>
-          <p class="hint">
-            Ticking a format fetches it for every work updated that does not have it. Formats a
-            work already has are not fetched again (unless replacing outdated copies, below).
-          </p>
-          @for (format of offered(); track format) {
-            <label class="check">
-              <input type="checkbox" [attr.name]="'format-' + format"
-                     [checked]="picked().includes(format)"
-                     (change)="toggleFormat(format, $any($event.target).checked)" />
-              <span>
-                {{ format }}
-                @if (held().has(format)) { <span class="dim">(some already have it)</span> }
-              </span>
-            </label>
-          }
-        </fieldset>
-        <label class="check">
-          <input type="checkbox" name="replaceOutdated" [checked]="replaceOutdated()"
-                 (change)="replaceOutdated.set($any($event.target).checked)" />
-          <span>
-            Replace a copy you have when AO3 has a newer version than the date in its name
-            <span class="hint">A copy with no date is never replaced, and neither is one that is current.</span>
-          </span>
-        </label>
-      }
       @if (busy()) {
         <p class="warning busy-note" role="note">A run is in progress. It has to finish before an import can start.</p>
       }
     </section>
     <footer>
-      @if (canGoBack() || works().length) {
+      @if (canGoBack() || toLookUp().length || toRepair().length) {
         <button type="button" class="button subtle" (click)="backFrom('formats')">Back</button>
       }
+      <!-- updating goes on to the file types; skipping has nothing more to ask -->
+      @if (scopeChosen() !== 'skip') {
+        <button type="button" class="button primary" (click)="step.set('filetypes')">Continue</button>
+      } @else {
+        <button type="button" class="button primary" [disabled]="runs() && busy()" (click)="finish()">
+          {{ runs() ? 'Continue' : 'Done' }}
+        </button>
+      }
+    </footer>
+  }
+
+  <!-- 6: the file types to fetch for the works updated, and whether to overwrite what is there -->
+  @if (step() === 'filetypes') {
+    <section class="body">
+      <fieldset class="formats">
+        <legend>File types</legend>
+        <p class="hint filetypes-hint">
+          Ticking a format here will check if a work is missing a copy in these formats, and download it if so.
+        </p>
+        <p class="hint filetypes-hint">
+          Files you already have downloaded will still be checked for a newer version - regardless of whether you tick any boxes below.
+        </p>
+        @for (format of offered(); track format) {
+          <label class="check">
+            <input type="checkbox" [attr.name]="'format-' + format"
+                   [checked]="picked().includes(format)"
+                   (change)="toggleFormat(format, $any($event.target).checked)" />
+            <span>
+              {{ format }}
+              @if (held().has(format)) { <span class="dim">(some already have it)</span> }
+            </span>
+          </label>
+        }
+      </fieldset>
+      <label class="check overwrite">
+        <input type="checkbox" name="overwrite" [checked]="overwrite()" (change)="overwrite.set($any($event.target).checked)" />
+        <span>
+          Overwrite existing downloads
+          <span class="hint">Check this if you are concerned about file integrity issues and would like to re-download each file again.</span>
+        </span>
+      </label>
+      @if (busy()) {
+        <p class="warning busy-note" role="note">A run is in progress. It has to finish before an import can start.</p>
+      }
+    </section>
+    <footer>
+      <button type="button" class="button subtle" (click)="step.set('formats')">Back</button>
       <button type="button" class="button primary" [disabled]="runs() && busy()" (click)="finish()">
         {{ runs() ? 'Continue' : 'Done' }}
       </button>

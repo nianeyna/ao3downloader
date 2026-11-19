@@ -30,6 +30,13 @@ HELPER_ALLOWED = {
     # comparison) when none is dated the app's way - and a copy not dated so is always asked
     # about, never replaced unasked
     'nomination_key',
+    # Resolve issues' *Repair from AO3*, when AO3 fails: FicHub replaces a file the reader chose
+    # to repair only if its copy is as new as the date guessed from the file's name - a rule the
+    # reader agreed to, knowing it is a guess, before the run started. Off unless they did
+    'fichub_repairs',
+    # the same agreement for *Only rename the file* from FicHub: a file is named with FicHub's date
+    # only when that is not older than the date guessed from its name, if the reader asked for that
+    'rename_with_date',
 }
 PAGE_ALLOWED = {
     # Resolve issues' *Infer date* button: fills the dating page for the reader to check

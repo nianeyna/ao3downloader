@@ -21,8 +21,12 @@ TARGET = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '.
 
 FILETYPES = (['JSON', 'HTML'], ['JSON'], ['HTML'])
 # the choices step_plan reads, each on and off
-CHOICES = ('collectionWorks', 'series', 'replaceOutdated', 'reindex', 'dates', 'images', 'nonBookmarks',
-           'skipIndex', 'recheck', 'orderBookmarked')
+# (repairing is put before replacing, so the case kept for an import's download step - the same
+# plan either way - stays the replacing one)
+CHOICES = ('collectionWorks', 'series', 'repair', 'replaceOutdated', 'reindex', 'dates', 'images',
+           'nonBookmarks', 'skipIndex', 'recheck', 'orderBookmarked')
+# a choice sent as a list rather than a flag: on is this, and the case records it as true
+LISTS = {'repair': ['1 Fic.html']}
 # a choice whose 'on' sends a false option: a custom run told to skip its indexing
 SENT_FALSE = {'skipIndex': 'reindex'}
 # a choice whose 'on' sends a value: a custom run's range read by date bookmarked
@@ -41,7 +45,8 @@ def cases() -> list[dict]:
                     if options.pop(choice, False): options[option] = False
                 for choice, (option, value) in SENT_VALUE.items():
                     if options.pop(choice, False): options[option] = value
-                job = server.Job(action, list(filetypes), 'Someone', server.resolve_options(options))
+                sent = {name: LISTS.get(name, on) for name, on in options.items()}
+                job = server.Job(action, list(filetypes), 'Someone', server.resolve_options(sent))
                 found.append({'action': action, 'filetypes': filetypes, 'options': options,
                               'plan': [[step, label] for step, label in server.step_plan(job)]})
     # the same plan reached by several choice sets is one case: keep the first of each

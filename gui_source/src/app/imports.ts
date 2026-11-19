@@ -104,7 +104,56 @@ function byWork(files: FoundFile[]): FoundWork[] {
  * What the import has to resolve, counted in files - the one count the reminder above the tabs
  * and the import window's own overview both give, so the two can never disagree.
  */
+/**
+ * What a download replacing a file of the same name leaves behind if the app stops part-way
+ * (the helper's `Ao3.swap_in`): the new file written beside yours, and yours moved aside while the
+ * new one goes in. Names nothing reads as a work, so nothing else ever sees them.
+ */
+export const SWAP_NEW_SUFFIX = '.ficfairy-new';
+export const SWAP_OLD_SUFFIX = '.ficfairy-old';
+
+/** one file a swap was part-way through, and what is beside it */
+export interface SwapLeftover {
+  /** the file's own name, which the swap was putting the new copy into */
+  path: string;
+  /** your copy, moved aside */
+  old?: string;
+  /** the new copy, written beside it */
+  fresh?: string;
+  /** whether a file is at `path` now */
+  inPlace: boolean;
+}
+
+/**
+ * Every file in `works/` a swap was left part-way through. **Your copy set aside is always put
+ * back** under its own name (`restore`) - a new copy in its place is removed first, since it may
+ * not be whole - and a new copy beside your file is removed. A new copy with nothing whole beside
+ * it is left alone: it may be all there is.
+ */
+export function swapLeftovers(paths: Iterable<string>): SwapLeftover[] {
+  const all = [...paths];
+  const present = new Set(all.map((p) => p.toLowerCase()));
+  const found = new Map<string, SwapLeftover>();
+  for (const path of all) {
+    const old = path.endsWith(SWAP_OLD_SUFFIX);
+    if (!old && !path.endsWith(SWAP_NEW_SUFFIX)) continue;
+    const base = path.slice(0, -(old ? SWAP_OLD_SUFFIX : SWAP_NEW_SUFFIX).length);
+    const entry = found.get(base) ?? { path: base, inPlace: present.has(base.toLowerCase()) };
+    if (old) entry.old = path;
+    else entry.fresh = path;
+    found.set(base, entry);
+  }
+  return [...found.values()].filter((e) => e.old || e.inPlace).sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/** what tidying one leftover does: put your set-aside copy back, or only remove an unfinished new one */
+export function leftoverAction(leftover: SwapLeftover): 'restore' | 'tidy' {
+  return leftover.old ? 'restore' : 'tidy';
+}
+
 export interface ImportIssueCounts {
+  /** files left part-way through being replaced by a download */
+  leftoverFiles?: number;
   /** files named in a way the app cannot match to a work */
   misnamedFiles: number;
   /** files in a set of two or more of one work in one format */
@@ -120,8 +169,10 @@ export function importIssueCounts(
   undatedElsewhere: FoundFile[],
   duplicates: DuplicateGroup[],
   misnamed: readonly { files: unknown[] }[] = [],
+  leftovers: readonly SwapLeftover[] = [],
 ): ImportIssueCounts {
   return {
+    leftoverFiles: leftovers.length,
     misnamedFiles: misnamed.reduce((n, f) => n + f.files.length, 0),
     duplicateFiles: duplicates.reduce((n, g) => n + g.files.length, 0),
     undatedFiles: undatedFiles(works).length + undatedElsewhere.length,
@@ -130,7 +181,7 @@ export function importIssueCounts(
 }
 
 export interface ImportIssueLine {
-  kind: 'misnamed' | 'duplicates' | 'undated' | 'unindexed';
+  kind: 'leftovers' | 'misnamed' | 'duplicates' | 'undated' | 'unindexed';
   text: string;
 }
 
@@ -138,6 +189,10 @@ export interface ImportIssueLine {
 export function importIssueLines(counts: ImportIssueCounts): ImportIssueLine[] {
   const n = (x: number) => x.toLocaleString();
   const lines: ImportIssueLine[] = [];
+  if (counts.leftoverFiles) {
+    lines.push({ kind: 'leftovers',
+      text: `${n(counts.leftoverFiles)} ${counts.leftoverFiles === 1 ? 'file was' : 'files were'} left part-way through being replaced by an interrupted download` });
+  }
   if (counts.misnamedFiles) {
     lines.push({ kind: 'misnamed',
       text: `${n(counts.misnamedFiles)} ${counts.misnamedFiles === 1 ? 'file is' : 'files are'} named in a way this app cannot match to a work` });
@@ -566,6 +621,8 @@ export interface ImportRequest {
   /** JSON, and whichever formats to fetch for works without them */
   filetypes: string[];
   replaceOutdated: boolean;
+  /** *Overwrite existing downloads*: every dated copy of the works updated fetched again, current or not */
+  overwrite?: boolean;
   /** the works among `links` only looked up for their index entry - nothing downloaded */
   indexOnly: string[];
   /** how many of the works are looked up for a missing index entry */
@@ -574,6 +631,25 @@ export interface ImportRequest {
   scope: UpdateScope;
   /** how many files the works hold, as far as the window found - copies a replacing run may fetch again */
   files?: number;
+  /**
+   * Files with no date in their names to replace with AO3's latest version, by name - chosen on
+   * the dating page (*Repair from AO3*). The helper finds each by its work and format.
+   */
+  repair?: string[];
+  /** agreed before the run: FicHub may repair a file AO3 would not give, when its copy is as new
+   * as a date guessed from the file's name */
+  repairFicHub?: boolean;
+  /** for either FicHub choice: a file whose name looks dated no later than FicHub's copy is
+   *  repaired (on unless sent false) */
+  repairFicHubOlder?: boolean;
+  /** agreed too: FicHub may repair one whose name has no date to guess */
+  repairFicHubUndated?: boolean;
+  /** instead: a file AO3 would not give is kept and named with FicHub's date, never over another */
+  repairFicHubRename?: boolean;
+  /** FicHub's choice keeps to the date guessed from each file's name (on unless sent false) */
+  repairFicHubCheck?: boolean;
+  /** where AO3 has the work, the file is only named with AO3's date - nothing downloaded */
+  repairRenameOnly?: boolean;
 }
 
 /**
@@ -583,13 +659,15 @@ export interface ImportRequest {
 export const LONG_IMPORT_REQUESTS = 20;
 
 /**
- * A rough count of the requests an import makes: one per work looked up for its index entry,
+ * A rough count of the requests an import makes: one per work looked up for its index entry, one
+ * per file to repair,
  * one per other format per work updated, and - when replacing outdated copies - one per file
  * it holds, at most. Rough by design: a format already on disk, or a copy that is current, costs
  * nothing.
  */
 export function importRequests(request: ImportRequest): number {
-  const lookups = request.lookups ?? 0;
+  // a file to repair is one request of its own, beside its work's lookup
+  const lookups = (request.lookups ?? 0) + (request.repair?.length ?? 0);
   if (request.scope === 'skip') return lookups;
   const updated = Math.max(0, request.count - (request.indexOnly?.length ?? 0));
   const formats = (request.filetypes ?? []).filter((f) => f.toUpperCase() !== 'JSON').length;
@@ -691,6 +769,14 @@ export class LibraryImports {
   private readonly library = inject(Library);
   private readonly visit = inject(VisitLog);
   readonly found = signal<FoundWork[]>([]);
+  /** files a download replacing them was left part-way through - tidied first of all */
+  readonly leftovers = signal<SwapLeftover[]>([]);
+  /**
+   * Works with no index entry that the exclusion lists keep out of `found` - every file on the
+   * files list, or the work on the index list. Offered only when asked for by name: a work's own
+   * *Look up its index from AO3 here*, which can also take every one of them along.
+   */
+  readonly ignoredIndex = signal<FoundWork[]>([]);
   /** files of indexed works with no date in their name */
   readonly undatedIndexed = signal<FoundFile[]>([]);
   /** whether anything was found to resolve: works with no index entry, or undated files */
@@ -700,6 +786,7 @@ export class LibraryImports {
   readonly misnamed = signal<Misnamed>({ formats: [], unreadable: [] });
   readonly hasIssues = computed(
     () => this.found().length > 0 || this.undatedIndexed().length > 0 || this.duplicates().length > 0 ||
+      this.leftovers().length > 0 ||
       this.misnamed().formats.length > 0,
   );
   /** the store the last check was of, so a check of a library since closed is dropped */
@@ -850,9 +937,11 @@ export class LibraryImports {
   forget(): void {
     this.generation++;
     this.found.set([]);
+    this.ignoredIndex.set([]);
     this.undatedIndexed.set([]);
     this.duplicates.set([]);
     this.misnamed.set({ formats: [], unreadable: [] });
+    this.leftovers.set([]);
     this.checkedStore.set(null);
     this.checking.set(false);
   }
@@ -862,9 +951,12 @@ export class LibraryImports {
     const generation = ++this.generation;
     if (!store) {
       this.found.set([]);
+    this.ignoredIndex.set([]);
       this.undatedIndexed.set([]);
       this.duplicates.set([]);
       this.misnamed.set({ formats: [], unreadable: [] });
+      this.leftovers.set([]);
+    this.leftovers.set([]);
       this.checkedStore.set(null);
       return;
     }
@@ -895,11 +987,15 @@ export class LibraryImports {
         .filter((w) => indexExcluded(w, excluded))
         .flatMap((w) => w.files.filter((f) => !f.date).map((f) => ({ ...f, unindexed: true })));
       this.found.set(asked);
+      const askedIds = new Set(asked.map((w) => w.id));
+      this.ignoredIndex.set(unindexedWorks(listed, indexed).filter((w) => !askedIds.has(w.id)));
       this.undatedIndexed.set(
         [...undatedIndexedFiles(paths, indexed), ...notAsked].filter((f) => !excluded.dates.has(f.name)),
       );
       this.duplicates.set(duplicateGroups(paths).filter((g) => !duplicatesExcluded(g, excluded)));
       this.misnamed.set(misnamedFiles(paths));
+      // never on any exclusion list: a file set aside mid-swap is always put right
+      this.leftovers.set(swapLeftovers(listed));
       this.checkedStore.set(store);
     } catch {
       // the library could not be listed: whatever was found before is kept until it can

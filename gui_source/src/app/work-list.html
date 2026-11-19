@@ -51,13 +51,13 @@
 
   <div class="filter-grid">
     <label class="filter-field">
-      <span>Bookmark type</span>
+      <span>Work type</span>
       <select
         name="typeFilter"
         [value]="typeFilter()"
         (change)="typeFilter.set($any($event.target).value)"
       >
-        <option value="">All bookmarks</option>
+        <option value="">All</option>
         <option value="individual work">Individual works</option>
         <option value="series bookmark">Series</option>
         <option value="external work">External works</option>
@@ -196,6 +196,10 @@
       <input type="checkbox" name="recommended" [checked]="recommended()" (change)="recommended.set($any($event.target).checked)" />
       Bookmarks you recommended
     </label>
+    <label>
+      <input type="checkbox" name="missingIndex" [checked]="missingIndex()" (change)="missingIndex.set($any($event.target).checked)" />
+      Missing a FicFairy index
+    </label>
   </p>
 
   <p class="filter-hidden">
@@ -212,10 +216,6 @@
     <button type="button" class="button subtle" [disabled]="!anythingToClear()" (click)="clearFilters()">
       Clear filters
     </button>
-    <span class="filter-hint">
-      Both ends of a date range count. A work with no date recorded is left out of a date
-      range, because there is nothing to compare it against.
-    </span>
   </p>
 </details>
 
@@ -399,7 +399,7 @@
           } @else {
             <button type="button" class="link-button resolve-now" [disabled]="runGoing()"
               [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
-              (click)="resolveIssues()">Look up its index from AO3 here</button>, or
+              (click)="resolveIssues(work)">Look up its index from AO3 here</button>, or
             <button type="button" class="link-button download-now" [disabled]="runGoing()"
               [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
               (click)="downloadNow(work)">download the latest version of this work</button>.
@@ -712,6 +712,18 @@
                     }
                   </li>
                 }
+                <!-- a file no index entry matches: Resolve issues, on its index question -->
+                @if (work.unindexed && !isLoose(work)) {
+                  <li role="none">
+                    <button type="button" role="menuitem" class="look-up-now"
+                      [class.unavailable]="runGoing()"
+                      [attr.aria-disabled]="runGoing()"
+                      [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
+                      (click)="!runGoing() && resolveIssues(work)">
+                      Look up its index
+                    </button>
+                  </li>
+                }
                 <!-- works only: a series or an external work has no such item at all -->
                 @if (!work.error && worksToFetch(work).length) {
                   <li role="none">
@@ -743,6 +755,14 @@
                       [title]="canCollect(work) ? '' : 'A series cannot be added to a collection - only works can'"
                       (click)="menuAdd(work)">
                       Add to a collection...
+                    </button>
+                  </li>
+                }
+                <!-- every entry with an index file: its readings, in a tab of their own -->
+                @if (canViewIndex(work)) {
+                  <li role="none">
+                    <button type="button" role="menuitem" class="view-index" (click)="viewIndex(work)">
+                      View index history
                     </button>
                   </li>
                 }
@@ -898,6 +918,12 @@
         }
         @if (tickedHidden().length) {
           <button type="button" class="button" [disabled]="busy()" (click)="unhideTicked()">{{ unhideLabel() }}</button>
+        }
+        <!-- the ticked works with no index entry: Resolve issues, on its index question -->
+        @if (tickedToLookUp().length) {
+          <button type="button" class="button look-up-ticked" [disabled]="busy() || runGoing()"
+            [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
+            (click)="lookUpTicked()">{{ lookUpTickedLabel() }}</button>
         }
         <!-- every ticked work, a series as its works, external works left out: several fics run -->
         <button type="button" class="button fetch-ticked" [disabled]="busy() || runGoing() || !tickedToFetch().length"

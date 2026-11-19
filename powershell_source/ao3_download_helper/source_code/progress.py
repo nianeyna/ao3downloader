@@ -56,6 +56,8 @@ RESCUED = 'rescued'
 KEPT_COPIES = 'keptCopies'
 # formats FicHub gave that may be an older cached copy - taken anyway, and warned about
 FICHUB_OLDER = 'fichubOlder'
+# Resolve issues' repairs not done because the name they would give is already taken
+REPAIR_CLASHES = 'repairClashes'
 # how many files the run came across with no date in the app's own form in their names - each one
 # asked about (or answered for you). the page suggests dating them in Resolve issues
 UNSURE_FILES = 'unsureFiles'

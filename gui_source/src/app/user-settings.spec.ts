@@ -24,7 +24,7 @@ import { CHIME_KEY, CHIME_SOUND_KEY, Chime, ChimePlayer } from './chime';
 import { IniSetting, TOAST_MS, UserSettings } from './user-settings';
 import { GuestMode } from './guest';
 import { RUN_LOG_LINES_KEY, RUN_LOG_LINES_MIN, TRIM_OLD_RUN_LOGS_KEY } from './run-logs';
-import { VISIT_LOG_LIMIT, VISIT_LOG_LIMIT_KEY, VISIT_LOG_MIN, VisitLog } from './visit-log';
+import { VISIT_LOG_LIMIT, VISIT_LOG_LIMIT_KEY, VISIT_LOG_MAX, VISIT_LOG_MIN, VisitLog } from './visit-log';
 
 const CONFIG: ServerConfig = {
   username: '',
@@ -191,6 +191,17 @@ describe('UserSettings', () => {
     // out of range is kept in range
     await leave('input[name="visitLogLimit"]', '5');
     expect(visit.limit()).toBe(VISIT_LOG_MIN);
+    const warning = () => element.querySelector('.visit-log-limit-warning')?.textContent?.trim() ?? null;
+    expect(warning()).toBe(`(cannot be smaller than ${VISIT_LOG_MIN.toLocaleString()})`);
+    const box = element.querySelector<HTMLInputElement>('input[name="visitLogLimit"]')!;
+    box.value = String(VISIT_LOG_MAX + 1);
+    box.dispatchEvent(new Event('input'));
+    await settle();
+    expect(warning()).toBe(`(cannot be larger than ${VISIT_LOG_MAX.toLocaleString()})`);
+    box.value = '500';
+    box.dispatchEvent(new Event('input'));
+    await settle();
+    expect(warning()).toBeNull();
 
     let saved: Blob | null = null;
     vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
@@ -251,7 +262,19 @@ describe('UserSettings', () => {
     await open();
     expect(element.querySelector('.advanced-part.run-logs .saved-to')?.textContent?.trim()).toBe('Saved to this browser');
 
+    const box = element.querySelector<HTMLInputElement>('input[name="runLogMaxLines"]')!;
+    const warning = () => element.querySelector('.run-log-lines-warning')?.textContent?.trim() ?? null;
+    box.value = '99999';
+    box.dispatchEvent(new Event('input'));
+    await settle();
+    expect(warning()).toBe('(cannot be larger than 50,000)');
+    box.value = '7000';
+    box.dispatchEvent(new Event('input'));
+    await settle();
+    expect(warning()).toBeNull();
+
     await leave('input[name="runLogMaxLines"]', '99');
+    expect(warning()).toBe('(cannot be smaller than 500)');
     expect(localStorage.getItem(RUN_LOG_LINES_KEY)).toBe(String(RUN_LOG_LINES_MIN));
     tick('trimOldRunLogs', false);
     await settle();
@@ -788,7 +811,6 @@ describe('UserSettings', () => {
     await open();
     expect(element.querySelector('.debug-mode')).not.toBeNull();
     expect(TestBed.inject(DebugMode).on()).toBe(true);
-    expect(element.querySelector('.debug-mode')!.textContent).toContain('[DEBUG] runs');
     localStorage.removeItem('ao3.debugMode');
   });
 

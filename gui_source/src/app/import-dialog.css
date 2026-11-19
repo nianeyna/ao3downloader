@@ -196,7 +196,8 @@ code {
   margin: 0 0 12px;
 }
 
-.bulk label {
+.bulk label,
+.bulk-date label {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -251,6 +252,71 @@ input[type='date'] {
   text-align: center;
 }
 
+.dating th:nth-child(4),
+.dating td:nth-child(4) {
+  width: 92px;
+  text-align: center;
+}
+
+/* to be repaired from AO3: its date set aside, as a skipped one's is */
+.dating tr.repaired input[type='date'] {
+  opacity: 0.45;
+}
+
+.needs-answer-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.repair-fichub {
+  margin: 12px 0 0;
+}
+
+.repair-fichub .nested {
+  margin-left: 24px;
+}
+
+.repair-fallback {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fichub-answers {
+  display: grid;
+  gap: 6px;
+  margin: 2px 0 10px;
+}
+
+.fichub-answers label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.fichub-answers select {
+  font: inherit;
+  width: auto;
+  min-width: 5.5em;
+  flex: none;
+}
+
+.repair-ao3 {
+  margin-bottom: 14px;
+}
+
+.repair-fallback .repair-warning {
+  margin: 4px 0 10px;
+}
+
+.repair-fallback legend {
+  margin-bottom: 4px;
+  padding: 0;
+  font-weight: 600;
+}
+
 .dating td.file-name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -284,9 +350,36 @@ input[type='date'] {
   color: var(--warn-text-dim);
 }
 
-/* the bulk row's last button sits on the right */
+.bulk-actions {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.bulk-actions summary {
+  cursor: pointer;
+  color: var(--text-dim);
+}
+
+.bulk-actions .bulk-what {
+  margin: 10px 0 8px;
+}
+
+.bulk-actions .bulk {
+  margin: 0;
+}
+
+.bulk-date {
+  margin-top: 10px;
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
 .bulk .infer {
-  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -668,3 +761,8 @@ footer.with-bulk {
   background: var(--warn-bg);
 }
 
+
+/* the fics to update, nested under 'Try and fetch the latest version' */
+.scope-options {
+  margin-left: 26px;
+}

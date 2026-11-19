@@ -299,7 +299,7 @@ def test_a_fichub_reading_keeps_the_bookmark_the_index_already_had(library, monk
     # FicHub reading is written into its file
     indexed_as(library, bookmark)
     if not read_first:
-        monkeypatch.setattr(server, 'indexed_entries', lambda ao3, fileops, works: {})
+        monkeypatch.setattr(server, 'indexed_entries', lambda ao3, fileops, works, stop=None: {})
     monkeypatch.setattr(server.fichub, 'lookup', lambda repo, link: wolfbird())
     monkeypatch.setattr(server.fichub, 'download', lambda repo, answer, filetype: b'from fichub')
     job, ao3, _ = a_run(library, ['JSON', 'HTML'], ao3_failed())
@@ -313,6 +313,32 @@ def test_a_fichub_reading_keeps_the_bookmark_the_index_already_had(library, monk
     for field in strings.BOOKMARK_OWN_FIELDS:
         if field in bookmark: assert entry[field] == bookmark[field], field
         else: assert field not in entry, field
+
+
+@pytest.mark.fichub
+def test_fichub_reads_each_works_entry_in_its_turn_and_a_stop_ends_it_between_works(
+        library, monkeypatch):
+    # with AO3 down every work of a long import is here: reading every entry up front held the
+    # step silent, and past a stop, for as long as that took
+    failures = [{'id': str(n), 'link': f'https://archiveofourown.org/works/{n}', 'error': 'down'}
+                for n in (1, 2, 3)]
+    job, ao3, _ = a_run(library, ['JSON', 'HTML'], failures)
+    read: list[set] = []
+    rescued: list[str] = []
+
+    def entries(ao3, fileops, works, stop=None):
+        read.append(set(works))
+        if len(read) == 2: job.cancel.set()
+        return {}
+
+    monkeypatch.setattr(server, 'indexed_entries', entries)
+    monkeypatch.setattr(server, 'rescue_one',
+                        lambda ao3, failure, *a, **k: rescued.append(failure['id']))
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    assert read == [{'1'}, {'2'}]
+    assert rescued == ['1']
 
 
 def test_keep_own_bookmark_takes_the_files_bookmark_over_the_documents():
@@ -699,6 +725,40 @@ def test_a_work_an_import_only_looks_up_is_indexed_from_fichub_and_nothing_downl
 
 
 @pytest.mark.fichub
+def test_an_imports_work_with_no_index_entry_at_all_is_taken_from_fichub_without_asking(
+        library, monkeypatch, capsys):
+    fetched = fichub_serving(monkeypatch)
+    job, ao3, asked = a_run(library, ['JSON'], ao3_failed(), answer='no')
+    job.action = server.ACTION_IMPORT
+    job.options.update(indexOnly=['75354806'])
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    # a cached copy is better than no entry: not asked, and taken even with 'no' as the answer
+    assert asked == []
+    assert fetched == []
+    assert entry_of(library)[strings.RETRIEVED_FROM_FIELD]['site'] == 'fichub'
+    assert 'had no index entry at all' in capsys.readouterr().out
+
+
+@pytest.mark.fichub
+def test_an_imports_work_already_indexed_is_still_asked_about_before_fichub(library, monkeypatch):
+    folder = os.path.join(library.downloadfolder, strings.INDEXING_FOLDER_NAME)
+    os.makedirs(folder, exist_ok=True)
+    with open(os.path.join(folder, '75354806 Wolfbird - OpalApparition.json'), 'w', encoding='utf-8') as f:
+        json.dump({'id': '75354806', 'link': LINK, 'title': 'Wolfbird', 'date_updated': '2026-04-27'}, f)
+    fetched = fichub_serving(monkeypatch)
+    job, ao3, asked = a_run(library, ['JSON', 'EPUB'], ao3_failed(), answer='no')
+    job.action = server.ACTION_IMPORT
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    assert [q['name'] for q, _ in asked] == ['fichub']
+    assert fetched == []
+    assert [x['id'] for x in ao3.failures] == ['75354806']
+
+
+@pytest.mark.fichub
 def test_an_import_not_replacing_outdated_copies_keeps_yours_and_fetches_only_what_is_missing(
         library, monkeypatch):
     a_copy(library, '75354806 Wolfbird - OpalApparition 2020-01-01.epub')
@@ -736,6 +796,179 @@ def test_an_import_replacing_outdated_copies_never_replaces_an_undated_one_from_
 
     assert fetched == ['HTML']
     assert '75354806 Wolfbird - OpalApparition.epub' in work_files(library)
+
+
+@pytest.mark.fichub
+def test_an_import_overwriting_still_never_replaces_an_undated_one_from_fichub(library, monkeypatch):
+    a_copy(library, '75354806 Wolfbird - OpalApparition.epub')
+    a_copy(library, '75354806 Wolfbird - OpalApparition 2026-04-27.html')
+    fetched = fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON', 'EPUB', 'HTML'], replaceOutdated=True, overwrite=True)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    # the current html is fetched again; the undated epub is kept
+    assert fetched == ['HTML']
+    assert '75354806 Wolfbird - OpalApparition.epub' in work_files(library)
+
+
+@pytest.mark.fichub
+@pytest.mark.parametrize('name, agreed, replaced', [
+    # FicHub's copy (27 April 2026) is newer than the date guessed from the name: replaced
+    ('75354806 Wolfbird (1 May 2025).epub', True, True),
+    # older than the guess: kept
+    ('75354806 Wolfbird (1 May 2027).epub', True, False),
+    # FicHub not agreed to: kept, however new its copy
+    ('75354806 Wolfbird (1 May 2025).epub', False, False),
+])
+def test_an_imports_file_to_repair_is_replaced_from_fichub_only_on_the_rule_agreed_to(
+        library, monkeypatch, name, agreed, replaced):
+    a_copy(library, name)
+    fetched = fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON'], repair=[name], repairFicHub=agreed)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    if replaced:
+        assert fetched == ['EPUB']
+        assert work_files(library) == ['75354806 Wolfbird - OpalApparition 2026-04-27.epub']
+    else:
+        assert fetched == []
+        # kept, named from the entry as an import names every file - without FicHub's date
+        assert work_files(library) == ['75354806 Wolfbird - OpalApparition.epub']
+
+
+@pytest.mark.fichub
+def test_an_imports_file_to_repair_can_instead_be_named_with_fichubs_date_keeping_its_contents(
+        library, monkeypatch, capsys):
+    a_copy(library, '75354806 Wolfbird.epub')
+    fetched = fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON'], repair=['75354806 Wolfbird.epub'],
+                         repairFicHubRename=True, repairFicHubUndated=True)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    # nothing downloaded: the same file, named as its entry names it with FicHub's date
+    assert fetched == []
+    assert work_files(library) == ['75354806 Wolfbird - OpalApparition 2026-04-27.epub']
+    with open(os.path.join(library.downloadfolder, strings.WORKS_FOLDER_NAME,
+                           '75354806 Wolfbird - OpalApparition 2026-04-27.epub'), 'rb') as f:
+        assert f.read() == b'what you had'
+    assert "with FicHub's date (27 April 2026)" in capsys.readouterr().out
+
+
+@pytest.mark.fichub
+@pytest.mark.parametrize('name, check, renamed', [
+    # FicHub's copy (27 April 2026) is not older than the guess: named with it
+    ('75354806 Wolfbird (1 May 2025).epub', True, True),
+    # older than the guess: kept as it is, with the rule on
+    ('75354806 Wolfbird (1 May 2027).epub', True, False),
+    # ...and named all the same with the rule off
+    ('75354806 Wolfbird (1 May 2027).epub', False, True),
+    # no date to guess: named, rule or not
+    ('75354806 Wolfbird.epub', True, True),
+])
+def test_naming_with_fichubs_date_keeps_to_the_guessed_date_only_when_asked(
+        library, monkeypatch, name, check, renamed):
+    a_copy(library, name)
+    fetched = fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON'], repair=[name], repairFicHubRename=True,
+                         repairFicHubCheck=check, repairFicHubUndated=True)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    assert fetched == []
+    if renamed:
+        assert work_files(library) == ['75354806 Wolfbird - OpalApparition 2026-04-27.epub']
+    else:
+        assert work_files(library) == ['75354806 Wolfbird - OpalApparition.epub']
+
+
+@pytest.mark.fichub
+@pytest.mark.parametrize('name, older, undated, renamed', [
+    # a name that looks no newer than FicHub's copy: renamed only when that answer is yes
+    ('75354806 Wolfbird (1 May 2025).epub', True, False, True),
+    ('75354806 Wolfbird (1 May 2025).epub', False, True, False),
+    # no date to guess: renamed only when that answer is yes
+    ('75354806 Wolfbird.epub', True, False, False),
+    ('75354806 Wolfbird.epub', False, True, True),
+    # a name that looks newer than FicHub's copy: never, whatever the answers
+    ('75354806 Wolfbird (1 May 2027).epub', True, True, False),
+])
+def test_naming_with_fichubs_date_follows_the_two_answers_given(
+        library, monkeypatch, name, older, undated, renamed):
+    a_copy(library, name)
+    fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON'], repair=[name], repairFicHubRename=True,
+                         repairFicHubOlder=older, repairFicHubUndated=undated)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    assert (work_files(library) == ['75354806 Wolfbird - OpalApparition 2026-04-27.epub']) is renamed
+
+
+@pytest.mark.fichub
+@pytest.mark.parametrize('older, replaced', [(True, True), (False, False)])
+def test_overwriting_with_fichubs_copy_follows_the_answer_for_a_name_that_looks_older(
+        library, monkeypatch, older, replaced):
+    a_copy(library, '75354806 Wolfbird (1 May 2025).epub')
+    fetched = fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON'], repair=['75354806 Wolfbird (1 May 2025).epub'],
+                         repairFicHub=True, repairFicHubOlder=older)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    assert (fetched == ['EPUB']) is replaced
+
+
+@pytest.mark.fichub
+def test_naming_a_file_with_fichubs_date_never_renames_over_another(library, monkeypatch, capsys):
+    a_copy(library, '75354806 Wolfbird - OpalApparition 2026-04-27.epub')
+    a_copy(library, '75354806 Wolfbird.epub')
+    fetched = fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON'], repair=['75354806 Wolfbird.epub'],
+                         repairFicHubRename=True, repairFicHubUndated=True)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    assert fetched == []
+    assert len(work_files(library)) == 2
+    assert '75354806 Wolfbird - OpalApparition 2026-04-27.epub' in work_files(library)
+    assert 'is already taken by another file' in capsys.readouterr().out
+    assert [(x['file'], x['site']) for x in ao3.repair_clashes] == [
+        ('75354806 Wolfbird.epub', strings.SOURCE_FICHUB)]
+
+
+@pytest.mark.fichub
+def test_a_repair_from_fichub_that_would_land_on_another_files_name_is_not_done(
+        library, monkeypatch, capsys):
+    a_copy(library, '75354806 Wolfbird - OpalApparition 2026-04-27.epub')
+    a_copy(library, '75354806 Wolfbird (1 May 2025).epub')
+    fetched = fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON'], repair=['75354806 Wolfbird (1 May 2025).epub'],
+                         repairFicHub=True)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    assert fetched == []
+    assert len(work_files(library)) == 2
+    assert 'is already taken by another file' in capsys.readouterr().out
+    assert [(x['file'], x['site']) for x in ao3.repair_clashes] == [
+        ('75354806 Wolfbird (1 May 2025).epub', strings.SOURCE_FICHUB)]
+
+
+@pytest.mark.fichub
+def test_a_work_only_looked_up_gets_nothing_from_fichub_but_its_file_to_repair(library, monkeypatch):
+    a_copy(library, '75354806 Wolfbird.epub')
+    fetched = fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON', 'HTML'], indexOnly=['75354806'],
+                         repair=['75354806 Wolfbird.epub'], repairFicHub=True,
+                         repairFicHubUndated=True)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    assert fetched == ['EPUB']
+    assert work_files(library) == ['75354806 Wolfbird - OpalApparition 2026-04-27.epub']
 
 
 @pytest.mark.fichub

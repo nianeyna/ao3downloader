@@ -12,7 +12,7 @@ FicFairy keeps five kinds of log. Only the first two are ones you would normally
 
 The one to attach to a bug report. Each History entry offers **Download log**: the run's links, file types, options and settings, then every line it said. It never names your AO3 password, and the run's settings never name your folders.
 
-- **Longer logs**: User settings > Advanced > **Run logs** sets how many lines a run keeps (500 to 50,000). A run past it keeps its end, where whatever went wrong is, and says how many lines it dropped.
+- **Longer logs**: User settings > Advanced > **Run logs** sets the **Maximum length of each log file (in lines)**, from 500 to 50,000. A run past it keeps its end, where whatever went wrong is, and says how many lines it dropped.
 - **Older runs**: with **Only keep logs of the last 100 runs** on (the default), each run that ends takes the log out of runs older than the newest 100. They stay in `runs/` - History, Retry and the quick scan still read them - and History says the log was taken out. Turn it off to keep every log.
 - **A run still going** is read from the helper, so its log is up to the last line said, not the last save.
 

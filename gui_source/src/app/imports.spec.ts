@@ -21,6 +21,8 @@ import {
   undatedFiles,
   undatedIndexedFiles,
   unindexedWorks,
+  leftoverAction,
+  swapLeftovers,
 } from './imports';
 import { Library } from './library';
 import { LibraryStore } from './library-store';
@@ -371,6 +373,24 @@ describe('duplicates', () => {
   });
 });
 
+describe('swapLeftovers', () => {
+  it('reads what a download replacing a file was left part-way through, and what to do with each', () => {
+    const found = swapLeftovers([
+      'works/1 A.html.ficfairy-old',
+      'works/2 B.pdf', 'works/2 B.pdf.ficfairy-old', 'works/2 B.pdf.ficfairy-new',
+      'works/3 C.epub', 'works/3 C.epub.ficfairy-new',
+      // a new copy with nothing whole beside it is left alone: it may be all there is
+      'works/4 D.html.ficfairy-new',
+      'works/5 E.html',
+    ]);
+    expect(found.map((x) => [x.path, leftoverAction(x)])).toEqual([
+      ['works/1 A.html', 'restore'],
+      ['works/2 B.pdf', 'restore'],
+      ['works/3 C.epub', 'tidy'],
+    ]);
+  });
+});
+
 describe('LibraryImports', () => {
   it('works out the unindexed works from works/ and the index the page has read', async () => {
     const library = TestBed.inject(Library);
@@ -423,6 +443,16 @@ describe('LibraryImports', () => {
     );
     expect(imports.found()).toEqual([]);
     expect(imports.hasIssues()).toBe(false);
+  });
+
+  it('keeps the works an exclusion list leaves out, for a look-up asked for by name', async () => {
+    const imports = await checked(
+      ['works/1 A - B.html', 'works/2 C - D.html', 'works/123 no-index 2024-01-01.pdf'],
+      [{ id: '2', kind: 'files', files: ['2 C - D.html'] },
+       { id: '123', kind: 'index', files: ['123 no-index 2024-01-01.pdf'] }],
+    );
+    expect(imports.found().map((w) => w.id)).toEqual(['1']);
+    expect(imports.ignoredIndex().map((w) => w.id).sort()).toEqual(['123', '2']);
   });
 
   it('asks about it again once the library has a file for it that was not recorded', async () => {

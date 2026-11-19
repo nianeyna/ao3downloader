@@ -1,4 +1,4 @@
-import { FicHubOlder, IndexGap, RunHistory, WorkFailure } from './jobs';
+import { FicHubOlder, IndexGap, RepairClash, RunHistory, WorkFailure } from './jobs';
 import { writtenDate } from './preferences';
 
 /** everything a run reported that needs a person's attention, by kind */
@@ -15,6 +15,8 @@ export interface RunIssues {
   skipped: WorkFailure[];
   /** formats taken from FicHub that may be older cached copies */
   fichubOlder?: FicHubOlder[];
+  /** files Resolve issues asked to repair, not repaired: the name each would get is taken */
+  repairClashes?: RepairClash[];
 }
 
 /** how many entries there are across every kind */
@@ -25,7 +27,8 @@ export function issueCount(issues: RunIssues): number {
     issues.keptCopies.length +
     issues.notRemoved.length +
     issues.skipped.length +
-    (issues.fichubOlder?.length ?? 0)
+    (issues.fichubOlder?.length ?? 0) +
+    (issues.repairClashes?.length ?? 0)
   );
 }
 
@@ -54,6 +57,7 @@ export function issuesOf(run: RunHistory): RunIssues {
       })),
     skipped: run.skipped ?? [],
     fichubOlder: run.fichubOlder ?? [],
+    repairClashes: run.repairClashes ?? [],
   };
 }
 
@@ -63,6 +67,12 @@ export function fichubOlderFormats(item: FicHubOlder): string {
   const replaced = Object.entries(item.replaced ?? {}).map(([f, date]) =>
     `${f} (replaced yours, ${date ? `dated ${writtenDate(date)}` : 'with no date in its name'})`);
   return [...taken, ...replaced].join(', ');
+}
+
+/** a repair a name clash stopped, in words */
+export function repairClashWords(item: RepairClash): string {
+  return `${item.format}: failed to repair from ${item.site} due to a name clash - ` +
+    `${item.wanted} is already another file, so ${item.file} was kept as it is`;
 }
 
 /** formats taken from an older FicHub copy, in words: which, FicHub's date, and the last
@@ -133,6 +143,15 @@ export function issuesReport(issues: RunIssues, heading = 'Issues from this run'
     (issues.fichubOlder ?? []).map((row) =>
       [row.id, row.link, fichubOlderFormats(row), row.fichub, row.latest,
         row.latestFrom ? `your ${row.latestFrom}` : 'the index'].join('\t'),
+    ),
+  );
+  section(
+    plural(issues.repairClashes?.length ?? 0,
+      'file that failed to repair due to a name clash',
+      'files that failed to repair due to a name clash'),
+    'work id, link, format, from, your file (kept), the name it would have been given (already taken)',
+    (issues.repairClashes ?? []).map((row) =>
+      [row.id, row.link, row.format, row.site, row.file, row.wanted].join('\t'),
     ),
   );
   return lines.join('\n') + '\n';

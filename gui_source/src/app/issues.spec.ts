@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeGap, failureWords, fichubOlderWords, issueCount, issuesOf, issuesReport } from './issues';
+import { describeGap, failureWords, fichubOlderWords, issueCount, issuesOf, issuesReport, repairClashWords } from './issues';
 import { RunHistory } from './jobs';
 
 function aRun(over: Partial<RunHistory> = {}): RunHistory {
@@ -94,5 +94,25 @@ describe('older FicHub copies', () => {
   it('is said in words with both dates', () => {
     expect(fichubOlderWords(run.fichubOlder![0])).toBe(
       "Wolfbird - HTML (you had no file), EPUB (replaced yours, dated 1 April 2026): FicHub's copy is dated 27 April 2026, older than the last known update date we have (10 May 2026) - it may be an older cached copy");
+  });
+});
+
+describe('repairs a name clash stopped', () => {
+  const run = {
+    repairClashes: [{ id: '1', link: 'https://archiveofourown.org/works/1', format: 'HTML', site: 'FicHub',
+      file: '1 Fic - Someone.html', wanted: '1 Fic - Someone 2026-05-01.html' }],
+  } as unknown as RunHistory;
+
+  it('counts as an issue, and gets a section of its own in the issues file', () => {
+    const issues = issuesOf(run);
+    expect(issueCount(issues)).toBe(1);
+    const report = issuesReport(issues, 'Issues', new Date('2026-11-08T00:00:00Z'));
+    expect(report).toContain('## 1 file that failed to repair due to a name clash');
+    expect(report).toContain('1\thttps://archiveofourown.org/works/1\tHTML\tFicHub\t1 Fic - Someone.html\t1 Fic - Someone 2026-05-01.html');
+  });
+
+  it('says where the repair was from, and which name was taken', () => {
+    expect(repairClashWords(run.repairClashes![0])).toBe(
+      'HTML: failed to repair from FicHub due to a name clash - 1 Fic - Someone 2026-05-01.html is already another file, so 1 Fic - Someone.html was kept as it is');
   });
 });

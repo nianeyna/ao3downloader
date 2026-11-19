@@ -879,6 +879,13 @@
   font-size: 0.88rem;
 }
 
+.filter-hidden {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 24px;
+  row-gap: 8px;
+}
+
 .filter-hidden label {
   display: inline-flex;
   gap: 6px;

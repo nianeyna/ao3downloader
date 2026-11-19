@@ -762,7 +762,8 @@ app-progress-bar {
 }
 
 /* a preview of guest mode, from the DEBUG tab: the way back, on its own line under the text */
-.guest-banner .guest-preview {
+.guest-banner .guest-preview,
+.debug-banner .debug-leave {
   display: block;
   margin-top: 8px;
 }

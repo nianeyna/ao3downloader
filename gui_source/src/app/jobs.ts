@@ -123,6 +123,20 @@ export interface JobOptions {
   replaceOutdated?: boolean;
   /** an import: the works among its links only looked up for their index entry */
   indexOnly?: string[];
+  /** an import: files with no date in their names to replace with AO3's latest version, by name */
+  repair?: string[];
+  /** an import: FicHub may repair a file AO3 would not give, when as new as the date its name suggests */
+  repairFicHub?: boolean;
+  /** an import: when the date guessed from the file's name is no later than FicHub's */
+  repairFicHubOlder?: boolean;
+  /** an import: and when no date can be guessed from the file's name */
+  repairFicHubUndated?: boolean;
+  /** an import: instead, keep such a file and name it with FicHub's date, never over another */
+  repairFicHubRename?: boolean;
+  /** an import: FicHub's choice keeps to the date guessed from each file's name */
+  repairFicHubCheck?: boolean;
+  /** an import: where AO3 has the work, only name the file with AO3's date */
+  repairRenameOnly?: boolean;
   /**
    * Check every non-bookmark in the index for updates too - the works it holds only because
    * something else led a run to them, such as another work's series. Not narrowed by a date
@@ -362,6 +376,8 @@ export interface RunHistory {
   rescued?: RescuedWork[];
   /** formats taken from FicHub that may be older cached copies - absent on older runs */
   fichubOlder?: FicHubOlder[];
+  /** Resolve issues' repairs a name clash stopped - absent on older runs */
+  repairClashes?: RepairClash[];
   /** older copies marked for removal, and what became of each - absent on older runs */
   removals?: RunRemoval[];
   error: string;
@@ -443,6 +459,21 @@ export interface RescuedWork {
 
 /** a format taken from FicHub, there being no file of it, though FicHub's copy is dated
  *  before the last known update date for the work - kept, but maybe an older cached copy */
+/** a file Resolve issues asked to repair from AO3 or FicHub, not repaired because the name it
+ *  would be given is already another file's - both were kept as they are */
+export interface RepairClash {
+  id: string;
+  link: string;
+  /** e.g. 'EPUB' */
+  format: string;
+  /** the file as it is named, and kept */
+  file: string;
+  /** the name it would have been given, already taken */
+  wanted: string;
+  /** 'AO3' or 'FicHub' */
+  site: string;
+}
+
 export interface FicHubOlder {
   id: string;
   link: string;
@@ -522,6 +553,8 @@ export interface JobEvent {
   rescued?: RescuedWork[];
   /** on a `fichubOlder` event: formats taken from FicHub that may be older cached copies */
   fichubOlder?: FicHubOlder[];
+  /** on a `repairClashes` event: Resolve issues' repairs a name clash stopped */
+  repairClashes?: RepairClash[];
   /** on a `question` event: the work numbers it is about, where it names them */
   ids?: string[];
   /** on a `steps` event: the checklist this run intends to work through */
@@ -696,10 +729,12 @@ export class Jobs {
    */
   readonly fetchWorksAsked = signal<string[] | null>(null);
   /**
-   * Resolve issues asked for from a listing - the *look up its index* link on a file no index
-   * entry matches. `App` takes it and opens the window, as the reminder's button does.
+   * Works' indexes asked to be looked up from a listing, by work number - a file no index entry
+   * matches: its *Look up its index from AO3 here* link or ⋯ menu item (one), or the selection
+   * bar's *Look up N indexes* (those ticked). `App` takes it and opens Resolve issues straight on
+   * the index question, for those works or every work with none.
    */
-  readonly resolveIssuesAsked = signal(0);
+  readonly lookUpAsked = signal<string[] | null>(null);
 
   async loadConfig(): Promise<ServerConfig | null> {
     try {

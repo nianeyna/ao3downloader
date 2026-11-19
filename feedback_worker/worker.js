@@ -34,14 +34,19 @@ export const KINDS = {
 /** a page from before the kinds sent one of these; it is taken as general feedback */
 export const OLD_SENTIMENTS = ['positive', 'negative'];
 /**
- * The form's optional quick questions, each answered 1 to 5 - only those the person moved
- * are sent. The page asks them in its own words; these are what the issue says.
+ * The form's optional quick questions, each answered 1 to 5 by one of five words (`scale`, 1
+ * first) - only those the person picked are sent. The issue says the word they chose; the page
+ * shows the same words (`RATING_QUESTIONS`).
  */
 export const RATINGS = {
-  easy: { question: 'How easy is FicFairy to use?', low: 'very hard', high: 'very easy' },
-  useful: { question: 'How useful do you find it?', low: 'not useful', high: 'very useful' },
-  confusing: { question: 'How confusing do you find it?', low: 'not at all confusing', high: 'very confusing' },
-  complete: { question: 'Does it do everything you want?', low: 'missing a lot', high: 'does everything I want' },
+  easy: { question: 'How easy is FicFairy to use?',
+    scale: ['Very hard', 'Hard', 'Neutral', 'Easy', 'Very easy'] },
+  useful: { question: 'How useful do you find it?',
+    scale: ['Not useful', 'Slightly useful', 'Neutral', 'Useful', 'Very useful'] },
+  confusing: { question: 'How confusing do you find it?',
+    scale: ['Not at all confusing', 'Slightly confusing', 'Neutral', 'Confusing', 'Very confusing'] },
+  complete: { question: 'Does it do everything you want?',
+    scale: ['Missing a lot', 'Missing some', 'Neutral', 'Mostly', 'Does everything I want'] },
 };
 const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const GITHUB_API = 'https://api.github.com';
@@ -166,10 +171,10 @@ function issueOf(form) {
   if (form.browser) lines.push(`- **Browser:** ${form.browser}`);
   const answered = Object.keys(RATINGS).filter((key) => form.ratings?.[key]);
   if (answered.length) {
-    lines.push('', '**Quick questions** (1 to 5)');
+    lines.push('', '**Quick questions**');
     for (const key of answered) {
-      const { question, low, high } = RATINGS[key];
-      lines.push(`- ${question} **${form.ratings[key]}** (1 = ${low}, 5 = ${high})`);
+      const { question, scale } = RATINGS[key];
+      lines.push(`- ${question} **${scale[form.ratings[key] - 1]}**`);
     }
   }
   if (form.logLeftOut) lines.push('', `_${LOG_LEFT_OUT}_`);

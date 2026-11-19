@@ -1,17 +1,5 @@
 import { savedRunLogLines, savedTrimOldRunLogs } from './run-logs';
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  OnDestroy,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnDestroy, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { WorkLink } from './work-link';
 import { Chime } from './chime';
 
@@ -34,6 +22,7 @@ import {
   Scenario,
   RescuedWork,
   FicHubOlder,
+  RepairClash,
   RunInProgressError,
   StartRequest,
   WorkFailure,
@@ -72,7 +61,7 @@ import { LibraryFreshness } from './freshness';
 import { safeGet, safeRemove, safeSet } from './storage';
 import { Library } from './library';
 import { DropboxLibraryStore, LibraryStore, StorageRequest } from './library-store';
-import { RunIssues, attemptIssues, fichubOlderWords, issueCount, issuesReport } from './issues';
+import { RunIssues, attemptIssues, fichubOlderWords, issueCount, issuesReport, repairClashWords } from './issues';
 import { ImportRequest, LONG_IMPORT_REQUESTS, importRequests } from './imports';
 import { REMEMBER_USERNAME_KEY, SAVED_USERNAME_KEY, SYNC_ACK_KEY, ao3TimeZone, inAo3Zone, utcToZonedDay, zonedDayToUtc, savedAnswerDefaults, savedQuestionTimeout, startingFiletypes, savedAlwaysAnswers, saveAlwaysAnswer, savedGuessedDateTimeout, savedOwnWaits, savedNobodyHere, writtenDate } from './preferences';
 
@@ -174,12 +163,6 @@ const METADATA = 'JSON';
 const USERNAME_KEY = SAVED_USERNAME_KEY;
 const REMEMBER_KEY = REMEMBER_USERNAME_KEY;
 
-/** which works a repair's downloads are for, as its summary says it */
-const IMPORT_SCOPE_WORDS: Record<string, string> = {
-  all: 'all fics found to have issues in this import',
-  dates: 'any fics found to have date issues in this import',
-  index: 'any fics found to have index issues in this import',
-};
 const MAX_LOG = 200;
 
 @Component({
@@ -613,6 +596,8 @@ export class DownloadDialog implements OnDestroy {
   protected readonly rescued = signal<RescuedWork[]>([]);
   /** formats taken from FicHub that may be older cached copies (`fichubOlder`) */
   protected readonly fichubOlder = signal<FicHubOlder[]>([]);
+  /** Resolve issues' repairs not done: the name each would get is taken (`repairClashes`) */
+  protected readonly repairClashes = signal<RepairClash[]>([]);
 
   /**
    * How many undated files the run has stopped to ask about, or 0 when it is not asking.
@@ -769,16 +754,30 @@ export class DownloadDialog implements OnDestroy {
     if (!importing) return [];
     const lines: string[] = [];
     const lookups = importing.lookups ?? 0;
-    if (lookups) lines.push(`Lookup ${lookups.toLocaleString()} ${lookups === 1 ? 'work' : 'works'} with missing index`);
-    const formats = (importing.filetypes ?? []).filter((x) => x !== METADATA);
-    if (importing.scope !== 'skip' && formats.length) {
-      const named = formats.length > 1
-        ? `${formats.slice(0, -1).join(', ')} and ${formats[formats.length - 1]}`
-        : formats[0];
-      lines.push(`Download ${named} for ${IMPORT_SCOPE_WORDS[importing.scope] ?? IMPORT_SCOPE_WORDS['all']}`);
+    if (lookups) lines.push(`Look-up ${lookups.toLocaleString()} ${lookups === 1 ? 'work' : 'works'} with missing index`);
+    // the works updated are those not only looked up; the formats are not said, at the owner's request
+    const updated = importing.scope === 'skip' ? 0 : Math.max(0, (importing.count ?? 0) - (importing.indexOnly?.length ?? 0));
+    if (updated) lines.push(`Search ${updated.toLocaleString()} ${updated === 1 ? 'work' : 'works'} for updates`);
+    if (updated && importing.overwrite) {
+      lines.push('Will re-download and overwrite existing files to repair them');
     }
-    if (importing.scope !== 'skip' && importing.replaceOutdated) {
-      lines.push('Will replace any outdated files with newer ones, if they exist');
+    const repairs = importing.repair?.length ?? 0;
+    if (repairs) {
+      const files = `${repairs.toLocaleString()} ${repairs === 1 ? 'file' : 'files'} with no date`;
+      lines.push(importing.repairRenameOnly
+        ? `Name ${files} with AO3's date for the work - nothing downloaded`
+        : `Repair ${files} from AO3, replacing ${repairs === 1 ? 'it' : 'each'} with the latest version`);
+      const older = importing.repairFicHubOlder !== false;
+      const undated = !!importing.repairFicHubUndated;
+      const which = older && undated
+        ? "when the date guessed from the file's name is the same or older, or no date can be guessed"
+        : older ? "only when the date guessed from the file's name is the same or older"
+          : undated ? 'only when no date can be guessed from the file\'s name' : '';
+      if ((importing.repairFicHub || importing.repairFicHubRename) && which) {
+        lines.push(importing.repairFicHub
+          ? `Where AO3 can't, overwrite with FicHub's copy - ${which}`
+          : `Where AO3 can't, name the file with FicHub's date - ${which}`);
+      }
     }
     return lines;
   });
@@ -1079,8 +1078,9 @@ export class DownloadDialog implements OnDestroy {
    * from the newest and stopping at the older end.
    */
   protected readonly dateRange = computed(() => {
-    const oldest = this.dateFrom();
-    const newest = this.betweenDates() ? this.dateTo() : '';
+    // written as a reader reads a date (3 March 2024), as everywhere else a date is said
+    const oldest = writtenDate(this.dateFrom());
+    const newest = this.betweenDates() ? writtenDate(this.dateTo()) : '';
     // a quick scan picks by either date; a custom run's range by the order it reads in
     const what = this.action() === 'quick' ? 'bookmarked or updated' : this.rangeWord().toLowerCase();
     if (!oldest) {
@@ -1709,7 +1709,32 @@ export class DownloadDialog implements OnDestroy {
     () => this.floorRuns()?.find((run) => run.id === this.floorRun()) ?? null,
   );
 
+  /**
+   * What is wrong with the date range, or '' - an *on or after* later than *on or before* (or
+   * than today, when that is left empty) can match nothing. The same day is fine: both ends count.
+   */
+  protected readonly rangeProblem = computed(() => {
+    if (!this.picksDates() || !this.useDates()) return '';
+    const from = this.dateFrom();
+    if (!from) return '';
+    const chosenTo = this.betweenDates() ? this.dateTo() : '';
+    const to = chosenTo || utcToZonedDay(new Date().toISOString());
+    if (from <= to) return '';
+    const word = this.action() === 'quick' ? 'bookmarked or updated' : this.rangeWord().toLowerCase();
+    return chosenTo
+      ? `The ${word} on or after date (${writtenDate(from)}) is later than the on or before date ` +
+        `(${writtenDate(chosenTo)}). Please fix this to continue.`
+      : `The ${word} on or after date (${writtenDate(from)}) is later than today. Please fix this to continue.`;
+  });
+
+  /** a date range held up is said in the visit log once each time it goes wrong */
+  private readonly noteRangeProblem = effect(() => {
+    const problem = this.rangeProblem();
+    if (problem) untracked(() => this.visit.note(`Date range held: ${problem}`));
+  });
+
   protected afterOptions(): void {
+    if (this.step() === 'options' && this.rangeProblem()) return;
     if (this.resuming()) {
       this.toRetryList();
       return;
@@ -2142,6 +2167,7 @@ export class DownloadDialog implements OnDestroy {
     this.skipped.set([]);
     this.keptCopies.set([]);
     this.fichubOlder.set([]);
+    this.repairClashes.set([]);
     this.unsureFiles.set(0);
     this.duplicateCopies.set(null);
     this.notRemoved.set([]);
@@ -2176,7 +2202,9 @@ export class DownloadDialog implements OnDestroy {
         images: this.images(),
         workdates: this.workdates(),
         // only offered on the runs that can be pointed at a known set of works
-        overwrite: this.picksOverwrite() && this.overwrite(),
+        // an import's from its own window's *Overwrite existing downloads*
+        overwrite: this.action() === 'import' ? !!this.importing()?.overwrite
+          : this.picksOverwrite() && this.overwrite(),
         // only the scans offer it, and not while skipping the indexing
         nonBookmarks: this.picksNonBookmarks() && this.nonBookmarks(),
         // only a custom run can turn this off; everything else always indexes
@@ -2201,7 +2229,17 @@ export class DownloadDialog implements OnDestroy {
         skipLogin: !this.logsIn(),
         // an import's alone: whether a copy you have is replaced when AO3 has a newer version
         ...(this.action() === 'import'
-          ? { replaceOutdated: !!this.importing()?.replaceOutdated, indexOnly: this.importing()?.indexOnly ?? [] }
+          ? {
+              replaceOutdated: !!this.importing()?.replaceOutdated,
+              indexOnly: this.importing()?.indexOnly ?? [],
+              repair: this.importing()?.repair ?? [],
+              repairFicHub: !!this.importing()?.repairFicHub,
+              repairFicHubOlder: this.importing()?.repairFicHubOlder !== false,
+              repairFicHubUndated: !!this.importing()?.repairFicHubUndated,
+              repairFicHubRename: !!this.importing()?.repairFicHubRename,
+              repairFicHubCheck: this.importing()?.repairFicHubCheck !== false,
+              repairRenameOnly: !!this.importing()?.repairRenameOnly,
+            }
           : {}),
       } satisfies JobOptions,
       // nothing is sent for a run that will not log in, whatever is in the boxes - but a
@@ -2343,6 +2381,9 @@ export class DownloadDialog implements OnDestroy {
         break;
       case 'rescued':
         this.rescued.set(event.rescued ?? []);
+        break;
+      case 'repairClashes':
+        this.repairClashes.set(event.repairClashes ?? []);
         break;
       case 'fichubOlder':
         this.fichubOlder.set(event.fichubOlder ?? []);
@@ -2676,6 +2717,7 @@ export class DownloadDialog implements OnDestroy {
     notRemoved: this.notRemoved(),
     skipped: this.skipped(),
     fichubOlder: this.fichubOlder(),
+    repairClashes: this.repairClashes(),
   }));
 
   /** how many entries there are across every list of issues this run reported */
@@ -2686,6 +2728,8 @@ export class DownloadDialog implements OnDestroy {
    * too so the account on screen and the file can be checked against each other.
    */
   /** one older FicHub copy, in words */
+  protected readonly repairClashWords = repairClashWords;
+
   protected fichubOlderWords(item: FicHubOlder): string {
     return fichubOlderWords(item);
   }

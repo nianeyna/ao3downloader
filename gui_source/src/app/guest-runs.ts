@@ -105,7 +105,9 @@ export function guestPlan(action: JobAction, filetypes: string[], options: Optio
     }
   } else if (action === 'import') {
     plan.push(step('index', L.STEP_INDEX_IMPORT));
-    if (downloads.length || options['replaceOutdated']) {
+    // files to repair come as a list from the page (true in the generated cases)
+    const repair = options['repair'];
+    if (downloads.length || options['replaceOutdated'] || (Array.isArray(repair) ? repair.length > 0 : !!repair)) {
       plan.push(step('check', L.STEP_CHECK_FILES), step('download', L.STEP_DOWNLOAD_IMPORT));
     }
   } else if (action === 'work' || action === 'works') {

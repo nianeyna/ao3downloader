@@ -208,8 +208,25 @@ def read(name: str, pattern: Pattern | None = None) -> dict | None:
             parts = match.groupdict()
             parts.setdefault('date', '')
             if parts['date'] and not _real(parts['date']): continue
+            if not dated: _empty_part_before_date(parts, pattern)
             return parts
     return None
+
+
+def _empty_part_before_date(parts: dict, pattern: Pattern) -> None:
+    """A name with an empty part beside the date - an anonymous work's, `1 Title - 2026-08-02` -
+    reads as the pattern without a date, its date taken for the author. When the part next to
+    where the date goes is itself a real YYYY-MM-DD, it is the date, and the part is empty."""
+
+    at = pattern.order.index('date')
+    for side in (at - 1, at + 1):
+        if 0 <= side < len(pattern.order):
+            token = pattern.order[side]
+            value = parts.get(token) or ''
+            if re.fullmatch(_DATE, value) and _real(value):
+                parts['date'] = value
+                parts[token] = ''
+                return
 
 
 def _real(stamp: str) -> bool:
@@ -231,20 +248,21 @@ def file_date(name: str, pattern: Pattern | None = None) -> str | None:
     a guess (`parse_text.infer_date_from_filename`)."""
 
     pattern = pattern or _active
-    parts = read(name, pattern)
-    if parts is not None:
-        return parts['date'] or None
     base = _base(name)
     order = pattern.order
-    # a name that is not wholly the pattern - an anonymous work with no author, say - still
-    # has its date where the pattern puts one: at the start or the end
+    # the number and the date are what a run needs - the entry to find, and which version the
+    # file holds - so where the pattern puts the date at the start or the end, it is read there
+    # alone, whatever the title and author look like: an empty author, or a title with the
+    # pattern's own separators in it, can never hide it or be taken for it
     if order[-1] == 'date':
         match = re.search(rf'(?:^|{_sep_regex(pattern.separator_before("date"))})({_DATE})$', base)
-    elif order[0] == 'date':
+        return match.group(1) if match and _real(match.group(1)) else None
+    if order[0] == 'date':
         match = re.match(rf'^({_DATE})(?:{_sep_regex(pattern.separator_after("date"))}|$)', base)
-    else:
-        match = None
-    return match.group(1) if match and _real(match.group(1)) else None
+        return match.group(1) if match and _real(match.group(1)) else None
+    # a date in the middle can only be found by reading the whole name
+    parts = read(name, pattern)
+    return (parts['date'] or None) if parts is not None else None
 
 
 def number_span(name: str, pattern: Pattern | None = None) -> tuple[int, int] | None:

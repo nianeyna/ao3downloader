@@ -21,4 +21,4 @@ The helper stopped mid-run - closed, crashed, or a deploy. **Resume** it from Hi
 
 ## Still stuck
 
-[Open an issue](https://github.com/alexandria-p/ficfairy/issues). Say what you did, what happened, and your version (bottom of the page). If a run went wrong, attach its log: **History > Download log**. [[Logs]] lists every log the app keeps and where it is.
+[Open an issue](https://github.com/alexandria-p/FicFairy/issues). Say what you did, what happened, and your version (bottom of the page). If a run went wrong, attach its log: **History > Download log**. [[Logs]] lists every log the app keeps and where it is.

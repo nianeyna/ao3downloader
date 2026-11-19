@@ -1,6 +1,6 @@
 ## 1. Download the app
 
-Get the zip for your computer from the [latest release](https://github.com/alexandria-p/ficfairy/releases/latest).
+Get the zip for your computer from the [latest release](https://github.com/alexandria-p/FicFairy/releases/latest).
 
 | Computer | Zip | Start it by |
 | --- | --- | --- |

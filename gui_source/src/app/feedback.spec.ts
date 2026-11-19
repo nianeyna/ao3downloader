@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { VisitLog } from './visit-log';
+import { Jobs } from './jobs';
 import { Feedback, ISSUE_BODY_LIMIT, LOG_ATTACH_LIMIT, LOG_CUT_NOTE, VISIT_ATTACH_LIMIT, VISIT_CUT_NOTE, newestPart, Turnstile, USERNAME_REMOVED, issueLength, ISSUE_RESERVE, runSummary, logExcerpt, ZONE_REMOVED, PATH_REMOVED, failureReason, readLatestLog, redactLog } from './feedback';
 import { DEFAULT_PAGE_CONFIG, HelperConnection } from './helper-connection';
 import { Library } from './library';
@@ -95,7 +96,9 @@ async function openForm() {
 }
 
 async function fill(kind: 'general' | 'feature' | 'bug', message: string, name = '') {
-  (element.querySelector(`input[name="kind"][value="${kind}"]`) as HTMLInputElement).dispatchEvent(new Event('change'));
+  const select = element.querySelector('select[name="kind"]') as HTMLSelectElement;
+  select.value = kind;
+  select.dispatchEvent(new Event('change'));
   const text = element.querySelector('textarea') as HTMLTextAreaElement;
   text.value = message;
   text.dispatchEvent(new Event('input'));
@@ -162,7 +165,7 @@ describe('Feedback', () => {
     const note = element.querySelector('.hint.privacy')?.textContent ?? '';
     expect(note).toContain('AO3');
     expect(note).toContain('username');
-    expect(note).toContain('stripped out');
+    expect(note).toContain('password');
     expect(note).toContain('IP address');
   });
 
@@ -191,7 +194,7 @@ describe('Feedback', () => {
     expect(element.querySelector('input[type="email"]')).toBeNull();
   });
 
-  it('cannot be sent without a kind and a message, or before the bot check passes', async () => {
+  it('cannot be sent without a message, or before the bot check passes', async () => {
     turnstile.pass = false;
     await make();
     await openForm();
@@ -228,38 +231,50 @@ describe('Feedback', () => {
     expect(element.querySelector('a[href*="label%3Afeedback"]')).not.toBeNull();
   });
 
-  it('asks what kind of feedback it is: general, a feature suggestion or a bug report', async () => {
+  it('asks what kind of feedback it is from a dropdown, starting on general feedback', async () => {
+    const fetching = answering(201, { ok: true, number: 4, url: 'https://github.com/o/r/issues/4' });
     await make();
     await openForm();
-    const labels = [...element.querySelectorAll('.kind label')].map((l) => l.textContent?.trim());
-    expect(labels).toEqual(['General feedback', 'Feature suggestion', 'Bug report']);
-    expect(element.querySelector('.kind legend')?.textContent).toContain('(required)');
+    const select = element.querySelector<HTMLSelectElement>('select[name="kind"]')!;
+    expect([...select.options].map((o) => o.textContent?.trim())).toEqual(['General feedback', 'Feature suggestion', 'Bug report']);
+    expect(select.value).toBe('general');
+
+    // a message alone is enough: the kind is already chosen
+    const text = element.querySelector('textarea') as HTMLTextAreaElement;
+    text.value = 'Lovely';
+    text.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    await send();
+    expect(sentBody(fetching)).toMatchObject({ kind: 'general' });
   });
 
-  it('sends only the quick questions that were moved, folded away to begin with', async () => {
+  it('sends only the quick questions answered, each by a word picked, folded away to begin with', async () => {
     const fetching = answering(201, { ok: true, number: 3, url: 'https://github.com/o/r/issues/3' });
     await make();
     await openForm();
     const fold = element.querySelector<HTMLDetailsElement>('details.quick-questions')!;
     expect(fold.open).toBe(false);
     expect(fold.querySelector('summary')?.textContent).toContain('(Optional) Quick questions about your experience');
-    const slider = (key: string) => element.querySelector<HTMLInputElement>(`[data-rating="${key}"] input[type="range"]`)!;
-    // every slider starts in the middle, unanswered
-    expect(['easy', 'useful', 'confusing', 'complete'].map((k) => slider(k).value)).toEqual(['3', '3', '3', '3']);
+    const choices = (key: string) => [...element.querySelectorAll<HTMLInputElement>(`[data-rating="${key}"] input[type="radio"]`)];
+    const words = (key: string) => [...element.querySelectorAll(`[data-rating="${key}"] .rating-choices label`)].map((l) => l.textContent?.trim());
+    expect(words('easy')).toEqual(['Very hard', 'Hard', 'Neutral', 'Easy', 'Very easy']);
+    // nothing picked to begin with: every question unanswered
+    expect(['easy', 'useful', 'confusing', 'complete'].every((k) => choices(k).every((c) => !c.checked))).toBe(true);
     expect(element.querySelector('[data-rating="easy"] .rating-said')?.textContent).toContain('Not answered');
 
-    const move = async (key: string, value: string) => {
-      slider(key).value = value;
-      slider(key).dispatchEvent(new Event('input'));
+    const pick = async (key: string, value: number) => {
+      choices(key)[value - 1].click();
       await fixture.whenStable();
     };
-    await move('easy', '4');
-    await move('useful', '2');
-    // moved back to the middle still counts: it was answered
-    await move('complete', '3');
+    await pick('easy', 4);
+    await pick('useful', 2);
+    // the middle word is an answer like any other
+    await pick('complete', 3);
+    expect(element.querySelector('[data-rating="easy"]')!.classList).toContain('answered');
     element.querySelector<HTMLButtonElement>('[data-rating="useful"] .clear-rating')!.click();
     await fixture.whenStable();
     expect(element.querySelector('[data-rating="useful"] .rating-said')?.textContent).toContain('Not answered');
+    expect(choices('useful').every((c) => !c.checked)).toBe(true);
     expect(fold.querySelector('summary')?.textContent).toContain('2 answered');
 
     await fill('feature', 'A dark mode please');
@@ -480,6 +495,36 @@ describe('Feedback', () => {
     listed(['runs/20261020T100000Z-aaaa1111.json']);
     await settle();
     expect(read).not.toHaveBeenCalled();
+  });
+
+  it("reads a run still going from the helper, as History does - its file lags behind the window", async () => {
+    TestBed.inject(Library).store.set(storeWith({
+      'runs/20261020T100000Z-aaaa1111.json': record({ log: ['saved a while ago'] }),
+    }));
+    const jobs = TestBed.inject(Jobs);
+    jobs.activeRuns.set([{ id: 'aaaa1111-full-id', action: 'import' } as never]);
+    const live = vi.spyOn(jobs, 'liveRecord').mockResolvedValue(
+      JSON.parse(record({ log: ['saved a while ago', 'stopping at your request...'] })));
+    await make();
+    await openForm();
+    await tickLog();
+
+    expect(live).toHaveBeenCalledWith('aaaa1111-full-id');
+    const preview = element.querySelector('.log pre')?.textContent ?? '';
+    expect(preview).toContain('stopping at your request...');
+  });
+
+  it('reads an ended run from its file, never asking the helper', async () => {
+    TestBed.inject(Library).store.set(storeWith({
+      'runs/20261020T100000Z-aaaa1111.json': record({ log: ['all saved'] }),
+    }));
+    const live = vi.spyOn(TestBed.inject(Jobs), 'liveRecord');
+    await make();
+    await openForm();
+    await tickLog();
+
+    expect(live).not.toHaveBeenCalled();
+    expect(element.querySelector('.log pre')?.textContent).toContain('all saved');
   });
 
   it('shows a long run log trimmed to exactly what is sent, its heading kept, and says so', async () => {

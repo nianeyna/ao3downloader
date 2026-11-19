@@ -246,8 +246,15 @@ export class UserSettings implements OnDestroy {
   protected readonly visitLimit = computed(() => this.visit.limit());
   protected readonly visitSize = computed(() => this.visit.count());
 
+  /** said as the length is typed, and kept once a value out of range is moved to the limit */
+  protected readonly visitLogLimitWarning = signal('');
+  protected checkVisitLogLimit(box: HTMLInputElement): void {
+    this.visitLogLimitWarning.set(outOfRange(box.value, VISIT_LOG_MIN, VISIT_LOG_MAX));
+  }
+
   protected setVisitLogLimit(box: HTMLInputElement): void {
     if (this.guestRefused()) return;
+    this.visitLogLimitWarning.set(outOfRange(box.value, VISIT_LOG_MIN, VISIT_LOG_MAX));
     const raw = box.value.trim();
     const limit = this.visit.setLimit(raw === '' ? null : Number(raw));
     box.value = String(limit);
@@ -301,8 +308,18 @@ export class UserSettings implements OnDestroy {
     return this.savedTrimLogs() ?? true;
   });
 
+  /** said as the length is typed, and kept once a value out of range is moved to the limit */
+  protected readonly runLogLinesWarning = signal('');
+  private runLogLinesProblem(raw: string): string {
+    return outOfRange(raw, RUN_LOG_LINES_MIN, RUN_LOG_LINES_MAX);
+  }
+  protected checkRunLogLines(box: HTMLInputElement): void {
+    this.runLogLinesWarning.set(this.runLogLinesProblem(box.value));
+  }
+
   protected async setRunLogLines(box: HTMLInputElement): Promise<void> {
     if (this.guestRefused()) return;
+    this.runLogLinesWarning.set(this.runLogLinesProblem(box.value));
     const raw = box.value.trim();
     const lines = raw === '' ? RUN_LOG_LINES_DEFAULT : runLogLines(raw);
     box.value = String(lines);
@@ -396,9 +413,9 @@ export class UserSettings implements OnDestroy {
       { id: 'settings', label: 'Reset user settings back to their defaults' },
       { id: 'username', label: 'Forget any saved AO3 username' },
       { id: 'visitLog', label: 'Empty the visit log',
-        hint: 'What actions you took this session, recorded in case you want to submit a troubleshooting report. This is always emptied when the page is closed regardless.' },
+        hint: 'This always gets cleared upon closing the page.' },
       { id: 'dropboxCache', label: 'Clear the Dropbox library cache',
-        hint: 'This speeds up the load from Dropbox. The next time your Dropbox library opens, its whole index will be downloaded again.' },
+        hint: 'The next time your Dropbox library opens, its whole index will need to be downloaded again.' },
       { id: 'library', label: 'Forget the open library, and sign out of Dropbox',
         hint: 'Close the file storage location this browser was given, and/or sign out of Dropbox.',
         held: this.jobs.activeRuns().length > 0 ? 'Cannot be changed while an active run is in progress' : '' },
@@ -648,14 +665,14 @@ export class UserSettings implements OnDestroy {
       }
     }
     if (!this.local && this.savedLogLines() !== null) {
-      changes.push({ group: 'Run logs', name: "Lines a run's log keeps", current: this.runLogLinesNow().toLocaleString(),
+      changes.push({ group: 'Run logs', name: 'Maximum length of each log file (in lines)', current: this.runLogLinesNow().toLocaleString(),
                      default: RUN_LOG_LINES_DEFAULT.toLocaleString() });
     }
     if (!this.local && this.savedTrimLogs() === false) {
       changes.push({ group: 'Run logs', name: `Only keep logs of the last ${RECENT_RUN_LOGS} runs`, current: 'Off', default: 'On' });
     }
     if (this.visitLimit() !== VISIT_LOG_LIMIT) {
-      changes.push({ group: 'Visit log', name: 'Entries kept', current: this.visitLimit().toLocaleString(),
+      changes.push({ group: 'Visit log', name: 'Maximum length of the visit log (in lines)', current: this.visitLimit().toLocaleString(),
                      default: VISIT_LOG_LIMIT.toLocaleString() });
     }
     const always = this.alwaysAnswers();
@@ -924,4 +941,13 @@ export class UserSettings implements OnDestroy {
       this.say(`Not saved: ${e instanceof Error ? e.message : String(e)}`, 'problem');
     }
   }
+}
+
+/** the warning under a length box whose typed number is outside what it takes; '' when it is not */
+function outOfRange(raw: string, min: number, max: number): string {
+  const n = Number(raw.trim());
+  if (raw.trim() === '' || !Number.isFinite(n)) return '';
+  if (n < min) return `(cannot be smaller than ${min.toLocaleString()})`;
+  if (n > max) return `(cannot be larger than ${max.toLocaleString()})`;
+  return '';
 }

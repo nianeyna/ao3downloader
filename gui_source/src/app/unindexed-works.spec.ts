@@ -1,10 +1,13 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { MemoryStore } from './memory-store';
 import { describe, expect, it } from 'vitest';
 import { readUnindexedFile, unindexedRows, LOOSE_PREFIX } from './unindexed-works';
-import { WorksFile } from './library';
+import { Library, WorksFile } from './library';
 import { WorkList } from './work-list';
-import { Bookmark } from './bookmarks';
+import { Bookmark, placeholderWork } from './bookmarks';
 import { Jobs } from './jobs';
+import { VisitLog } from './visit-log';
 
 /**
  * Files in works/ that no index entry matches are still listed, from what their names say -
@@ -132,11 +135,11 @@ describe('files no index entry matches', () => {
     expect(said).toEqual(['2024-05-06 (best guess from filename)', '2023-03-04 (best guess from filedate)']);
   });
 
-  it('asks for Resolve issues when its look-up link is pressed', async () => {
+  it('asks for Resolve issues on its own work when its look-up link is pressed', async () => {
     const element = await listed(unindexedRows([file('123 A Title - Writer.html')], nothingIndexed));
     const jobs = TestBed.inject(Jobs);
     element.querySelector<HTMLButtonElement>('.resolve-now')!.click();
-    expect(jobs.resolveIssuesAsked()).toBe(1);
+    expect(jobs.lookUpAsked()).toEqual(['123']);
   });
 
   it('offers nothing to tick, hide or fetch for a file with no work number', async () => {
@@ -145,6 +148,75 @@ describe('files no index entry matches', () => {
     expect(element.querySelector('input.pick')).toBeNull();
     expect(element.querySelector('.entry-actions')).toBeNull();
     expect(element.querySelector('.download-now')).toBeNull();
+  });
+
+  it('narrows the listing to what is missing a FicFairy index', async () => {
+    const indexed: Bookmark = { ...placeholderWork('9'), placeholder: false, title: 'Indexed Fic' };
+    const element = await listed([indexed, ...unindexedRows([file('123 A Title - Writer.html')], nothingIndexed)]);
+    const titles = () => Array.from(element.querySelectorAll('.blurb .heading a.title')).map((a) => a.textContent!.trim());
+    expect(titles()).toEqual(['Indexed Fic', 'A Title']);
+    element.querySelector<HTMLInputElement>('input[name="missingIndex"]')!.click();
+    TestBed.inject(ApplicationRef).tick();
+    expect(titles()).toEqual(['A Title']);
+  });
+
+  it('shows an entry its index history in a tab of its own, and offers none for a file with no entry', async () => {
+    const store = new MemoryStore();
+    store.files.set('indexing/9 Indexed Fic - W.json', '{"id":"9","indexes":[{"title":"Indexed Fic"}]}');
+    const indexed: Bookmark = { ...placeholderWork('9'), placeholder: false, title: 'Indexed Fic' };
+    const element = await listed([indexed, ...unindexedRows([file('123 A Title - Writer.html')], nothingIndexed)]);
+    TestBed.inject(Library).store.set(store);
+    const app = TestBed.inject(ApplicationRef);
+    app.tick();
+
+    const toggles = element.querySelectorAll<HTMLButtonElement>('.entry-menu-toggle');
+    toggles[1].click();
+    app.tick();
+    expect(element.querySelector('.view-index')).toBeNull();
+    toggles[0].click();
+    app.tick();
+
+    const tab = { opener: {}, location: { href: '' }, document: { title: '', body: { textContent: '' } } };
+    const realOpen = window.open;
+    const realCreate = URL.createObjectURL;
+    let shown: Blob | null = null;
+    window.open = (() => tab) as unknown as typeof window.open;
+    URL.createObjectURL = ((blob: Blob) => { shown = blob; return 'blob:the-index'; }) as typeof URL.createObjectURL;
+    try {
+      element.querySelector<HTMLButtonElement>('.view-index')!.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(tab.location.href).toBe('blob:the-index');
+      expect(TestBed.inject(VisitLog).text()).toContain('View index history: shown in a new tab');
+      expect(tab.opener).toBeNull();
+      expect(shown!.type).toBe('application/json');
+      expect(await shown!.text()).toContain('"indexes"');
+    } finally {
+      window.open = realOpen;
+      URL.createObjectURL = realCreate;
+    }
+  });
+
+  it('offers the look-up in its ⋯ menu, and for every ticked one in the selection bar', async () => {
+    const rows = unindexedRows([file('123 A - W 2024-01-01.html'), file('456 B - W 2024-01-01.html')], nothingIndexed);
+    const element = await listed(rows);
+    const jobs = TestBed.inject(Jobs);
+    const fixture = TestBed.inject(ApplicationRef);
+    // a library the page can write to, so works can be ticked
+    TestBed.inject(Library).store.set(new MemoryStore());
+    fixture.tick();
+
+    element.querySelector<HTMLButtonElement>('.entry-menu-toggle')!.click();
+    fixture.tick();
+    element.querySelector<HTMLButtonElement>('.look-up-now')!.click();
+    expect(jobs.lookUpAsked()).toEqual(['123']);
+
+    for (const box of Array.from(element.querySelectorAll<HTMLInputElement>('input.pick'))) box.click();
+    fixture.tick();
+    const button = element.querySelector<HTMLButtonElement>('.look-up-ticked')!;
+    expect(button.textContent!.trim()).toBe('Look up 2 indexes');
+    button.click();
+    expect([...jobs.lookUpAsked()!].sort()).toEqual(['123', '456']);
   });
 
   // endregion

@@ -16,4 +16,4 @@ A fork of [nianeyna/ao3downloader](https://github.com/nianeyna/ao3downloader) th
 - [[Updating and versions]] - new releases, and what happens to your settings.
 - [[Glossary]] - the words used here.
 
-Found a bug, or have an idea? Use the **Feedback** tab on the right edge of the app, or [open an issue](https://github.com/alexandria-p/ficfairy/issues).
+Found a bug, or have an idea? Use the **Feedback** tab on the right edge of the app, or [open an issue](https://github.com/alexandria-p/FicFairy/issues).

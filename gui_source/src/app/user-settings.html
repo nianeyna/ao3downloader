@@ -544,15 +544,17 @@
         </div>
         <p class="hint">
           What you have done since this page was opened - tabs you clicked, file imports, runs
-          started and settings changed. It is deleted every time you close or reload the page. This
-          is kept locally, and only ever leaves your browser if you choose to attach logs to a
-          Feedback form you submit.
+          started and settings changed. It is deleted every time you close or reload the page.
         </p>
         <label class="field visit-log-limit">
-          <span>Entries kept before the oldest start to be replaced</span>
+          <span>Maximum length of the visit log (in lines)</span>
           <input type="number" name="visitLogLimit" [min]="visitLogMin" [max]="visitLogMax" step="100"
-                 [value]="visitLimit()" (change)="setVisitLogLimit($any($event.target))" />
-          <span class="hint">{{ visitLogMin.toLocaleString() }} to {{ visitLogMax.toLocaleString() }}; the default is {{ visitLogDefault.toLocaleString() }}. It holds {{ visitSize().toLocaleString() }} now.</span>
+                 [value]="visitLimit()" (input)="checkVisitLogLimit($any($event.target))"
+                 (change)="setVisitLogLimit($any($event.target))" />
+          <span class="hint">The default is {{ visitLogDefault.toLocaleString() }} (this session's visit log is currently {{ visitSize().toLocaleString() }} lines)</span>
+          @if (visitLogLimitWarning(); as warning) {
+            <span class="limit-warning visit-log-limit-warning">{{ warning }}</span>
+          }
         </label>
         <button type="button" class="button download-visit-log" (click)="downloadVisitLog()">Download the full visit log for this session</button>
       </div>
@@ -569,21 +571,23 @@
           </div>
           <p class="hint">
             What happened in each run. These logs can be downloaded from the History tab at any time.
-            This is kept in your files, and only ever leaves your browser if you choose to attach logs
-            to a Feedback form you submit.
           </p>
           <label class="field run-log-lines">
-            <span>Lines a run's log keeps before its oldest give way</span>
+            <span>Maximum length of each log file (in lines)</span>
             <input type="number" name="runLogMaxLines" [min]="runLogMin" [max]="runLogMax" step="500"
-                   [value]="runLogLinesNow()" (change)="setRunLogLines($any($event.target))" />
-            <span class="hint">{{ runLogMin.toLocaleString() }} to {{ runLogMax.toLocaleString() }}; the default is {{ runLogDefault.toLocaleString() }}. Applies from the next run.</span>
+                   [value]="runLogLinesNow()" (input)="checkRunLogLines($any($event.target))"
+                   (change)="setRunLogLines($any($event.target))" />
+            <span class="hint">Applies from the next run. The default is {{ runLogDefault.toLocaleString() }}.</span>
+            @if (runLogLinesWarning(); as warning) {
+              <span class="limit-warning run-log-lines-warning">{{ warning }}</span>
+            }
           </label>
           <label class="check">
             <input type="checkbox" name="trimOldRunLogs" [checked]="trimOldRunLogsNow()"
                    (change)="setTrimOldRunLogs($any($event.target))" />
             <span>
               Only keep logs of the last {{ recentRunLogs }} runs
-              <span class="hint">On by default. Older runs stay in History - their logs are taken out as each new run ends, so the runs folder does not keep growing.</span>
+              <span class="hint">On by default, so the <code>runs</code> folder does not keep growing.</span>
             </span>
           </label>
         </div>
@@ -655,7 +659,6 @@
                    (change)="setDebugMode($any($event.target).checked)" />
             <span>
               Turn on debug mode
-              <span class="hint">Shows a banner at the top and a DEBUG tab with tools for trying the app out - such as a mock of Resolve issues found in your library that touches no real files. It also turns on the [DEBUG] runs, the quick scan's date range and a debug panel in the run window, for working on the app rather than using it.</span>
             </span>
           </label>
         </div>

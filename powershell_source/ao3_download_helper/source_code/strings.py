@@ -259,6 +259,13 @@ KEPT_NOT_DELETED = 'the older copy {} could not be deleted - it may be open in a
 UNCONFIRMED_REASON = 'checking the downloaded file {} failed, so it was left as it is and nothing else was deleted: {}'
 DAMAGED_REASON = 'the downloaded file {} {}, so it was removed'
 DAMAGED_REASON_KEPT_OLD = 'the downloaded file {} {}, so it was removed. the older copy {} is still there'
+# a download landing on a file of the same name goes in beside it first, then takes its place
+SWAP_NEW_SUFFIX = '.ficfairy-new'
+SWAP_OLD_SUFFIX = '.ficfairy-old'
+INFO_SWAP_RESTORED = '    your copy left aside by an earlier download was put back first: {}'
+AO3_INFO_IMPORT_OVERWRITE_UNDATED_KEPT = 'overwriting as asked, but keeping {} files with no date in their name'
+INFO_SWAP_FAILED = '    a new copy was downloaded whole, but could not be put in place of your copy, which is kept as it was: {}'
+SWAP_FAILED_REASON = 'the downloaded file {} arrived whole, but could not be put in place of your copy ({}) - your copy is kept as it was'
 DAMAGED_NOT_REMOVED = ' - but removing it failed too, so delete it by hand'
 SAVED_NOT_FOUND = 'could not be found at {}'
 SAVED_WRONG_SIZE = 'was the wrong size: expected {} bytes, found {}'
@@ -478,8 +485,11 @@ RETRIEVED_FROM_FIELD = 'retrieved_from'
 AO3_INFO_FICHUB_ASK = ('{} works could not be fetched from AO3 ({}). '
                        'waiting for you to choose whether to try FicHub for them...')
 AO3_INFO_FICHUB_DECLINED = 'not trying FicHub'
+AO3_INFO_FICHUB_NO_INDEX = ('{} of them had no index entry at all, so FicHub is tried for them '
+                            'without asking - a copy it has cached is better than none: {}')
 AO3_INFO_FICHUB_TRYING = 'trying FicHub for {} works: {}'
 # each said before the thing it describes happens, so the run says what it is waiting on
+AO3_INFO_FICHUB_CHECKING_FILES = 'checking which files you already have of these works...'
 AO3_INFO_FICHUB_WORK = 'FicHub {} of {}: asking FicHub about work {} ({})...'
 AO3_INFO_FICHUB_FOUND = '  FicHub has work {}: {}'
 AO3_INFO_FICHUB_FETCHING = '  fetching {} of work {} from FicHub...'
@@ -568,6 +578,32 @@ AO3_INFO_IMPORT_EXCLUDED_RENAMED = 'exclusion list updated for {} renamed {}'
 AO3_INFO_IMPORT_EXCLUDED_UNSAVED = 'could not update the exclusion list for the renamed files: {}'
 AO3_INFO_IMPORT_KEEPING = 'not replacing outdated copies: only formats you do not have are fetched'
 AO3_INFO_IMPORT_INDEX_ONLY = '{} of these works are only indexed: no format is fetched for them'
+# Resolve issues' *Repair from AO3*: files with no date in their names, chosen on the dating
+# page to be replaced with AO3's latest version, named with its date - see `repair_copies`
+AO3_INFO_IMPORT_RENAMING = "naming {} files with no date in their names with AO3's date for each work, as you chose - nothing downloaded for them"
+AO3_INFO_IMPORT_REPAIRING = 'repairing {} files with no date in their names: each is replaced with the latest version from AO3, named with its date'
+AO3_INFO_REPAIR_FILE = '  repairing the {} of work {}: replacing {}'
+AO3_INFO_REPAIR_NOTHING = '  nothing to repair for the {} of work {}: no file of it without a date is left'
+AO3_INFO_REPAIR_FICHUB_TAKE = "  repairing the {} of work {} from FicHub: its copy is dated {}, as new as or newer than the date guessed from your file's name ({}) - replacing {}"
+AO3_INFO_REPAIR_FICHUB_OLDER = "  not repairing the {} of work {} from FicHub: its copy is dated {}, older than the date guessed from your file's name ({}) - keeping {}"
+AO3_INFO_REPAIR_FICHUB_NO_GUESS_TAKE = "  repairing the {} of work {} from FicHub: no date can be guessed from your file's name, and you agreed to use FicHub's copy then (it may be an older cached copy) - replacing {}"
+AO3_INFO_REPAIR_FICHUB_NO_GUESS_KEEP = "  not repairing the {} of work {} from FicHub: no date can be guessed from your file's name to compare its copy with - keeping {}"
+AO3_INFO_REPAIR_FICHUB_UNDATED = "  not repairing the {} of work {} from FicHub: FicHub gives no date for its copy - keeping {}"
+AO3_INFO_REPAIR_RENAMED = "  naming the {} of work {} with {}'s date ({}), as you chose - its contents kept: {} -> {}"
+AO3_INFO_REPAIR_RENAME_TAKEN = "  could not name the {} of work {} with {}'s date as {}: the rename was refused - keeping {} as it is"
+# Resolve issues' repairs that would land on a name another file already has: never done, and
+# listed at the end of the run (`Ao3.repair_clashes`, the `repairClashes` event)
+AO3_INFO_REPAIR_CLASH = "  not repairing the {} of work {} from {}: {} is already taken by another file - keeping {} as it is"
+AO3_INFO_REPAIR_CLASHES = '{} files could not be repaired: the name each would be given is already taken by another file, so both were kept as they are'
+AO3_INFO_REPAIR_RENAME_UNDATED = "  not naming the {} of work {}: {} gives no date for the work - keeping {} as it is"
+AO3_INFO_REPAIR_RENAME_OLDER = "  not naming the {} of work {} with FicHub's date: FicHub's copy is dated {}, older than the date guessed from your file's name ({}) - keeping {} as it is"
+AO3_INFO_REPAIR_FICHUB_ANY = "  repairing the {} of work {} from FicHub, as you chose for every file (FicHub's copy is dated {}; it may be an older cached copy) - replacing {}"
+# the page's two answers for FicHub, each turned down: a file whose name looks no newer than
+# FicHub's copy, or one with no date to guess
+AO3_INFO_REPAIR_FICHUB_OLDER_OFF = "  not repairing the {} of work {} from FicHub: its copy is dated {}, as new as or newer than the date guessed from your file's name ({}), but you chose not to overwrite such files - keeping {}"
+AO3_INFO_REPAIR_RENAME_OLDER_OFF = "  not naming the {} of work {} with FicHub's date: its copy is dated {}, as new as or newer than the date guessed from your file's name ({}), but you chose not to rename such files - keeping {} as it is"
+AO3_INFO_REPAIR_RENAME_NO_GUESS_OFF = "  not naming the {} of work {} with FicHub's date: no date can be guessed from your file's name, and you chose not to rename such files - keeping {} as it is"
+AO3_INFO_REPAIR_FICHUB_OFF = "  not repairing the {} of work {} from FicHub, as you chose - keeping {}"
 ERROR_NO_IMPORT_WORKS = 'There are no works to import.'
 AO3_INFO_REPLACING_NEWER = '  replacing your newer {} of work {} with the older version, as asked'
 ERROR_FICHUB_OUTDATED = 'FicHub only has an older version (updated {}; the last known update date we have is {})'
@@ -730,6 +766,8 @@ AO3_DOWN_MARKER = 'the archive is down for maintenance'
 MESSAGE_AO3_DOWN_RETRY = 'AO3 says it is down for maintenance - checking again in {}s ({} of {})'
 ERROR_SETTINGS_NOT_EDITABLE = ('settings.ini can only be changed from the page on a helper running on '
                                'this computer. Edit a hosted copy\'s settings through its deployment.')
+AO3_INFO_LOGIN_AO3_DOWN = ('AO3 is down for maintenance, so the run could not log in. It carries on without '
+                           'AO3: every work it asks AO3 for fails at once, and is offered to FicHub at the end')
 ERROR_AO3_DOWN = ('AO3 is down for maintenance, so nothing more can be fetched from it on this run. '
                   'Try again once it is back - https://status.archiveofourown.org')
 MESSAGE_SUCCESS = 'Successful {} request with status code {}'

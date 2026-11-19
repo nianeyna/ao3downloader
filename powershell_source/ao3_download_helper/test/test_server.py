@@ -109,6 +109,8 @@ def test_resolve_options_defaults_match_the_console_defaults():
         'overwrite': False, 'floorRun': '', 'nonBookmarks': False, 'resume': '', 'retryMode': '',
         'collectionWorks': False, 'subcollections': False, 'parentCollections': False,
         'replaceOutdated': False, 'indexOnly': [],
+        'repair': [], 'repairFicHub': False, 'repairFicHubOlder': True, 'repairFicHubUndated': False,
+        'repairFicHubRename': False, 'repairFicHubCheck': True, 'repairRenameOnly': False,
     }
 
 
@@ -125,7 +127,10 @@ def test_resolve_options_reads_what_was_asked_for():
                       'dateFrom': '2026-01-01', 'dateTo': '2026-06-30',
                       'overwrite': True, 'floorRun': '', 'nonBookmarks': True,
                       'resume': '', 'retryMode': '', 'collectionWorks': True, 'subcollections': True,
-                      'parentCollections': True, 'replaceOutdated': False, 'indexOnly': []}
+                      'parentCollections': True, 'replaceOutdated': False, 'indexOnly': [],
+                      'repair': [], 'repairFicHub': False, 'repairFicHubOlder': True, 'repairFicHubUndated': False,
+                      'repairFicHubRename': False, 'repairFicHubCheck': True,
+                      'repairRenameOnly': False}
 
 
 def test_a_date_that_cannot_be_read_is_no_date_at_all():
@@ -307,6 +312,38 @@ def test_run_job_reports_a_failure_instead_of_raising(fake_environment):
     assert len(failures) == 1
     assert 'invalid username or password' in failures[0]['error']
     assert job.done.is_set()
+
+
+@pytest.mark.parametrize('action', [server.ACTION_WORK, server.ACTION_WORKS, server.ACTION_IMPORT])
+def test_a_fic_run_or_import_carries_on_without_a_login_when_ao3_is_down(fake_environment, action):
+    # every work it names can still be asked of FicHub at the end, so the login's failing
+    # on AO3's maintenance page must not end the run before it gets there
+    job = server.Job(action, ['JSON'], 'someone', url='https://archiveofourown.org/works/1')
+    repo = fake_environment['repo']
+    repo.login.side_effect = exceptions.Ao3DownException(strings.ERROR_AO3_DOWN)
+    runner = {server.ACTION_WORK: 'run_work', server.ACTION_WORKS: 'run_works',
+              server.ACTION_IMPORT: 'run_import'}[action]
+
+    with patch.object(server, runner) as run:
+        server.run_job(job, 'a-password')
+
+    run.assert_called_once()
+    assert repo.logged_in is False
+    assert job.steps.outcomes.get('login') == 'failed'
+    messages = [e['text'] for e in job.history if e['type'] == progress.MESSAGE]
+    assert strings.AO3_INFO_LOGIN_AO3_DOWN in messages
+    assert _types(job)[-1] == progress.FINISHED
+
+
+def test_a_scan_still_fails_at_the_login_when_ao3_is_down(fake_environment):
+    job = server.Job(server.ACTION_QUICK, ['JSON'], 'someone')
+    fake_environment['repo'].login.side_effect = exceptions.Ao3DownException(strings.ERROR_AO3_DOWN)
+
+    with patch.object(server, 'run_quick') as run:
+        server.run_job(job, 'a-password')
+
+    run.assert_not_called()
+    assert _types(job)[-1] == progress.FAILED
 
 
 def test_run_job_never_records_the_password(fake_environment):
