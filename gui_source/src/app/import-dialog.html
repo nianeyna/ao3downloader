@@ -714,8 +714,12 @@
                 that FicFairy retrieved from AO3. That date may not be the version your file actually
                 holds.
               </span>
-              <span class="hint">
-                If there is no index, then it attempts to connect to AO3, and then FicHub instead.
+              <span class="hint index-fallback">
+                @if (!asksAo3()) {
+                  If there is no index, the file is left as it is.
+                } @else {
+                  If there is no index, then it attempts to connect to AO3, and then FicHub instead.
+                }
               </span>
               <span class="hint index-first-count">
                 {{ indexDateCount() | number }} of the {{ repairs | number }}
@@ -723,7 +727,17 @@
               </span>
             </span>
           </label>
+          @if (indexFirst()) {
+            <label class="check nested skip-ao3-check">
+              <input type="checkbox" name="skipAo3Check" [checked]="skipAo3Check()"
+                     (change)="skipAo3Check.set($any($event.target).checked)" />
+              <span>
+                Skip any check from AO3 for remaining files
+              </span>
+            </label>
+          }
         </fieldset>
+        @if (asksAo3()) {
         <fieldset class="repair-fallback repair-ao3">
           <legend>{{ indexFirst() ? 'Then, if AO3 has the work' : 'If AO3 has the work' }}</legend>
           <label class="check">
@@ -821,6 +835,7 @@
             </div>
           }
         </fieldset>
+        }
       }
     </section>
     <footer>

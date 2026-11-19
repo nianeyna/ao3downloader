@@ -766,3 +766,9 @@ footer.with-bulk {
 .scope-options {
   margin-left: 26px;
 }
+
+/* 'skip any check from AO3', nested under 'Try to date the file from an existing FicFairy index?' */
+.repair-index .skip-ao3-check {
+  margin-left: 28px;
+  margin-top: 8px;
+}

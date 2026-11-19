@@ -920,6 +920,11 @@ export class ImportDialog implements OnInit {
   /** before AO3 is asked: name each file with the last-updated date its work's FicFairy index
    *  entry has, where it has one - off to begin with */
   protected readonly indexFirst = signal(false);
+  /** with `indexFirst`: the files the index has no date for are left as they are - nothing is
+   *  asked of AO3 or FicHub for them, so the choices for those are not shown */
+  protected readonly skipAo3Check = signal(false);
+  /** the AO3 and FicHub choices apply: some files may still go to a run */
+  protected readonly asksAo3 = computed(() => !(this.indexFirst() && this.skipAo3Check()));
   /** files to repair whose work's index entry has a last-updated date, by path: that date */
   protected readonly indexDates = computed(() => {
     const entries = this.library.worksById();
@@ -937,6 +942,7 @@ export class ImportDialog implements OnInit {
     this.indexFirst() ? this.toRepair().filter((f) => this.indexDates()[f.path]) : []);
   /** the files the run repairs from AO3, then FicHub */
   protected readonly runRepairs = computed(() => {
+    if (!this.asksAo3()) return [];
     const done = new Set(this.fromIndexRepairs().map((f) => f.path));
     return this.toRepair().filter((f) => !done.has(f.path));
   });
