@@ -225,7 +225,18 @@
     </div>
   </details>
 
-  @if (!local) {
+  <!-- debug mode only, for now: skins of your own, shown on works with none as they open -->
+  @if (debugMode.on()) {
+    <details class="group reading-skins">
+      <summary class="group-head">
+        <h3>[DEBUG] Reading skins</h3>
+        <span class="saved-to" title="Each skin where you chose to save it: this browser, or your library. Which is the default is kept in this browser">Saved to this browser or your library</span>
+      </summary>
+      <app-reading-skins-settings />
+    </details>
+  }
+
+@if (!local) {
     <!-- collapsible: a long list, seldom changed -->
     <details class="group questions" [class.guest-locked]="guest()" [attr.inert]="guest() ? '' : null" [attr.aria-disabled]="guest() ? 'true' : null">
       <summary class="group-head">

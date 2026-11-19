@@ -1,3 +1,4 @@
+import { withReadingSkin } from './skin-html';
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import {
   Bookmark,
@@ -248,6 +249,12 @@ export class Library {
    * page reads the run records out of it.
    */
   readonly store = signal<LibraryStore | null>(null);
+  /**
+   * The reading skin to show on a work with no skin of its own as it is opened - set by
+   * `ReadingSkins` (the default chosen in User settings, while debug mode is on), '' for none.
+   * Never written into the file.
+   */
+  readonly readingSkin = signal('');
 
   private readonly folders = inject(FolderStore);
   private readonly dropbox = inject(DropboxSession);
@@ -592,8 +599,12 @@ export class Library {
    */
   openCopy(copy: LocalCopy, format: OpenableFormat, fallback: string | null): void {
     const tab = window.open('', '_blank');
+    const skin = format === 'html' ? this.readingSkin() : '';
     void this.readCopy(copy, format).then(
-      (blob) => {
+      async (read) => {
+        let blob = read;
+        // a file that cannot be read as text is shown as it is, never not at all
+        if (skin) blob = await read.text().then((text) => new Blob([withReadingSkin(text, skin)], { type: read.type }), () => read);
         const url = URL.createObjectURL(blob);
         if (tab) tab.location.href = url;
         else window.open(url, '_blank');

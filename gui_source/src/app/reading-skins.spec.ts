@@ -1,0 +1,232 @@
+import { TestBed } from '@angular/core/testing';
+import { DebugMode } from './debug-mode';
+import { Library } from './library';
+import { MemoryStore } from './memory-store';
+import { BROWSER_SKINS_KEY, DEFAULT_SKIN_KEY, ReadingSkins, skinProblem } from './reading-skins';
+import { ReadingSkinsSettings } from './reading-skins-settings';
+import { hasWorkSkin, withReadingSkin } from './skin-html';
+
+/** AO3's downloaded html, as it is shaped - its own small style block, and no #workskin */
+const DOWNLOADED = `<!DOCTYPE html>
+<html><head><meta charset="utf-8" /><title>A Work</title>
+<style type="text/css">.meta h1 { text-align: center; }</style>
+</head>
+<body>
+<div id="preface"><h1>A Work</h1></div>
+<div id="chapters" class="userstuff"><p>Once upon a time.</p></div>
+</body>
+</html>`;
+
+const SKIN = '#workskin p { line-height: 1.6; }';
+
+async function settle(): Promise<void> {
+  for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0));
+}
+
+describe('withReadingSkin', () => {
+  it('puts the skin after the file\'s own styles and the body inside #workskin', () => {
+    const shown = withReadingSkin(DOWNLOADED, SKIN);
+
+    const [head, body] = shown.split('</head>');
+    expect(head.indexOf(SKIN)).toBeGreaterThan(head.indexOf('.meta h1'));
+    expect(body).toContain('<body>\n<div id="workskin">');
+    expect(body).toContain('Once upon a time.');
+    expect(body.trim().endsWith('</div>\n</body>\n</html>')).toBe(true);
+    expect(hasWorkSkin(shown)).toBe(true);
+  });
+
+  it('never covers a work\'s own skin', () => {
+    const own = DOWNLOADED.replace('<body>', '<body>\n<div id="workskin">').replace('</body>', '</div></body>');
+
+    expect(withReadingSkin(own, SKIN)).toBe(own);
+  });
+
+  it('leaves the file as it is for an empty skin, one that closes its own style, or no head and body', () => {
+    expect(withReadingSkin(DOWNLOADED, '  ')).toBe(DOWNLOADED);
+    expect(withReadingSkin(DOWNLOADED, 'p {} </style><script>')).toBe(DOWNLOADED);
+    expect(withReadingSkin('<p>just text</p>', SKIN)).toBe('<p>just text</p>');
+  });
+});
+
+describe('skinProblem', () => {
+  it('asks for a name a file can carry, and some CSS', () => {
+    expect(skinProblem('', SKIN)).toContain('name');
+    expect(skinProblem('a/b', SKIN)).toContain('cannot hold');
+    expect(skinProblem('.hidden', SKIN)).toContain('cannot hold');
+    expect(skinProblem('Cosy', ' ')).toContain('no CSS');
+    expect(skinProblem('Cosy', '</style>')).toContain('</style');
+    expect(skinProblem('Cosy', SKIN)).toBeNull();
+  });
+});
+
+describe('ReadingSkins', () => {
+  let debugOn: boolean;
+
+  function setUp(store: MemoryStore | null = null) {
+    TestBed.configureTestingModule({
+      providers: [{ provide: DebugMode, useValue: { on: () => debugOn } }],
+    });
+    const library = TestBed.inject(Library);
+    library.store.set(store);
+    const skins = TestBed.inject(ReadingSkins);
+    TestBed.tick();
+    return { library, skins };
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+    debugOn = true;
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('keeps a skin saved to this browser in this browser, and nothing in the library', async () => {
+    const store = new MemoryStore();
+    const { skins } = setUp(store);
+
+    expect(await skins.add('Cosy', SKIN, 'browser')).toBeNull();
+
+    expect(JSON.parse(localStorage.getItem(BROWSER_SKINS_KEY)!)).toEqual([{ name: 'Cosy', css: SKIN }]);
+    expect(await store.list('', true)).toEqual([]);
+  });
+
+  it('writes a skin saved to the library as skins/custom/<name>.css, and reads it back on opening', async () => {
+    const store = new MemoryStore();
+    const { skins } = setUp(store);
+
+    expect(await skins.add('Cosy', SKIN, 'library')).toBeNull();
+    expect(await store.read('skins/custom/Cosy.css')).toBe(SKIN);
+    expect(localStorage.getItem(BROWSER_SKINS_KEY)).toBeNull();
+
+    skins.librarySkins.set([]);
+    await skins.readLibrarySkins(store);
+    expect(skins.librarySkins()).toEqual([{ name: 'Cosy', place: 'library', css: SKIN }]);
+  });
+
+  it('never reads AO3\'s own work skins as yours', async () => {
+    const store = new MemoryStore();
+    await store.write('skins/41822007.css', new Response('#workskin .centered {}'));
+    await store.write('skins/custom/Cosy.css', new Response(SKIN));
+    const { skins } = setUp(store);
+    await settle();
+
+    expect(skins.librarySkins().map((x) => x.name)).toEqual(['Cosy']);
+  });
+
+  it('refuses a second skin of the same name in the same place', async () => {
+    const { skins } = setUp(new MemoryStore());
+    await skins.add('Cosy', SKIN, 'browser');
+
+    expect(await skins.add('cosy', SKIN, 'browser')).toContain('already saved in this browser');
+    expect(await skins.add('Cosy', SKIN, 'library')).toBeNull();
+  });
+
+  it('cannot save to a library while none is open', async () => {
+    const { skins } = setUp(null);
+
+    expect(skins.libraryWritable()).toBe(false);
+    expect(await skins.add('Cosy', SKIN, 'library')).toContain('Open a library');
+  });
+
+  it('hands the default skin to the library while debug mode is on, and nothing otherwise', async () => {
+    const { library, skins } = setUp(new MemoryStore());
+    await skins.add('Cosy', SKIN, 'browser');
+    skins.setDefault('browser:Cosy');
+    TestBed.tick();
+
+    expect(localStorage.getItem(DEFAULT_SKIN_KEY)).toBe('browser:Cosy');
+    expect(library.readingSkin()).toBe(SKIN);
+  });
+
+  it('shows no skin with debug mode off', async () => {
+    debugOn = false;
+    const { library, skins } = setUp(new MemoryStore());
+    await skins.add('Cosy', SKIN, 'browser');
+    skins.setDefault('browser:Cosy');
+    TestBed.tick();
+
+    expect(library.readingSkin()).toBe('');
+  });
+
+  it('removing the default skin leaves none chosen', async () => {
+    const store = new MemoryStore();
+    const { library, skins } = setUp(store);
+    await skins.add('Cosy', SKIN, 'library');
+    skins.setDefault('library:Cosy');
+
+    expect(await skins.remove(skins.librarySkins()[0])).toBeNull();
+    TestBed.tick();
+
+    expect(await store.read('skins/custom/Cosy.css')).toBeNull();
+    expect(localStorage.getItem(DEFAULT_SKIN_KEY)).toBeNull();
+    expect(library.readingSkin()).toBe('');
+  });
+
+  it('shows a work with the default skin as it opens, and leaves the file alone', async () => {
+    const { library, skins } = setUp(new MemoryStore());
+    await skins.add('Cosy', SKIN, 'browser');
+    skins.setDefault('browser:Cosy');
+    TestBed.tick();
+    const file = new File([DOWNLOADED], '1 A Work - Writer 2025-01-01.html', { type: 'text/html' });
+    const tab = { location: { href: '' }, close: () => {} };
+    const realOpen = window.open;
+    const realCreate = URL.createObjectURL;
+    let shown: Blob | null = null;
+    window.open = (() => tab) as unknown as typeof window.open;
+    URL.createObjectURL = ((blob: Blob) => { shown = blob; return 'blob:the-work'; }) as typeof URL.createObjectURL;
+    try {
+      library.openCopy(file, 'html', null);
+      await settle();
+    } finally {
+      window.open = realOpen;
+      URL.createObjectURL = realCreate;
+    }
+
+    expect(tab.location.href).toBe('blob:the-work');
+    expect(shown!.type).toBe('text/html');
+    expect(await shown!.text()).toContain(SKIN);
+    expect(await file.text()).toBe(DOWNLOADED);
+  });
+});
+
+describe('ReadingSkinsSettings', () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  it('saves a pasted skin where chosen, and offers it as the default', async () => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: DebugMode, useValue: { on: () => true } }],
+    });
+    TestBed.inject(Library).store.set(new MemoryStore());
+    const fixture = TestBed.createComponent(ReadingSkinsSettings);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+
+    const name = element.querySelector<HTMLInputElement>('input[name=skinName]')!;
+    name.value = 'Cosy';
+    name.dispatchEvent(new Event('input'));
+    const css = element.querySelector<HTMLTextAreaElement>('textarea[name=skinCss]')!;
+    css.value = SKIN;
+    css.dispatchEvent(new Event('input'));
+    element.querySelector<HTMLInputElement>('input[name=skinPlace][value=library]')!.click();
+    await fixture.whenStable();
+    element.querySelector<HTMLButtonElement>('button.save-skin')!.click();
+    await settle();
+    await fixture.whenStable();
+
+    expect(element.querySelector('.skin-outcome')?.textContent).toContain('saved in your library');
+    expect(element.querySelector('[data-skin="library:Cosy"] .skin-place')?.textContent).toContain('library');
+    const options = [...element.querySelectorAll<HTMLOptionElement>('select[name=defaultReadingSkin] option')];
+    expect(options.map((x) => x.value)).toEqual(['', 'library:Cosy']);
+  });
+
+  it('holds Save until there is a name and some CSS', async () => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: DebugMode, useValue: { on: () => true } }],
+    });
+    const fixture = TestBed.createComponent(ReadingSkinsSettings);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('button.save-skin').disabled).toBe(true);
+  });
+});

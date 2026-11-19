@@ -1,5 +1,6 @@
 import { Component, OnDestroy, computed, inject, output, signal } from '@angular/core';
 import { NamePatternEditor } from './name-pattern';
+import { ReadingSkinsSettings } from './reading-skins-settings';
 import { NamePattern } from './naming';
 import { HelperConnection } from './helper-connection';
 import { GuestMode } from './guest';
@@ -142,7 +143,7 @@ const KEEP_OR_REPLACE_SETTINGS = new Set([
 
 @Component({
   selector: 'app-user-settings',
-  imports: [NamePatternEditor],
+  imports: [NamePatternEditor, ReadingSkinsSettings],
   templateUrl: './user-settings.html',
   styleUrl: './user-settings.css',
   host: { '(document:keydown.escape)': 'escape()' },

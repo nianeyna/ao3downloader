@@ -1,0 +1,91 @@
+<p class="hint">
+  A reading skin is CSS of your own, shown on any downloaded work that has no work skin of its own
+  when you open it from FicFairy - a font, a text size, line spacing, a page width, colours. Nothing
+  is written into your files and nothing is asked of AO3; the skin is put in as the work opens, so a
+  new default shows on every work at once. A work's own skin always wins. HTML only.
+</p>
+<p class="hint">
+  Write it as an AO3 work skin is written: every rule starts with <code>#workskin</code>, for example
+  <code>#workskin p {{ '{' }} line-height: 1.6; {{ '}' }}</code>.
+</p>
+
+<label class="field default-skin">
+  <span>Default for works with no skin</span>
+  <select name="defaultReadingSkin" (change)="setDefault($any($event.target).value)">
+    <option value="" [selected]="!skins.defaultSkin()">None</option>
+    @for (skin of skins.skins(); track id(skin)) {
+      <option [value]="id(skin)" [selected]="skins.defaultId() === id(skin)">
+        {{ skin.name }} ({{ skin.place === 'browser' ? 'this browser' : 'library' }})
+      </option>
+    }
+  </select>
+</label>
+<p class="hint">Which skin is the default is kept in this browser.</p>
+
+<h4>Your skins</h4>
+@if (skins.reading()) {
+  <p class="hint reading">Reading the skins saved in your library...</p>
+}
+@if (skins.readProblem()) {
+  <p class="error read-problem">The skins in your library could not be read: {{ skins.readProblem() }}</p>
+}
+@if (skins.skins().length) {
+  <ul class="skin-list">
+    @for (skin of skins.skins(); track id(skin)) {
+      <li class="skin" [attr.data-skin]="id(skin)">
+        <span class="skin-name">{{ skin.name }}</span>
+        <span class="skin-place">{{ placeWords(skin) }}</span>
+        @if (skins.defaultId() === id(skin)) {
+          <span class="badge">Default</span>
+        }
+        <button type="button" class="button subtle remove-skin" (click)="remove(skin)">
+          {{ confirmingRemove() === id(skin) ? 'Click again to remove' : 'Remove' }}
+        </button>
+      </li>
+    }
+  </ul>
+} @else if (!skins.reading()) {
+  <p class="hint no-skins">No reading skins yet.</p>
+}
+
+<h4>Add a skin</h4>
+<div class="add-skin">
+  <label class="field">
+    <span>Name</span>
+    <input type="text" name="skinName" maxlength="60" [value]="name()" (input)="name.set($any($event.target).value)" />
+  </label>
+  <label class="field">
+    <span>CSS</span>
+    <textarea name="skinCss" rows="8" spellcheck="false" [value]="css()" (input)="css.set($any($event.target).value)"
+              placeholder="#workskin p { line-height: 1.6; }"></textarea>
+  </label>
+  <label class="file-choice">
+    Or choose a <code>.css</code> file:
+    <input type="file" name="skinFile" accept=".css,text/css" (change)="chooseFile($any($event.target))" />
+  </label>
+  <fieldset class="skin-place-choice">
+    <legend>Save it</legend>
+    <label class="check">
+      <input type="radio" name="skinPlace" value="browser" [checked]="place() === 'browser'" (change)="place.set('browser')" />
+      To this browser - only here
+    </label>
+    <label class="check" [class.locked]="!skins.libraryWritable()">
+      <input type="radio" name="skinPlace" value="library" [checked]="place() === 'library'"
+             [disabled]="!skins.libraryWritable()" (change)="place.set('library')" />
+      In your library, as <code>skins/custom/&lt;name&gt;.css</code> - wherever the library is opened
+    </label>
+    @if (!skins.libraryWritable()) {
+      <p class="hint">Open a library to save a skin there.</p>
+    }
+  </fieldset>
+  <button type="button" class="button primary save-skin" [disabled]="!canSave()" (click)="save()">
+    {{ saving() ? 'Saving...' : 'Save skin' }}
+  </button>
+</div>
+
+@if (problem()) {
+  <p class="error skin-problem">{{ problem() }}</p>
+}
+@if (outcome()) {
+  <p class="hint skin-outcome">{{ outcome() }}</p>
+}

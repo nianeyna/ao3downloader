@@ -162,6 +162,18 @@ describe('UserSettings', () => {
     expect(TestBed.inject(GuestMode).loginOpen()).toBe(false);
   });
 
+  it('offers reading skins only in debug mode, after Appearance', async () => {
+    await open();
+    expect(element.querySelector('details.reading-skins')).toBeNull();
+
+    TestBed.inject(DebugMode).set(true);
+    await settle();
+
+    const section = element.querySelector('details.reading-skins')!;
+    expect(section.querySelector('app-reading-skins-settings')).not.toBeNull();
+    expect(section.previousElementSibling?.classList).toContain('appearance');
+  });
+
   it('folds the file naming and debug mode under Advanced, last of all, for anyone not a guest', async () => {
     await open();
     const advanced = element.querySelector<HTMLDetailsElement>('details.advanced')!;

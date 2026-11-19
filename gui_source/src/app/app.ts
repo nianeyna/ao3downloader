@@ -1,3 +1,4 @@
+import { ReadingSkins } from './reading-skins';
 import { ProgressBar } from './progress-bar';
 import { UnindexedWorks } from './unindexed-works';
 import { NamePattern, namePatternText } from './naming';
@@ -70,6 +71,8 @@ export type View = 'bookmarks' | 'collections' | 'history' | 'faq' | 'bug' | 'se
 export class App {
   protected readonly library = inject(Library);
   protected readonly freshness = inject(LibraryFreshness);
+  /** made as the app starts, so the reading skin chosen is in force from the first work opened */
+  private readonly readingSkins = inject(ReadingSkins);
   protected readonly refreshing = this.library.refreshing;
   protected readonly jobs = inject(Jobs);
   private readonly storage = inject(StorageChoice);

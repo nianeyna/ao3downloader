@@ -1,0 +1,113 @@
+:host {
+  display: block;
+}
+
+h4 {
+  margin: 14px 0 6px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0 0 10px;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+}
+
+.error {
+  margin: 8px 0;
+  color: var(--danger);
+  font-size: 0.88rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+
+.field input,
+.field select,
+.field textarea {
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.field textarea {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  resize: vertical;
+}
+
+.skin-list {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.skin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.skin-name {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.skin-place {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+
+.badge {
+  padding: 1px 8px;
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  font-size: 0.75rem;
+}
+
+.remove-skin {
+  margin-left: auto;
+}
+
+.file-choice {
+  display: block;
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+}
+
+.skin-place-choice {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.skin-place-choice legend {
+  font-size: 0.88rem;
+}
+
+.check {
+  display: block;
+  margin: 4px 0;
+  font-size: 0.88rem;
+}
+
+.check.locked {
+  opacity: 0.55;
+}
