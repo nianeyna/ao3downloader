@@ -1830,6 +1830,10 @@ describe('ImportDialog', () => {
     await click('Continue');
     expect(step()).toBe('filetypes');
     expect(element.textContent).toContain('File types');
+    expect(Array.from(element.querySelectorAll('.filetypes-hint')).map((p) => p.textContent!.replace(/\s+/g, ' ').trim())).toEqual([
+      'Ticking a format here will check if a work is missing a copy in these formats, and download it if so.',
+      'Files you already have downloaded will still be checked for a newer version - regardless of whether you tick any boxes below.',
+    ]);
     expect(element.querySelector('input[name="overwrite"]')).not.toBeNull();
     await click('Back');
     expect(step()).toBe('formats');

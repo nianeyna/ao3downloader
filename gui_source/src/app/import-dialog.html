@@ -1010,6 +1010,12 @@
     <section class="body">
       <fieldset class="formats">
         <legend>File types</legend>
+        <p class="hint filetypes-hint">
+          Ticking a format here will check if a work is missing a copy in these formats, and download it if so.
+        </p>
+        <p class="hint filetypes-hint">
+          Files you already have downloaded will still be checked for a newer version - regardless of whether you tick any boxes below.
+        </p>
         @for (format of offered(); track format) {
           <label class="check">
             <input type="checkbox" [attr.name]="'format-' + format"
