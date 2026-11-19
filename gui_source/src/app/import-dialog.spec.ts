@@ -1707,6 +1707,8 @@ describe('ImportDialog', () => {
     await click('Continue');
     // the dates were passed over: only that work's index is in question
     expect(step()).toBe('formats');
+    // there was no Yes to tick on the way here, so no pointing back to it
+    expect(element.querySelector('.index-only-hint')).toBeNull();
     // only the look-up's own choices of which fics to update
     expect(radio('updateScope', 'all')).toBeNull();
     expect(radio('updateFor', 'this')!.checked).toBe(true);
@@ -1822,6 +1824,8 @@ describe('ImportDialog', () => {
     // replacing an outdated copy is what an update does, not a choice of its own
     expect(element.querySelector('input[name="replaceOutdated"]')).toBeNull();
     expect(element.querySelector('.fetch-hint')!.textContent!.trim()).toBe('This only updates files that have a date in their name. A file with no date in its name is kept as-is.');
+    expect(element.querySelector('.index-only-hint')!.textContent!.replace(/\s+/g, ' ').trim()).toBe(
+      'Only works with an index entry can be updated. If you are concerned that some works are missing indexes, go back to the previous step and tick Yes so they can be caught.');
     // the file types, and overwriting, are a page of their own after it
     await click('Continue');
     expect(step()).toBe('filetypes');

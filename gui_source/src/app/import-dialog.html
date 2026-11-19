@@ -926,6 +926,13 @@
           <p class="hint fetch-hint">
             This only updates files that have a date in their name. A file with no date in its name is kept as-is.
           </p>
+          <!-- the index question came before this page: a work left unindexed there is passed over -->
+          @if (!focus() && toLookUp().length) {
+            <p class="hint index-only-hint">
+              Only works with an index entry can be updated. If you are concerned that some works are
+              missing indexes, go back to the previous step and tick <em>Yes</em> so they can be caught.
+            </p>
+          }
         }
         <label class="check">
           <input type="radio" name="updateFetch" value="fetch" [checked]="scopeChosen() !== 'skip'" (change)="fetchLatest()" />
