@@ -1,1 +1,1 @@
-A request that times out no longer starts its retry count again after AO3 asks for a break.
+no-post
