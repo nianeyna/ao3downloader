@@ -12,7 +12,25 @@ const DOWNLOADED = `<!DOCTYPE html>
 <style type="text/css">.meta h1 { text-align: center; }</style>
 </head>
 <body>
-<div id="preface"><h1>A Work</h1></div>
+<div id="preface">
+  <p class="message"><b>A Work</b> Posted originally on the Archive of Our Own.</p>
+  <div class="meta">
+    <dl class="tags">
+      <dt>Archive Warning:</dt>
+      <dd><a href="https://archiveofourown.org/tags/No">No Archive Warnings Apply</a></dd>
+      <dt>Characters:</dt>
+      <dd><a href="https://archiveofourown.org/tags/A">A</a>, <a href="https://archiveofourown.org/tags/B">B</a></dd>
+      <dt>Additional Tags:</dt>
+      <dd><a href="https://archiveofourown.org/tags/Fluff">Fluff</a></dd>
+      <dt>Language:</dt>
+      <dd>English</dd>
+    </dl>
+    <h1>A Work</h1>
+    <div class="byline">by <a rel="author" href="https://archiveofourown.org/users/w">Writer</a></div>
+    <p>Summary</p>
+    <blockquote class="userstuff"><p>What happens.</p></blockquote>
+  </div>
+</div>
 <div id="chapters" class="userstuff"><p>Once upon a time.</p></div>
 </body>
 </html>`;
@@ -24,15 +42,46 @@ async function settle(): Promise<void> {
 }
 
 describe('withReadingSkin', () => {
-  it('puts the skin after the file\'s own styles and the body inside #workskin', () => {
-    const shown = withReadingSkin(DOWNLOADED, SKIN);
+  function shownDoc(html: string): Document {
+    return new DOMParser().parseFromString(html, 'text/html');
+  }
 
-    const [head, body] = shown.split('</head>');
-    expect(head.indexOf(SKIN)).toBeGreaterThan(head.indexOf('.meta h1'));
-    expect(body).toContain('<body>\n<div id="workskin">');
-    expect(body).toContain('Once upon a time.');
-    expect(body.trim().endsWith('</div>\n</body>\n</html>')).toBe(true);
+  it('puts the skin last in the head and the work, after its tags, inside #workskin', () => {
+    const shown = withReadingSkin(DOWNLOADED, SKIN);
+    const doc = shownDoc(shown);
+
+    const styles = Array.from(doc.head.querySelectorAll('style')).map((x) => x.textContent ?? '');
+    expect(styles.at(-1)).toContain(SKIN);
+    expect(styles.at(-1)!.indexOf('dl.work.meta')).toBeLessThan(styles.at(-1)!.indexOf(SKIN));
+    const order = Array.from(doc.body.children).map((x) => x.id || x.className);
+    expect(order).toEqual(['message', 'work meta group', 'workskin']);
+    expect(doc.querySelector('#workskin #chapters')?.textContent).toContain('Once upon a time.');
     expect(hasWorkSkin(shown)).toBe(true);
+  });
+
+  it('shapes the work as AO3\'s page is, so skins written for it match', () => {
+    const doc = shownDoc(withReadingSkin(DOWNLOADED, SKIN));
+
+    const tags = doc.querySelector('dl.work.meta.group')!;
+    expect(tags.closest('#workskin')).toBeNull();
+    expect(tags.querySelector('dt.warning.tags')?.textContent).toContain('Archive Warning');
+    expect(tags.querySelectorAll('dd.character.tags a.tag').length).toBe(2);
+    expect(tags.querySelector('dd.freeform.tags a.tag')?.textContent).toBe('Fluff');
+    // not a tag, so its words are not links classed as one
+    expect(tags.querySelector('dd.language')?.textContent).toBe('English');
+    const preface = doc.querySelector('#workskin div.preface.group')!;
+    expect(preface.querySelector('h2.title.heading')?.textContent).toBe('A Work');
+    expect(preface.querySelector('h3.byline.heading')?.textContent?.trim()).toBe('Writer');
+    expect(preface.querySelector('div.summary.module > h3.heading')?.textContent).toBe('Summary:');
+    expect(preface.querySelector('div.summary.module > blockquote')?.textContent).toBe('What happens.');
+  });
+
+  it('leaves a file it cannot shape as it is, skinned all the same', () => {
+    const plain = '<html><head></head><body><p>Just text.</p></body></html>';
+    const doc = shownDoc(withReadingSkin(plain, SKIN));
+
+    expect(doc.querySelector('#workskin p')?.textContent).toBe('Just text.');
+    expect(doc.querySelector('dl.work')).toBeNull();
   });
 
   it('never covers a work\'s own skin', () => {

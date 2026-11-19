@@ -59,66 +59,136 @@ export const BUILT_IN_SKINS: readonly BuiltInSkin[] = [
   },
   {
     name: 'Frog',
-    about: 'Moss green around a cream page with a coral border, Century Gothic, and a frog banner across the top. Adapted from an AO3 site skin, keeping only what a downloaded work has.',
+    about: 'Moss green with a frog banner, the tags in a cream box with coloured tags, and the work on a cream page with a coral border, in Century Gothic. Adapted from an AO3 site skin, keeping what a work page has.',
     remote: true,
-    css: `body {
+    css: `/* the page around the work, as AO3's #outer and #main */
+body {
   background: #cbd380;
   color: #774120;
   margin: 0;
-  padding: 0 4%;
-}
-
-#workskin {
-  max-width: 50em;
-  margin: 2em auto;
-  padding: 0 30px 30px;
-  background: #f7eee5;
-  color: #774120;
-  border: 2px solid #d4836e;
+  padding: 0 4% 2em;
   font-family: "Century Gothic", sans-serif;
 }
 
-/* AO3's header picture, as a banner across the top of the page */
-#workskin::before {
+/* AO3's header picture, as a banner across the top */
+body::before {
   content: "";
   display: block;
-  height: 14em;
-  margin: 0 -30px 1.5em;
+  height: 12em;
+  margin: 0 -4.2% 1em;
   background: #d4836e url("https://i.imgur.com/RROXAQE.png") center center / cover no-repeat;
+  border-top: 2px solid #d4836e;
   border-bottom: 2px solid #946549;
 }
 
-#workskin h1,
-#workskin h2,
-#workskin h3,
-#workskin .heading {
-  font-family: "Century Gothic", sans-serif;
-  font-weight: normal;
-  font-variant: small-caps;
-  color: #d4836e;
+p.message {
+  font-size: 0.85em;
+  text-align: center;
 }
 
+p.message a {
+  color: #946549;
+}
+
+h1, h2, h3, h4, h5, h6, .heading {
+  font-family: "Century Gothic", sans-serif;
+  font-weight: normal;
+}
+
+/* the tags box */
+dl.work.meta {
+  max-width: 50em;
+  margin: 1em auto;
+  padding: 1em 1.5em;
+  background: #f7eee5;
+  border: 2px solid #d4836e !important;
+}
+
+dl.meta a {
+  color: #946549;
+  text-decoration: none;
+  border-bottom: 1px dotted;
+}
+
+dt.warning.tags,
+dd.warning.tags a {
+  color: #634279 !important;
+  font-weight: bold;
+}
+
+dt.relationship.tags,
+dd.relationship.tags a {
+  color: #897b38 !important;
+}
+
+dt.character.tags,
+dd.character.tags a {
+  color: #e5802f !important;
+}
+
+dt.freeform.tags,
+dd.freeform.tags a {
+  color: #22739d !important;
+}
+
+/* the work */
+#workskin {
+  max-width: 50em;
+  margin: 0 auto;
+  padding: 0 30px 30px;
+  background: #f7eee5;
+  border: 2px solid #d4836e;
+  color: #774120;
+}
+
+#workskin h2,
 #workskin a {
   color: #d4836e;
   font-variant: small-caps;
 }
 
+#workskin div.preface {
+  margin: 0;
+  padding: 0;
+  border-bottom: 3px double #d4836e;
+}
+
+#workskin .preface .title {
+  text-align: center;
+  font-size: 2em;
+  margin: 0.6em 0 0.2em;
+}
+
+#workskin .preface .byline {
+  text-align: center;
+  color: #d4836e;
+  font-variant: small-caps;
+  font-size: 1.2em;
+}
+
+#workskin .preface .byline a {
+  text-decoration: none;
+}
+
+#workskin .preface .module .heading {
+  border-bottom: 1px solid #774120;
+  margin: 1em 0 0.5em;
+  font-size: 1.2em;
+}
+
+#workskin .preface blockquote {
+  margin: 0 0 1em 1em;
+  padding: 0;
+}
+
+/* the download pads both the chapters and each chapter's text - once is AO3's */
+#workskin #chapters {
+  padding: 0;
+}
+
 #workskin #chapters,
 #workskin .userstuff {
   font-family: "Century Gothic", sans-serif;
-}
-
-#workskin .meta dl.tags {
-  background: #f7eee5;
-  border: 2px solid #d4836e;
-}
-
-#workskin .meta dl.tags a {
-  color: #946549;
-}
-
-#workskin .meta.group {
-  border-bottom: 3px double #d4836e;
 }`,
   },
 ];
