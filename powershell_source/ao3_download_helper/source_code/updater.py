@@ -496,7 +496,7 @@ def host_of(url: str) -> str:
 
 
 def owner_of(repository: str) -> str:
-    """The account a repository belongs to: `alexandria-p` of `alexandria-p/ficfairy`."""
+    """The account a repository belongs to: `alexandria-p` of `alexandria-p/FicFairy`."""
 
     return repository.split('/')[0].strip().lower()
 

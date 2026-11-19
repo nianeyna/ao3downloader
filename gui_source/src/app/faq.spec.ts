@@ -17,10 +17,10 @@ describe('the FAQ', () => {
 
     expect(element.querySelector('section.faq')?.lastElementChild).toBe(legal);
     expect(legal.querySelector('.privacy-link')?.getAttribute('href')).toBe(
-      'https://github.com/alexandria-p/ficfairy/blob/main/docs/privacy/FicFairy_Privacy-Policy.md',
+      'https://github.com/alexandria-p/FicFairy/blob/main/docs/privacy/FicFairy_Privacy-Policy.md',
     );
     expect(legal.querySelector('.licence-link')?.getAttribute('href')).toBe(
-      'https://github.com/alexandria-p/ficfairy/blob/main/LICENSE',
+      'https://github.com/alexandria-p/FicFairy/blob/main/LICENSE',
     );
   });
 });

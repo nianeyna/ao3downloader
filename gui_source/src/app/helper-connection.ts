@@ -40,7 +40,7 @@ export const DEFAULT_PAGE_CONFIG: PageConfig = {
   version: '',
   // where the Windows app is published. a deployment writes its own repository here; this is
   // what a page built on this computer points people at to download the app
-  releasesRepo: 'alexandria-p/ficfairy',
+  releasesRepo: 'alexandria-p/FicFairy',
   feedbackUrl: '',
   turnstileSiteKey: '',
 };

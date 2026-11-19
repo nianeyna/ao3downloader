@@ -1007,7 +1007,7 @@ describe('App', () => {
     const first = element.querySelector('app-faq .faq')?.firstElementChild;
     expect(first?.classList.contains('download-app')).toBe(true);
     expect(first?.querySelector('a')?.getAttribute('href')).toBe(
-      'https://github.com/alexandria-p/ficfairy/releases/latest',
+      'https://github.com/alexandria-p/FicFairy/releases/latest',
     );
     expect(first?.textContent).toContain('ficfairy.exe');
     expect(first?.textContent).toContain('ficfairy-ao3downloader-macos-apple-silicon.zip');
@@ -1031,7 +1031,7 @@ describe('App', () => {
     expect(panel?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
       'Run this on your own computer - download the latest version from GitHub',
     );
-    expect(panel?.querySelector('a')?.getAttribute('href')).toBe('https://github.com/alexandria-p/ficfairy/releases/latest');
+    expect(panel?.querySelector('a')?.getAttribute('href')).toBe('https://github.com/alexandria-p/FicFairy/releases/latest');
     expect(element.querySelector('.app-footer')?.lastElementChild).toBe(panel);
 
     tab(element, 'FAQ')!.click();
@@ -1178,7 +1178,7 @@ describe('App', () => {
 
     const page = element.querySelector('.report-bug');
     expect(page?.querySelector('a')?.getAttribute('href')).toBe(
-      'https://github.com/alexandria-p/ficfairy/issues',
+      'https://github.com/alexandria-p/FicFairy/issues',
     );
     // something to read, not a folder to act on - no run buttons
     expect(element.querySelector('.actions')).toBeNull();
@@ -1255,7 +1255,7 @@ describe('App', () => {
       const footer = element.querySelector('.app-footer');
       expect(footer?.textContent).toContain('version 1.8.2');
       expect(footer?.querySelector('a')?.getAttribute('href')).toBe(
-        'https://github.com/alexandria-p/ficfairy',
+        'https://github.com/alexandria-p/FicFairy',
       );
     }
   });
@@ -1292,7 +1292,7 @@ describe('App', () => {
 
     const link = element.querySelector('.app-footer .footer-link');
     expect(link?.textContent?.trim()).toBe('up to date with latest');
-    expect(link?.getAttribute('href')).toBe('https://github.com/alexandria-p/ficfairy/releases/latest');
+    expect(link?.getAttribute('href')).toBe('https://github.com/alexandria-p/FicFairy/releases/latest');
   });
 
   it('says nothing in the footer about being the latest until GitHub has answered', async () => {
@@ -1368,7 +1368,7 @@ describe('App', () => {
     expect(banner?.textContent).toContain('has no ficfairy-ao3downloader-windows.zip');
     expect(banner?.textContent).toContain('download the latest version again');
     expect(banner?.querySelector('a.manual-download')?.getAttribute('href'))
-      .toBe('https://github.com/alexandria-p/ficfairy/releases/latest');
+      .toBe('https://github.com/alexandria-p/FicFairy/releases/latest');
   });
 
   it('says when a newer version is out, and stops for good when told to', async () => {

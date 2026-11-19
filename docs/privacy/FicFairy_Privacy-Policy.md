@@ -12,7 +12,7 @@ This Privacy Policy explains how we manage personal information. It also describ
 
 We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements.
 
-The current version will be available on our website <https://github.com/alexandria-p/ficfairy>.
+The current version will be available on our website <https://github.com/alexandria-p/FicFairy>.
 
 ## 2. Personal information: what we collect
 
@@ -26,7 +26,7 @@ Some changes the user makes to their App Settings (e.g. timezone, appearance) ar
 
 If the user wishes to report a bug or feedback, they may optionally attach their name and a log of their app usage to assist with troubleshooting.
 
-All feedback or bug submissions are publicly listed at <https://github.com/alexandria-p/ficfairy/issues/>
+All feedback or bug submissions are publicly listed at <https://github.com/alexandria-p/FicFairy/issues/>
 
 Logs include:
 
@@ -45,7 +45,7 @@ When the Feedback form is opened in the app, Cloudflare ensures you are a real h
 
 As per 2.1, we do not have a server or database to store or collect personal information.
 
-Any personal information voluntarily submitted via the feedback service is publicly listed at <https://github.com/alexandria-p/ficfairy/issues/>, and is removable upon request.
+Any personal information voluntarily submitted via the feedback service is publicly listed at <https://github.com/alexandria-p/FicFairy/issues/>, and is removable upon request.
 
 ### 3.2 Anonymity and Pseudonymity
 
