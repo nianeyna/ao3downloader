@@ -3415,8 +3415,9 @@ def run_fic_list(job: Job, fileops: FileOps, repo: Repository, report, importing
         raise exceptions.InvalidLinkException(
             strings.ERROR_NO_IMPORT_WORKS if importing else strings.ERROR_NO_WORK_LINKS)
 
-    # a list asked for by hand replaces what it names; an import never does
-    job.options['overwrite'] = not importing
+    # a list asked for by hand replaces what it names; an import only when its window was told
+    # to (*Overwrite existing downloads*), and even then keeps every file with no date in its name
+    job.options['overwrite'] = True if not importing else bool(job.options.get('overwrite'))
     if importing:
         job.options['series'] = False
     ao3 = Ao3(repo, fileops, downloadtypes, None, job.options['series'], job.options['images'],
@@ -4784,6 +4785,9 @@ def rescue_one(ao3, failure: dict, entry: dict | None, existing: dict, filetypes
         if filetypes:
             plan = shared.plan_downloads([record], existing, filetypes, overwrite=overwrite)
             plan['overwrite'] = overwrite
+            # an import overwriting keeps every file with no date in its name, as its AO3 side does
+            if overwrite and job is not None and job.action == ACTION_IMPORT:
+                keep_undated_copies([record], plan, existing, filetypes)
             # kept, with FicHub's copy saved beside each (keep both): fetched, nothing replaced
             for filetype in (behind or {}).get('alongside') or []:
                 plan['superseded'].setdefault(link, {})[filetype] = KEEP_BOTH
@@ -5074,6 +5078,9 @@ def plan_refresh(job: Job, fileops: FileOps, records: list[dict],
         repairing = set(repair_targets(job))
         if any(parse_text.get_work_number(x) not in repairing for x in plan['undated']):
             print(strings.AO3_INFO_IMPORT_UNDATED_KEPT)
+        # an overwrite put them in `superseded` unjudged; the import keeps them all the same
+        # (one chosen to repair is put back by `repair_copies`)
+        if overwrite: keep_undated_copies(records, plan, existing, downloadtypes)
     else:
         ask_about_unsure_copies(job, records, existing, plan, downloadtypes, skip=asked,
                                  overwriting=overwrite)
@@ -5817,6 +5824,32 @@ def follow_renames_in_exclusions(fileops: FileOps, names: dict[str, str]) -> int
     return changed
 
 
+def keep_undated_copies(records: list[dict], plan: dict, existing: dict, filetypes: list[str]) -> None:
+    """Keep every copy with no date in the app's own form - an import told to overwrite.
+
+    An overwrite puts every copy in `superseded` without judging it; an import still keeps a file
+    whose name has no date (its window says so), so each such format leaves `superseded` for
+    `plan['keep']`, and a work left with nothing to replace or fetch leaves `stale`.
+    """
+
+    keep: dict[str, set[str]] = plan.setdefault('keep', {})
+    for record in records:
+        work = str(record.get('id') or '')
+        link = record.get('link') or ''
+        replacing = plan['superseded'].get(link)
+        if not work or not link or not replacing: continue
+        undated = {x.upper() for x in undated_copies(existing, work, filetypes)}
+        for filetype in list(replacing):
+            if filetype.upper() in undated:
+                replacing.pop(filetype, None)
+                keep.setdefault(link, set()).add(filetype.upper())
+        if replacing: continue
+        plan['superseded'].pop(link, None)
+        have = existing.get(work) or {}
+        if link in plan['stale'] and all(have.get(x.upper()) for x in filetypes):
+            plan['stale'].remove(link)
+
+
 def keep_existing_copies(records: list[dict], plan: dict, filetypes: list[str]) -> None:
     """Keep every copy already in the folder, current or not - an import told not to replace
     outdated copies.
@@ -6436,7 +6469,8 @@ class Handler(BaseHTTPRequestHandler):
         # otherwise, but the rule belongs here, where what arrives in a request is turned
         # into what a run may actually do - a stray flag must not make a routine run
         # re-fetch a whole library
-        if action not in OVERWRITE_ACTIONS: options['overwrite'] = False
+        # an import may overwrite too, when its window was told to (`run_fic_list`)
+        if action not in OVERWRITE_ACTIONS and action != ACTION_IMPORT: options['overwrite'] = False
         # the import's alone: every other run replaces what is outdated as a matter of course
         if action != ACTION_IMPORT:
             options['replaceOutdated'] = False

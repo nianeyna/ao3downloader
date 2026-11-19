@@ -1122,6 +1122,8 @@ export class ImportDialog implements OnInit {
   protected fetchLatest(): void {
     this.updateScope.set(this.lastScope());
   }
+  /** *Overwrite existing downloads*: fetch every dated copy again, current or not */
+  protected readonly overwrite = signal(false);
   /** the formats to fetch for works without them - none ticked to begin with */
   protected readonly picked = signal<string[]>([]);
   /** every downloadable format the helper offers, JSON aside (always written: it is the index) */
@@ -1144,17 +1146,26 @@ export class ImportDialog implements OnInit {
   /** the works with no index entry that the index page asks about */
   protected readonly toLookUp = computed(() => {
     const repaired = new Set(this.repairIndexes().map((w) => w.id));
-    const focus = this.focus();
-    if (focus && this.lookupFor() === 'this') {
-      return [...this.works(), ...this.ignored()].filter((w) => w.id === focus).slice(0, 1);
+    if (this.focus()) {
+      // the works asked about on the index page, and any the formats page is to update - a work
+      // has to be indexed before it can be updated (the raw scope: the chosen one reads this)
+      const chosen = [...this.worksFor(this.lookupFor()),
+        ...(this.updateScope() !== 'skip' ? this.worksFor(this.updateFor()) : [])];
+      const seen = new Set<string>();
+      return chosen.filter((w) => !seen.has(w.id) && !!seen.add(w.id));
     }
-    const found = this.works().filter((w) => !repaired.has(w.id));
-    if (focus && this.lookupFor() === 'ignored') {
-      const ids = new Set(found.map((w) => w.id));
-      return [...found, ...this.ignored().filter((w) => !ids.has(w.id))];
-    }
-    return found;
+    return this.works().filter((w) => !repaired.has(w.id));
   });
+  /** opened for a work's own look-up: which works the formats page updates */
+  protected readonly updateFor = signal<'this' | 'all' | 'ignored'>('this');
+  /** the works one of the look-up's choices stands for */
+  private worksFor(choice: 'this' | 'all' | 'ignored'): FoundWork[] {
+    const focus = this.focus();
+    if (choice === 'this') return [...this.works(), ...this.ignored()].filter((w) => w.id === focus).slice(0, 1);
+    if (choice === 'all') return this.works();
+    const ids = new Set(this.works().map((w) => w.id));
+    return [...this.works(), ...this.ignored().filter((w) => !ids.has(w.id))];
+  }
   /** every work with no index entry, for the *all* choice's count when opened for one work */
   protected readonly allUnindexed = computed(() => this.works().length);
   /** those and every one an exclusion list keeps out, for the choice that takes them all */
@@ -1162,7 +1173,9 @@ export class ImportDialog implements OnInit {
     const ids = new Set(this.works().map((w) => w.id));
     return this.works().length + this.ignored().filter((w) => !ids.has(w.id)).length;
   });
-  protected readonly lookups = computed(() => (this.lookup() === 'yes' ? this.toLookUp().map((w) => w.id) : []));
+  // opened for a work's own look-up, the answer is yes: the question is not asked
+  protected readonly lookups = computed(() =>
+    (this.focus() || this.lookup() === 'yes' ? this.toLookUp().map((w) => w.id) : []));
   /**
    * The works with date issues that can be updated: an undated file, of an indexed work or of
    * one looked up now - a work left unindexed is left alone altogether.
@@ -1189,6 +1202,9 @@ export class ImportDialog implements OnInit {
   });
   /** the works the formats and replacing are for */
   protected readonly updating = computed(() => {
+    if (this.focus()) {
+      return this.scopeChosen() === 'skip' ? [] : this.worksFor(this.updateFor()).map((w) => w.id);
+    }
     switch (this.scopeChosen()) {
       case 'dates':
         return this.dateIssues();
@@ -1458,10 +1474,11 @@ export class ImportDialog implements OnInit {
         count: works.length,
         filetypes: ['JSON', ...(updates ? this.picked() : [])],
         replaceOutdated: updates,
+        overwrite: updates && this.overwrite(),
         // every work not updated is only looked up - one with a file to repair gets that alone
         indexOnly: [...taken].filter((id) => !updating.has(id)),
         lookups: this.lookups().filter((id) => taken.has(id)).length,
-        scope: updates ? this.scopeChosen() : 'skip',
+        scope: updates ? (this.focus() ? 'index' : this.scopeChosen()) : 'skip',
         files: this.filesOf(taken),
         repair: this.runRepairs().map((f) => f.name),
         repairFicHub: this.runRepairs().length > 0 && this.repairFallback() === 'replace',

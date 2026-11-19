@@ -799,6 +799,20 @@ def test_an_import_replacing_outdated_copies_never_replaces_an_undated_one_from_
 
 
 @pytest.mark.fichub
+def test_an_import_overwriting_still_never_replaces_an_undated_one_from_fichub(library, monkeypatch):
+    a_copy(library, '75354806 Wolfbird - OpalApparition.epub')
+    a_copy(library, '75354806 Wolfbird - OpalApparition 2026-04-27.html')
+    fetched = fichub_serving(monkeypatch)
+    job, ao3 = an_import(library, ['JSON', 'EPUB', 'HTML'], replaceOutdated=True, overwrite=True)
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    # the current html is fetched again; the undated epub is kept
+    assert fetched == ['HTML']
+    assert '75354806 Wolfbird - OpalApparition.epub' in work_files(library)
+
+
+@pytest.mark.fichub
 @pytest.mark.parametrize('name, agreed, replaced', [
     # FicHub's copy (27 April 2026) is newer than the date guessed from the name: replaced
     ('75354806 Wolfbird (1 May 2025).epub', True, True),

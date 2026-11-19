@@ -160,6 +160,38 @@ def test_an_import_told_to_replaces_an_outdated_copy(library, monkeypatch):
     assert fetched['1'] == ['HTML']
 
 
+def test_an_import_told_to_overwrite_fetches_a_current_copy_again(library, monkeypatch):
+    a_copy(library, '1 Fic 1 - Someone 2026-05-01.html')
+
+    job, fetched = importing(library, monkeypatch, ['JSON', 'HTML'], replace=True, overwrite=True)
+
+    assert fetched['1'] == ['HTML']
+    assert job.options['overwrite'] is True
+
+
+def test_an_import_not_told_to_overwrite_keeps_a_current_copy(library, monkeypatch):
+    a_copy(library, '1 Fic 1 - Someone 2026-05-01.html')
+
+    _, fetched = importing(library, monkeypatch, ['JSON', 'HTML'], replace=True)
+
+    assert '1' not in fetched
+
+
+def test_an_import_overwriting_still_keeps_a_file_with_no_date_in_its_name(library, monkeypatch):
+    a_copy(library, '1 Fic 1 - Someone.html')
+
+    _, fetched = importing(library, monkeypatch, ['JSON', 'HTML'], replace=True, overwrite=True)
+
+    assert fetched.get('1', []) == []
+
+
+def test_overwriting_is_offered_to_an_import_and_not_to_several_fics_by_request():
+    sent, [job], _ = start_request(server.ACTION_IMPORT, '1', overwrite=True)
+    assert job.options['overwrite'] is True
+    sent, [job], _ = start_request(server.ACTION_QUICK, '', overwrite=True)
+    assert job.options['overwrite'] is False
+
+
 def test_replacing_with_no_format_added_replaces_only_the_formats_a_work_has(library, monkeypatch):
     a_copy(library, '1 Fic 1 - Someone 2020-01-01.pdf')
 

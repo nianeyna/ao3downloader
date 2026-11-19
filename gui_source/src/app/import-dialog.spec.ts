@@ -1707,7 +1707,11 @@ describe('ImportDialog', () => {
     await click('Continue');
     // the dates were passed over: only that work's index is in question
     expect(step()).toBe('formats');
-    expect(radio('updateScope', 'all')!.closest('label')!.textContent).toContain('(1)');
+    // only the look-up's own choices of which fics to update
+    expect(radio('updateScope', 'all')).toBeNull();
+    expect(radio('updateFor', 'this')!.checked).toBe(true);
+    expect(radio('updateFor', 'all')!.closest('label')!.textContent).toContain('All fics with a missing index (3)');
+    expect(radio('updateFor', 'ignored')).toBeNull();
     await choose('updateFetch', 'skip');
     await click('Continue');
 
@@ -1717,6 +1721,27 @@ describe('ImportDialog', () => {
       lookups: 1,
       scope: 'skip',
     });
+  });
+
+  it('explains what an index entry is, and does not ask whether to fetch one - it is yes', async () => {
+    await openFor('2');
+    expect(element.querySelector('.index-count')!.textContent!.trim()).toBe('1 work has no index entry.');
+    expect(element.querySelector('.index-about')!.textContent).toContain('title, author, summary, tags');
+    expect(radio('lookup', 'yes')).toBeNull();
+  });
+
+  it('updates every fic with a missing index when told to, looking each up too', async () => {
+    await openFor('2', SOME, INDEXED_UNDATED, IGNORED);
+    await click('Continue');
+    expect(radio('updateFor', 'ignored')!.closest('label')!.textContent!.replace(/\s+/g, ' '))
+      .toContain('All fics with a missing index, including any added to an ignore-list (4)');
+    await choose('updateFor', 'all');
+    await click('Continue');
+
+    const request = started[0].request;
+    expect(request.links.split('\n').map((l) => l.split('/').pop()).sort()).toEqual(['1', '2', '3']);
+    expect(request.indexOnly).toEqual([]);
+    expect(request.scope).toBe('index');
   });
 
   it('looks up every work with no index entry when told to', async () => {
@@ -1778,13 +1803,13 @@ describe('ImportDialog', () => {
     await open(ALL_DATED);
     await click('Continue');
     expect(element.textContent).toContain('Fetch their index entries from AO3 now?');
-    expect(element.textContent).not.toContain('Also download them in other formats?');
+    expect(element.textContent).not.toContain('File types');
     await click('Continue');
     expect(step()).toBe('formats');
-    expect(element.textContent).toContain('Also download them in other formats?');
+    expect(element.textContent).toContain('File types');
     // replacing an outdated copy is what an update does, not a choice of its own
     expect(element.querySelector('input[name="replaceOutdated"]')).toBeNull();
-    expect(element.querySelector('.fetch-warning')!.textContent!.trim()).toBe('This only updates files that have a date in their name. A file with no date in its name is kept as-is.');
+    expect(element.querySelector('.fetch-hint')!.textContent!.trim()).toBe('This only updates files that have a date in their name. A file with no date in its name is kept as-is.');
   });
 
   function radio(name: string, value: string): HTMLInputElement | null {
@@ -1814,6 +1839,7 @@ describe('ImportDialog', () => {
       count: 1,
       filetypes: ['JSON', 'EPUB'],
       replaceOutdated: true,
+      overwrite: false,
       indexOnly: [],
       lookups: 1,
       scope: 'all',
@@ -1908,7 +1934,7 @@ describe('ImportDialog', () => {
     await skipDates();
     await click('Continue');
     expect(radio('updateFetch', 'fetch')!.checked).toBe(true);
-    expect(radio('updateScope', 'all')!.closest('label')!.textContent).toContain('Attempt to update all fics');
+    expect(radio('updateScope', 'all')!.closest('label')!.textContent).toContain('For all fics found to have issues in this import');
     await choose('updateScope', 'dates');
     await choose('updateFetch', 'skip');
     expect(radio('updateScope', 'dates')).toBeNull();
@@ -1930,6 +1956,17 @@ describe('ImportDialog', () => {
     expect(request.indexOnly).toEqual(['1']);
     expect(request.scope).toBe('dates');
     expect(request.filetypes).toEqual(['JSON', 'EPUB']);
+  });
+
+  it('overwrites existing downloads only when told to', async () => {
+    await open(ALL_DATED);
+    await click('Continue');
+    await click('Continue');
+    expect(element.querySelector('label.overwrite')!.textContent).toContain(
+      'Check this if you are concerned about file integrity issues and would like to re-download each file again.');
+    await tick('overwrite');
+    await click('Continue');
+    expect(started[0].request.overwrite).toBe(true);
   });
 
   it('hides the formats and replacing when the step is skipped, and does neither', async () => {

@@ -566,6 +566,8 @@ export interface ImportRequest {
   /** JSON, and whichever formats to fetch for works without them */
   filetypes: string[];
   replaceOutdated: boolean;
+  /** *Overwrite existing downloads*: every dated copy of the works updated fetched again, current or not */
+  overwrite?: boolean;
   /** the works among `links` only looked up for their index entry - nothing downloaded */
   indexOnly: string[];
   /** how many of the works are looked up for a missing index entry */

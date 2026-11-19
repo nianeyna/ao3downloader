@@ -837,6 +837,15 @@
   <!-- 4: the works with no index entry - look them up now, later, or never? -->
   @if (step() === 'index') {
     <section class="body">
+      <!-- what an index entry is, before anything is asked about one -->
+      <p class="index-count">
+        {{ toLookUp().length | number }} {{ toLookUp().length === 1 ? 'work has' : 'works have' }} no index entry.
+      </p>
+      <p class="hint index-about">
+        An index entry is what FicFairy keeps about a work: its title, author, summary, tags, word and
+        chapter counts, and when it was last updated on AO3. It lets you browse, search and filter
+        your works here, and lets later runs tell when AO3 has a newer version.
+      </p>
       @if (focus(); as work) {
         <!-- opened from one work's 'Look up its index from AO3 here' -->
         <fieldset class="lookup-for">
@@ -857,37 +866,36 @@
           }
         </fieldset>
       }
-      <fieldset>
-        <legend>Fetch their index entries from AO3 now?</legend>
-        <p class="hint">
-          {{ toLookUp().length | number }} {{ toLookUp().length === 1 ? 'work has' : 'works have' }} no index entry.
-        </p>
-        @if (repairIndexes().length; as more) {
-          <p class="hint repair-indexes">
-            {{ more | number }} more {{ more === 1 ? 'work has' : 'works have' }} no index entry, but
-            {{ more === 1 ? 'is' : 'are' }} indexed anyway: a file of {{ more === 1 ? 'it is' : 'theirs is' }}
-            being repaired from AO3.
-          </p>
-        }
-        <label class="check">
-          <input type="radio" name="lookup" value="yes" [checked]="lookup() === 'yes'" (change)="lookup.set('yes')" />
-          <span>Yes - look each work up on AO3 now and index it</span>
-        </label>
-        <label class="check">
-          <input type="radio" name="lookup" value="later" [checked]="lookup() === 'later'" (change)="lookup.set('later')" />
-          <span>Not now - they stay unindexed, and this is offered again</span>
-        </label>
-        <label class="check">
-          <input type="radio" name="lookup" value="never" [checked]="lookup() === 'never'" (change)="lookup.set('never')" />
-          <span>
-            No, and do not ask again for these works
-            <span class="hint">
-              They are added to <code>import-excluded.json</code> at the top of your library and
-              left out of every import after this. Their files stay as they are.
+      @if (!focus()) {
+        <fieldset>
+          <legend>Fetch their index entries from AO3 now?</legend>
+          @if (repairIndexes().length; as more) {
+            <p class="hint repair-indexes">
+              {{ more | number }} more {{ more === 1 ? 'work has' : 'works have' }} no index entry, but
+              {{ more === 1 ? 'is' : 'are' }} indexed anyway: a file of {{ more === 1 ? 'it is' : 'theirs is' }}
+              being repaired from AO3.
+            </p>
+          }
+          <label class="check">
+            <input type="radio" name="lookup" value="yes" [checked]="lookup() === 'yes'" (change)="lookup.set('yes')" />
+            <span>Yes - look each work up on AO3 now and index it</span>
+          </label>
+          <label class="check">
+            <input type="radio" name="lookup" value="later" [checked]="lookup() === 'later'" (change)="lookup.set('later')" />
+            <span>Not now - they stay unindexed, and this is offered again</span>
+          </label>
+          <label class="check">
+            <input type="radio" name="lookup" value="never" [checked]="lookup() === 'never'" (change)="lookup.set('never')" />
+            <span>
+              No, and do not ask again for these works
+              <span class="hint">
+                They are added to <code>import-excluded.json</code> at the top of your library and
+                left out of every import after this. Their files stay as they are.
+              </span>
             </span>
-          </span>
-        </label>
-      </fieldset>
+          </label>
+        </fieldset>
+      }
       @if (busy()) {
         <p class="warning busy-note" role="note">A run is in progress. It has to finish before an import can start.</p>
       }
@@ -909,6 +917,12 @@
     <section class="body">
       <fieldset class="update-scope">
         <legend>Update the works found?</legend>
+        <!-- said before the choices, while fetching is the one picked -->
+        @if (scopeChosen() !== 'skip') {
+          <p class="hint fetch-hint">
+            This only updates files that have a date in their name. A file with no date in its name is kept as-is.
+          </p>
+        }
         <label class="check">
           <input type="radio" name="updateFetch" value="fetch" [checked]="scopeChosen() !== 'skip'" (change)="fetchLatest()" />
           <span>Try and fetch the latest version of each fic from AO3?</span>
@@ -916,24 +930,39 @@
         <!-- which fics, nested under fetching and shown only once it is picked -->
         @if (scopeChosen() !== 'skip') {
           <div class="scope-options">
-            <p class="warning fetch-warning" role="note">
-              This only updates files that have a date in their name. A file with no date in its name is kept as-is.
-            </p>
-            <label class="check">
-              <input type="radio" name="updateScope" value="all" [checked]="scopeChosen() === 'all'" (change)="chooseScope('all')" />
-              <span>Attempt to update all fics found to have issues in this import <span class="dim">({{ allIssues().length | number }})</span></span>
-            </label>
-            @if (dateIssues().length) {
+            @if (focus()) {
+              <!-- opened for a work's own look-up: which of the works with no index entry -->
               <label class="check">
-                <input type="radio" name="updateScope" value="dates" [checked]="scopeChosen() === 'dates'" (change)="chooseScope('dates')" />
-                <span>Attempt to update just the fics found to have date issues <span class="dim">({{ dateIssues().length | number }})</span></span>
+                <input type="radio" name="updateFor" value="this" [checked]="updateFor() === 'this'" (change)="updateFor.set('this')" />
+                <span>Just this fic</span>
               </label>
-            }
-            @if (indexIssues().length) {
               <label class="check">
-                <input type="radio" name="updateScope" value="index" [checked]="scopeChosen() === 'index'" (change)="chooseScope('index')" />
-                <span>Attempt to update just the fics found to have indexing issues <span class="dim">({{ indexIssues().length | number }})</span></span>
+                <input type="radio" name="updateFor" value="all" [checked]="updateFor() === 'all'" (change)="updateFor.set('all')" />
+                <span>All fics with a missing index <span class="dim">({{ allUnindexed() | number }})</span></span>
               </label>
+              @if (ignored().length) {
+                <label class="check">
+                  <input type="radio" name="updateFor" value="ignored" [checked]="updateFor() === 'ignored'" (change)="updateFor.set('ignored')" />
+                  <span>All fics with a missing index, including any added to an ignore-list <span class="dim">({{ withIgnored() | number }})</span></span>
+                </label>
+              }
+            } @else {
+              <label class="check">
+                <input type="radio" name="updateScope" value="all" [checked]="scopeChosen() === 'all'" (change)="chooseScope('all')" />
+                <span>For all fics found to have issues in this import <span class="dim">({{ allIssues().length | number }})</span></span>
+              </label>
+              @if (dateIssues().length) {
+                <label class="check">
+                  <input type="radio" name="updateScope" value="dates" [checked]="scopeChosen() === 'dates'" (change)="chooseScope('dates')" />
+                  <span>Just the fics that had an improperly formatted date <span class="dim">({{ dateIssues().length | number }})</span></span>
+                </label>
+              }
+              @if (indexIssues().length) {
+                <label class="check">
+                  <input type="radio" name="updateScope" value="index" [checked]="scopeChosen() === 'index'" (change)="chooseScope('index')" />
+                  <span>Just the fics with a missing index <span class="dim">({{ indexIssues().length | number }})</span></span>
+                </label>
+              }
             }
           </div>
         }
@@ -943,13 +972,15 @@
         </label>
       </fieldset>
       @if (scopeChosen() !== 'skip') {
+        <label class="check overwrite">
+          <input type="checkbox" name="overwrite" [checked]="overwrite()" (change)="overwrite.set($any($event.target).checked)" />
+          <span>
+            Overwrite existing downloads
+            <span class="hint">Check this if you are concerned about file integrity issues and would like to re-download each file again.</span>
+          </span>
+        </label>
         <fieldset class="formats">
-          <legend>Also download them in other formats?</legend>
-          <p class="hint">
-            Ticking a format fetches it for every work updated that does not have it. A format a
-            work already has is fetched again only when AO3 or FicHub has a newer version than the
-            date in its file's name - a copy with no date, or one that is current, is kept.
-          </p>
+          <legend>File types</legend>
           @for (format of offered(); track format) {
             <label class="check">
               <input type="checkbox" [attr.name]="'format-' + format"

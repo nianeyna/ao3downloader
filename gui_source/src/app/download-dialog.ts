@@ -780,7 +780,9 @@ export class DownloadDialog implements OnDestroy {
         : formats[0];
       lines.push(`Download ${named} for ${IMPORT_SCOPE_WORDS[importing.scope] ?? IMPORT_SCOPE_WORDS['all']}`);
     }
-    if (importing.scope !== 'skip' && importing.replaceOutdated) {
+    if (importing.scope !== 'skip' && importing.overwrite) {
+      lines.push('Will download every file again, current or not (files with no date in their name are kept)');
+    } else if (importing.scope !== 'skip' && importing.replaceOutdated) {
       lines.push('Will replace any outdated files with newer ones, if they exist');
     }
     const repairs = importing.repair?.length ?? 0;
@@ -2198,7 +2200,9 @@ export class DownloadDialog implements OnDestroy {
         images: this.images(),
         workdates: this.workdates(),
         // only offered on the runs that can be pointed at a known set of works
-        overwrite: this.picksOverwrite() && this.overwrite(),
+        // an import's from its own window's *Overwrite existing downloads*
+        overwrite: this.action() === 'import' ? !!this.importing()?.overwrite
+          : this.picksOverwrite() && this.overwrite(),
         // only the scans offer it, and not while skipping the indexing
         nonBookmarks: this.picksNonBookmarks() && this.nonBookmarks(),
         // only a custom run can turn this off; everything else always indexes
