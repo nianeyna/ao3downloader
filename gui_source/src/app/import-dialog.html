@@ -889,23 +889,32 @@
       <fieldset class="update-scope">
         <legend>Update the works found?</legend>
         <label class="check">
-          <input type="radio" name="updateScope" value="all" [checked]="scopeChosen() === 'all'" (change)="updateScope.set('all')" />
-          <span>Update all fics found to have issues in this import <span class="dim">({{ allIssues().length | number }})</span></span>
+          <input type="radio" name="updateFetch" value="fetch" [checked]="scopeChosen() !== 'skip'" (change)="fetchLatest()" />
+          <span>Try and fetch the latest version of each fic from AO3?</span>
         </label>
-        @if (dateIssues().length) {
-          <label class="check">
-            <input type="radio" name="updateScope" value="dates" [checked]="scopeChosen() === 'dates'" (change)="updateScope.set('dates')" />
-            <span>Update just the fics found to have date issues <span class="dim">({{ dateIssues().length | number }})</span></span>
-          </label>
-        }
-        @if (indexIssues().length) {
-          <label class="check">
-            <input type="radio" name="updateScope" value="index" [checked]="scopeChosen() === 'index'" (change)="updateScope.set('index')" />
-            <span>Update just the fics found to have indexing issues <span class="dim">({{ indexIssues().length | number }})</span></span>
-          </label>
+        <!-- which fics, nested under fetching and shown only once it is picked -->
+        @if (scopeChosen() !== 'skip') {
+          <div class="scope-options">
+            <label class="check">
+              <input type="radio" name="updateScope" value="all" [checked]="scopeChosen() === 'all'" (change)="chooseScope('all')" />
+              <span>Attempt to update all fics found to have issues in this import <span class="dim">({{ allIssues().length | number }})</span></span>
+            </label>
+            @if (dateIssues().length) {
+              <label class="check">
+                <input type="radio" name="updateScope" value="dates" [checked]="scopeChosen() === 'dates'" (change)="chooseScope('dates')" />
+                <span>Attempt to update just the fics found to have date issues <span class="dim">({{ dateIssues().length | number }})</span></span>
+              </label>
+            }
+            @if (indexIssues().length) {
+              <label class="check">
+                <input type="radio" name="updateScope" value="index" [checked]="scopeChosen() === 'index'" (change)="chooseScope('index')" />
+                <span>Attempt to update just the fics found to have indexing issues <span class="dim">({{ indexIssues().length | number }})</span></span>
+              </label>
+            }
+          </div>
         }
         <label class="check">
-          <input type="radio" name="updateScope" value="skip" [checked]="scopeChosen() === 'skip'" (change)="updateScope.set('skip')" />
+          <input type="radio" name="updateFetch" value="skip" [checked]="scopeChosen() === 'skip'" (change)="updateScope.set('skip')" />
           <span>Skip this step</span>
         </label>
       </fieldset>

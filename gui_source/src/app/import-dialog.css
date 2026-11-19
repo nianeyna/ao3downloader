@@ -761,3 +761,8 @@ footer.with-bulk {
   background: var(--warn-bg);
 }
 
+
+/* the fics to update, nested under 'Try and fetch the latest version' */
+.scope-options {
+  margin-left: 26px;
+}

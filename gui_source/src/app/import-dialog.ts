@@ -1089,6 +1089,16 @@ export class ImportDialog {
   protected readonly lookup = signal<'yes' | 'later' | 'never'>('yes');
   /** which works the formats and replacing are for; `skip` does neither */
   protected readonly updateScope = signal<UpdateScope>('all');
+  /** which fics the nested choice last named, so fetching again after a skip comes back to it */
+  private readonly lastScope = signal<UpdateScope>('all');
+  protected chooseScope(scope: UpdateScope): void {
+    this.lastScope.set(scope);
+    this.updateScope.set(scope);
+  }
+  /** *Try and fetch the latest version*: back to whichever fics were last chosen */
+  protected fetchLatest(): void {
+    this.updateScope.set(this.lastScope());
+  }
   /** the formats to fetch for works without them - none ticked to begin with */
   protected readonly picked = signal<string[]>([]);
   protected readonly replaceOutdated = signal(false);

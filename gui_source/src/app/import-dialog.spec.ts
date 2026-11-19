@@ -1794,7 +1794,7 @@ describe('ImportDialog', () => {
     expect(radio('updateScope', 'all')).toBeTruthy();
     expect(radio('updateScope', 'dates')).toBeNull();
     expect(radio('updateScope', 'index')).toBeTruthy();
-    expect(radio('updateScope', 'skip')).toBeTruthy();
+    expect(radio('updateFetch', 'skip')).toBeTruthy();
 
     await open(SOME);
     await click('Continue');
@@ -1802,6 +1802,20 @@ describe('ImportDialog', () => {
     await click('Continue');
     expect(radio('updateScope', 'dates')).toBeTruthy();
     expect(radio('updateScope', 'index')).toBeTruthy();
+  });
+
+  it('nests which fics to update under fetching the latest version, and comes back to the last one chosen', async () => {
+    await open(SOME);
+    await click('Continue');
+    await skipDates();
+    await click('Continue');
+    expect(radio('updateFetch', 'fetch')!.checked).toBe(true);
+    expect(radio('updateScope', 'all')!.closest('label')!.textContent).toContain('Attempt to update all fics');
+    await choose('updateScope', 'dates');
+    await choose('updateFetch', 'skip');
+    expect(radio('updateScope', 'dates')).toBeNull();
+    await choose('updateFetch', 'fetch');
+    expect(radio('updateScope', 'dates')!.checked).toBe(true);
   });
 
   it('downloads only for the works with date issues when told, still looking up the rest', async () => {
@@ -1826,7 +1840,8 @@ describe('ImportDialog', () => {
     await click('Continue');
     await tick('format-EPUB');
     await tick('replaceOutdated');
-    await choose('updateScope', 'skip');
+    await choose('updateFetch', 'skip');
+    expect(radio('updateScope', 'all')).toBeNull();
     expect(element.querySelector('input[name="format-EPUB"]')).toBeNull();
     expect(element.querySelector('input[name="replaceOutdated"]')).toBeNull();
     await click('Continue');
