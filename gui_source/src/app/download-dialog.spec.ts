@@ -1198,6 +1198,7 @@ describe('DownloadDialog', () => {
       'The updated on or after date (30 June 2024) is later than the on or before date (1 January 2024). Please fix this to continue.');
     const next = element.querySelector<HTMLButtonElement>('footer .button.primary')!;
     expect(next.disabled).toBe(true);
+    expect(TestBed.inject(VisitLog).text()).toContain('Date range held: The updated on or after date (30 June 2024)');
 
     const lower = element.querySelector<HTMLInputElement>('input[name="dateFrom"]')!;
     lower.value = '2024-01-01';

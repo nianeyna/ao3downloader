@@ -262,6 +262,8 @@ DAMAGED_REASON_KEPT_OLD = 'the downloaded file {} {}, so it was removed. the old
 # a download landing on a file of the same name goes in beside it first, then takes its place
 SWAP_NEW_SUFFIX = '.ficfairy-new'
 SWAP_OLD_SUFFIX = '.ficfairy-old'
+INFO_SWAP_RESTORED = '    your copy left aside by an earlier download was put back first: {}'
+AO3_INFO_IMPORT_OVERWRITE_UNDATED_KEPT = 'overwriting as asked, but keeping {} files with no date in their name'
 INFO_SWAP_FAILED = '    a new copy was downloaded whole, but could not be put in place of your copy, which is kept as it was: {}'
 SWAP_FAILED_REASON = 'the downloaded file {} arrived whole, but could not be put in place of your copy ({}) - your copy is kept as it was'
 DAMAGED_NOT_REMOVED = ' - but removing it failed too, so delete it by hand'

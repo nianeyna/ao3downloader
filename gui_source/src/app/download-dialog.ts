@@ -1,17 +1,5 @@
 import { savedRunLogLines, savedTrimOldRunLogs } from './run-logs';
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  OnDestroy,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnDestroy, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { WorkLink } from './work-link';
 import { Chime } from './chime';
 
@@ -1737,6 +1725,12 @@ export class DownloadDialog implements OnDestroy {
       ? `The ${word} on or after date (${writtenDate(from)}) is later than the on or before date ` +
         `(${writtenDate(chosenTo)}). Please fix this to continue.`
       : `The ${word} on or after date (${writtenDate(from)}) is later than today. Please fix this to continue.`;
+  });
+
+  /** a date range held up is said in the visit log once each time it goes wrong */
+  private readonly noteRangeProblem = effect(() => {
+    const problem = this.rangeProblem();
+    if (problem) untracked(() => this.visit.note(`Date range held: ${problem}`));
   });
 
   protected afterOptions(): void {

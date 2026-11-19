@@ -5833,6 +5833,7 @@ def keep_undated_copies(records: list[dict], plan: dict, existing: dict, filetyp
     """
 
     keep: dict[str, set[str]] = plan.setdefault('keep', {})
+    kept = 0
     for record in records:
         work = str(record.get('id') or '')
         link = record.get('link') or ''
@@ -5843,11 +5844,13 @@ def keep_undated_copies(records: list[dict], plan: dict, existing: dict, filetyp
             if filetype.upper() in undated:
                 replacing.pop(filetype, None)
                 keep.setdefault(link, set()).add(filetype.upper())
+                kept += 1
         if replacing: continue
         plan['superseded'].pop(link, None)
         have = existing.get(work) or {}
         if link in plan['stale'] and all(have.get(x.upper()) for x in filetypes):
             plan['stale'].remove(link)
+    if kept: print(strings.AO3_INFO_IMPORT_OVERWRITE_UNDATED_KEPT.format(kept))
 
 
 def keep_existing_copies(records: list[dict], plan: dict, filetypes: list[str]) -> None:

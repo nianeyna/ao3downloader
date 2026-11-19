@@ -7,6 +7,7 @@ import { Library, WorksFile } from './library';
 import { WorkList } from './work-list';
 import { Bookmark, placeholderWork } from './bookmarks';
 import { Jobs } from './jobs';
+import { VisitLog } from './visit-log';
 
 /**
  * Files in works/ that no index entry matches are still listed, from what their names say -
@@ -186,6 +187,7 @@ describe('files no index entry matches', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
       await new Promise((resolve) => setTimeout(resolve, 0));
       expect(tab.location.href).toBe('blob:the-index');
+      expect(TestBed.inject(VisitLog).text()).toContain('View index history: shown in a new tab');
       expect(tab.opener).toBeNull();
       expect(shown!.type).toBe('application/json');
       expect(await shown!.text()).toContain('"indexes"');

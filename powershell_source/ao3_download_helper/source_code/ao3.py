@@ -2525,6 +2525,7 @@ class Ao3:
             if not (self.fileops.delete_file(target) is True and self.fileops.rename_file(aside, target) is True):
                 print(strings.INFO_SWAP_FAILED.format(shown))
                 raise exceptions.SavedFileException(strings.SWAP_FAILED_REASON.format(shown, shown))
+            print(strings.INFO_SWAP_RESTORED.format(shown))
         fresh = self.fileops.save_bytes(name + strings.SWAP_NEW_SUFFIX, content)
         try:
             intact = self.fileops.saved_intact(fresh, len(content)) is True

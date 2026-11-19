@@ -3,6 +3,7 @@ import { misnamedFiles } from './renames';
 import { ImportDialog } from './import-dialog';
 import { DatingResult, FoundFile, FoundWork, ImportRequest, SwapLeftover, swapLeftovers, unindexedWorks } from './imports';
 import { Jobs } from './jobs';
+import { VisitLog } from './visit-log';
 import { Library } from './library';
 import { DuplicateGroup, IMPORT_EXCLUDED_FILE, LibraryImports, duplicateGroups } from './imports';
 import { Bookmark } from './bookmarks';
@@ -1733,6 +1734,7 @@ describe('ImportDialog', () => {
     ]);
     expect(element.querySelector('.leftovers-said')!.textContent!.replace(/\s+/g, ' ')).toContain('Put back 2 files, removed 3.');
     expect(element.querySelector('.leftovers')).toBeNull();
+    expect(TestBed.inject(VisitLog).text()).toContain('files left mid-download - put back 2, removed 3');
     await click('Continue');
     expect(step()).not.toBe('leftovers');
   });
@@ -1770,6 +1772,7 @@ describe('ImportDialog', () => {
   it('opens straight on the index question, looking up just that work to begin with', async () => {
     await openFor('2');
     expect(step()).toBe('index');
+    expect(TestBed.inject(VisitLog).text()).toContain('Resolve issues opened on the index question for 1 work(s)');
     expect(radio('lookupFor', 'this')!.checked).toBe(true);
     expect(radio('lookupFor', 'all')!.closest('label')!.textContent).toContain('(3)');
     await click('Continue');

@@ -196,8 +196,13 @@ export class ImportDialog implements OnInit {
   ngOnInit(): void {
     const asked = new Set(this.lookUpWorks() ?? []);
     const offered = [...new Set([...this.works(), ...this.ignored()].map((w) => w.id))].filter((id) => asked.has(id));
-    if (!offered.length) return;
+    if (!offered.length) {
+      this.visit.note(`Resolve issues: asked to look up ${asked.size} index(es), none offered - opened at its first page`);
+      return;
+    }
     this.focus.set(offered);
+    this.visit.note(`Resolve issues opened on the index question for ${offered.length} work(s)` +
+      (this.ignored().length ? `, ${this.ignored().length} more kept out by an exclusion list` : ''));
     this.step.set('index');
   }
 
@@ -1328,13 +1333,18 @@ export class ImportDialog implements OnInit {
     }
     if (changed.length && !this.sandbox()) await this.library.refreshAfterRun(changed, store);
     this.leftoversResult.set(result);
+    this.visit.note(`Resolve issues: files left mid-download - put back ${result.restored}, removed ${result.removed}` +
+      (result.failed.length ? `, ${result.failed.length} could not be tidied` : ''));
     this.leftoversDone.set(true);
     this.leftoversBusy.set(false);
   }
 
   /** passed over, or put right: on to the rest of the window */
   protected async fromLeftovers(skip: boolean): Promise<void> {
-    if (skip) this.leftoversDone.set(true);
+    if (skip) {
+      this.leftoversDone.set(true);
+      this.visit.note(`Resolve issues: ${this.leftovers().length} file(s) left mid-download passed over`);
+    }
     await this.afterLeftovers();
   }
 

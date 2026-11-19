@@ -1,4 +1,5 @@
 import { HIDE_WARNING_KEY } from './preferences';
+import { VisitLog } from './visit-log';
 import { LOOSE_PREFIX } from './unindexed-works';
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { WorkLink } from './work-link';
@@ -72,6 +73,7 @@ export const DEFAULT_SORT: WorkSort = 'bookmarked-desc';
 })
 export class WorkList {
   private readonly library = inject(Library);
+  private readonly visit = inject(VisitLog);
 
   readonly works = input.required<Bookmark[]>();
   /** whose listing this is, shown in the heading and on the bookmarker's section */
@@ -992,6 +994,7 @@ export class WorkList {
     } catch {
       text = null;
     }
+    this.visit.note(text === null ? 'View index history: no index file found' : 'View index history: shown in a new tab');
     if (text === null) {
       tab.document.title = 'No index file';
       tab.document.body.textContent = `No index file was found for ${work.title || work.id}.`;

@@ -468,7 +468,7 @@ export class App {
         this.jobs.lookUpAsked.set(null);
         if (this.activeRun() || this.dialogAction()) return;
         this.importLookUp.set(works);
-        this.visit.note('Resolve issues opened on the index question, from a work in the listing');
+        this.visit.note(`Look up its index asked for ${works.length} work(s), from the Works tab`);
         this.importOpen.set(true);
       });
     });
