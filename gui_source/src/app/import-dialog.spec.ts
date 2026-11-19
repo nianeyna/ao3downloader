@@ -1680,6 +1680,67 @@ describe('ImportDialog', () => {
 
   // region the index and the formats
 
+  // region opened from a work's 'Look up its index from AO3 here'
+
+  async function openFor(work: string, works: FoundWork[] = SOME, elsewhere: FoundFile[] = INDEXED_UNDATED) {
+    fixture = TestBed.createComponent(ImportDialog);
+    store = new MemoryStore();
+    fixture.componentRef.setInput('works', works);
+    fixture.componentRef.setInput('undatedElsewhere', elsewhere);
+    fixture.componentRef.setInput('store', store);
+    fixture.componentRef.setInput('lookUpWork', work);
+    closed = [];
+    started = [];
+    fixture.componentInstance.closed.subscribe((x) => closed.push(x));
+    fixture.componentInstance.start.subscribe((x) => started.push(x));
+    await fixture.whenStable();
+    element = fixture.nativeElement as HTMLElement;
+  }
+
+  it('opens straight on the index question, looking up just that work to begin with', async () => {
+    await openFor('2');
+    expect(step()).toBe('index');
+    expect(radio('lookupFor', 'this')!.checked).toBe(true);
+    expect(radio('lookupFor', 'all')!.closest('label')!.textContent).toContain('(3)');
+    await click('Continue');
+    // the dates were passed over: only that work's index is in question
+    expect(step()).toBe('formats');
+    expect(radio('updateScope', 'all')!.closest('label')!.textContent).toContain('(1)');
+    await choose('updateFetch', 'skip');
+    await click('Continue');
+
+    expect(started[0].request).toMatchObject({
+      links: 'https://archiveofourown.org/works/2',
+      indexOnly: ['2'],
+      lookups: 1,
+      scope: 'skip',
+    });
+  });
+
+  it('looks up every work with no index entry when told to', async () => {
+    await openFor('2');
+    await choose('lookupFor', 'all');
+    await click('Continue');
+    await choose('updateFetch', 'skip');
+    await click('Continue');
+
+    expect(started[0].request.links.split('\n').map((l) => l.split('/').pop())).toEqual(['1', '2', '3']);
+  });
+
+  it('goes back to the start of the whole window, which then asks about every work', async () => {
+    await openFor('2');
+    await click('Back');
+    expect(step()).toBe('overview');
+    expect(radio('lookupFor', 'this')).toBeNull();
+  });
+
+  it('opens at its start as ever for a work it does not offer', async () => {
+    await openFor('99');
+    expect(step()).toBe('overview');
+  });
+
+  // endregion
+
   it('asks about the index on a page of its own, then the formats on the next', async () => {
     await open(ALL_DATED);
     await click('Continue');

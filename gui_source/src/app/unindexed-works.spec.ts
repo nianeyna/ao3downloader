@@ -132,11 +132,11 @@ describe('files no index entry matches', () => {
     expect(said).toEqual(['2024-05-06 (best guess from filename)', '2023-03-04 (best guess from filedate)']);
   });
 
-  it('asks for Resolve issues when its look-up link is pressed', async () => {
+  it('asks for Resolve issues on its own work when its look-up link is pressed', async () => {
     const element = await listed(unindexedRows([file('123 A Title - Writer.html')], nothingIndexed));
     const jobs = TestBed.inject(Jobs);
     element.querySelector<HTMLButtonElement>('.resolve-now')!.click();
-    expect(jobs.resolveIssuesAsked()).toBe(1);
+    expect(jobs.lookUpAsked()).toBe('123');
   });
 
   it('offers nothing to tick, hide or fetch for a file with no work number', async () => {

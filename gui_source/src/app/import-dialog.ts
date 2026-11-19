@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, linkedSignal, output, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, output, signal, untracked, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import {
   DatingResult,
@@ -85,7 +85,7 @@ type RemovalStep = { group: DuplicateGroup; remove: string[] } | { group: Duplic
   templateUrl: './import-dialog.html',
   styleUrl: './import-dialog.css',
 })
-export class ImportDialog {
+export class ImportDialog implements OnInit {
   private readonly jobs = inject(Jobs);
   private readonly library = inject(Library);
   private readonly imports = inject(LibraryImports);
@@ -176,6 +176,24 @@ export class ImportDialog {
   readonly remindLater = output<void>();
 
   protected readonly step = signal<Step>('overview');
+
+  /**
+   * Opened from a work's *Look up its index from AO3 here* in the Works tab: the window opens
+   * straight on the index question, every page before it passed over, and asks whether to look
+   * up just that work or every work with no index entry.
+   */
+  readonly lookUpWork = input<string | null>(null);
+  /** the work the window was opened for, while it is still the one asked about */
+  protected readonly focus = signal<string | null>(null);
+  /** just the work the window was opened for, or every work with no index entry */
+  protected readonly lookupFor = signal<'this' | 'all'>('this');
+
+  ngOnInit(): void {
+    const work = this.lookUpWork();
+    if (!work || !this.works().some((w) => w.id === work)) return;
+    this.focus.set(work);
+    this.step.set('index');
+  }
 
   /** every undated file, by name */
   protected readonly undated = computed(() =>
@@ -1121,14 +1139,20 @@ export class ImportDialog {
   /** the works with no index entry that the index page asks about */
   protected readonly toLookUp = computed(() => {
     const repaired = new Set(this.repairIndexes().map((w) => w.id));
+    const focus = this.focus();
+    if (focus && this.lookupFor() === 'this') return this.works().filter((w) => w.id === focus);
     return this.works().filter((w) => !repaired.has(w.id));
   });
+  /** every work with no index entry, for the *all* choice's count when opened for one work */
+  protected readonly allUnindexed = computed(() => this.works().length);
   protected readonly lookups = computed(() => (this.lookup() === 'yes' ? this.toLookUp().map((w) => w.id) : []));
   /**
    * The works with date issues that can be updated: an undated file, of an indexed work or of
    * one looked up now - a work left unindexed is left alone altogether.
    */
   protected readonly dateIssues = computed(() => {
+    // opened for one work's lookup, the dates were passed over: only the index is in question
+    if (this.focus()) return [];
     const looked = new Set(this.lookups());
     const indexed = new Set(this.works().map((w) => w.id));
     // a file of a work left out of the index question is dated, never looked up for an update
@@ -1371,6 +1395,12 @@ export class ImportDialog {
   }
 
   protected backFrom(step: 'dates' | 'repair' | 'index' | 'formats'): void {
+    // opened on the index question for one work: back is the whole window from its start
+    if (step === 'index' && this.focus()) {
+      this.focus.set(null);
+      this.step.set('overview');
+      return;
+    }
     // the repair page is only choices, so it can always be gone back to; the dates only while
     // nothing has been renamed yet
     const beforeIndex: Step = this.toRepair().length ? 'repair'

@@ -837,6 +837,20 @@
   <!-- 4: the works with no index entry - look them up now, later, or never? -->
   @if (step() === 'index') {
     <section class="body">
+      @if (focus(); as work) {
+        <!-- opened from one work's 'Look up its index from AO3 here' -->
+        <fieldset class="lookup-for">
+          <legend>Which works?</legend>
+          <label class="check">
+            <input type="radio" name="lookupFor" value="this" [checked]="lookupFor() === 'this'" (change)="lookupFor.set('this')" />
+            <span>Just for this work <span class="dim">(work {{ work }})</span></span>
+          </label>
+          <label class="check">
+            <input type="radio" name="lookupFor" value="all" [checked]="lookupFor() === 'all'" (change)="lookupFor.set('all')" />
+            <span>For all missing indexes <span class="dim">({{ allUnindexed() | number }})</span></span>
+          </label>
+        </fieldset>
+      }
       <fieldset>
         <legend>Fetch their index entries from AO3 now?</legend>
         <p class="hint">

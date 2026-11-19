@@ -1,1 +1,1 @@
-Resolve issues can now repair files with no date from AO3, FicHub or your FicFairy index. Fic runs and imports now fall back to FicHub when AO3 is down for maintenance.
+Resolve issues can now repair files with no date from AO3, FicHub or your FicFairy index, and look up one work's index straight from the Works tab. Fic runs and imports now fall back to FicHub when AO3 is down.

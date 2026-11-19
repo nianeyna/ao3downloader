@@ -144,6 +144,8 @@ export class App {
   );
   /** whether the import window is up */
   protected readonly importOpen = signal(false);
+  /** the work Resolve issues was opened to look up, from the Works tab - none when opened otherwise */
+  protected readonly importLookUp = signal<string | null>(null);
   /** the formats an old naming pattern left, ticked on the rename step once it was just changed */
   protected readonly renameFrom = signal<string[]>([]);
   /**
@@ -281,6 +283,7 @@ export class App {
   /** the import window closed without starting a run - the files it dated are taken in */
   protected importClosed(dated: DatingResult | null): void {
     this.importOpen.set(false);
+    this.importLookUp.set(null);
     this.renameFrom.set([]);
     void this.takeInDating(dated);
   }
@@ -288,6 +291,7 @@ export class App {
   /** the import window's choices made: on to the run window, which asks the rest */
   protected importStart(chosen: { request: ImportRequest; dated: DatingResult | null }): void {
     this.importOpen.set(false);
+    this.importLookUp.set(null);
     this.renameFrom.set([]);
     void this.takeInDating(chosen.dated);
     this.importing.set(chosen.request);
@@ -456,11 +460,16 @@ export class App {
       });
     });
     // 'look up its index' on a file no index entry matches: Resolve issues, as the reminder opens it
+    // opened straight on the index question, for that work or every work with none
     effect(() => {
-      if (!this.jobs.resolveIssuesAsked()) return;
+      const work = this.jobs.lookUpAsked();
+      if (!work) return;
       untracked(() => {
-        this.jobs.resolveIssuesAsked.set(0);
-        this.openImport();
+        this.jobs.lookUpAsked.set(null);
+        if (this.activeRun() || this.dialogAction()) return;
+        this.importLookUp.set(work);
+        this.visit.note('Resolve issues opened on the index question, from a work in the listing');
+        this.importOpen.set(true);
       });
     });
     effect(() => {
@@ -551,6 +560,7 @@ export class App {
         if (guest && (this.view() === 'debug' || this.view() === 'bug')) this.view.set('bookmarks');
         this.dialogAction.set(null);
         this.importOpen.set(false);
+        this.importLookUp.set(null);
         this.jobs.activeRuns.set([]);
         this.jobs.forgetHistory();
         void this.jobs.loadConfig();

@@ -399,7 +399,7 @@
           } @else {
             <button type="button" class="link-button resolve-now" [disabled]="runGoing()"
               [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
-              (click)="resolveIssues()">Look up its index from AO3 here</button>, or
+              (click)="resolveIssues(work)">Look up its index from AO3 here</button>, or
             <button type="button" class="link-button download-now" [disabled]="runGoing()"
               [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
               (click)="downloadNow(work)">download the latest version of this work</button>.

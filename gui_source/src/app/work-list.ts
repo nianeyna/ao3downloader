@@ -943,9 +943,9 @@ export class WorkList {
     return OPENABLE_FORMATS.flatMap((format) => (files[format] ? [copyName(files[format]!)] : []));
   }
 
-  /** opens Resolve issues, which looks a file with no index entry up on AO3 */
-  protected resolveIssues(): void {
-    if (!this.runGoing()) this.jobs.resolveIssuesAsked.update((n) => n + 1);
+  /** opens Resolve issues on its index question, to look this work (or every one) up on AO3 */
+  protected resolveIssues(work: Bookmark): void {
+    if (!this.runGoing() && work.id) this.jobs.lookUpAsked.set(work.id);
   }
 
   /** a row for a file whose name holds no work number: nothing to hide, tick or fetch it by */
