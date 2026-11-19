@@ -208,8 +208,7 @@
 <!-- debug mode says so above everything else, on every tab -->
 @if (debugMode.on()) {
   <div class="debug-banner" role="status">
-    <strong>Debug mode is on.</strong> The DEBUG tab has tools for trying the app out. Turn it off
-    in User settings.
+    <strong>Debug mode is on.</strong> The DEBUG tab has tools for trying the app out.
     @if (dummyData.active()) {
       <span class="dummy-note">Showing <strong>dummy data</strong> for
       {{ mode() === 'dropbox' ? 'Dropbox' : 'This computer' }} - not your library. Runs are held.</span>
