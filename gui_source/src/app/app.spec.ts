@@ -1762,6 +1762,23 @@ describe('App', () => {
     expect(element.querySelector('app-debug-tab')).toBeTruthy();
   });
 
+  it('leaves debug mode from its banner, moving off the DEBUG tab', async () => {
+    localStorage.clear();
+    TestBed.inject(DebugMode).set(true);
+    const fixture = TestBed.createComponent(App);
+    await settled(fixture);
+    const element = fixture.nativeElement as HTMLElement;
+    tab(element, 'DEBUG')!.click();
+    await fixture.whenStable();
+
+    element.querySelector<HTMLButtonElement>('.debug-leave button')!.click();
+    await settled(fixture);
+    expect(TestBed.inject(DebugMode).on()).toBe(false);
+    expect(element.querySelector('.debug-banner')).toBeNull();
+    expect(tab(element, 'DEBUG')).toBeUndefined();
+    expect(element.querySelector('app-debug-tab')).toBeNull();
+  });
+
   it('neither opens the window nor shows the reminder once told never to ask again', async () => {
     localStorage.clear();
     localStorage.setItem('ao3.importOfferOff', 'off');

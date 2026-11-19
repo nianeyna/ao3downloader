@@ -431,6 +431,13 @@ export class App {
    */
   protected readonly debugTools = computed(() => this.debugMode.on());
 
+  /** the banner's way out: debug mode off, and off the DEBUG tab, which goes with it */
+  protected leaveDebugMode(): void {
+    this.debugMode.set(false);
+    if (this.view() === 'debug') this.view.set('bookmarks');
+    this.visit.note('Debug mode turned off, from the debug banner');
+  }
+
   constructor() {
     // the selection bar is pinned above the version bar, which wraps onto more lines on a
     // narrow window - so its height is measured rather than guessed (--app-footer-height)

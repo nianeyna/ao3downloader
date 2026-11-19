@@ -214,6 +214,10 @@
       <span class="dummy-note">Showing <strong>dummy data</strong> for
       {{ mode() === 'dropbox' ? 'Dropbox' : 'This computer' }} - not your library. Runs are held.</span>
     }
+    <!-- the way out, as the guest preview has one -->
+    <span class="debug-leave">
+      <button type="button" class="button" (click)="leaveDebugMode()">Leave debug mode</button>
+    </span>
   </div>
 }
 
