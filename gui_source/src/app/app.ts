@@ -145,7 +145,7 @@ export class App {
   /** whether the import window is up */
   protected readonly importOpen = signal(false);
   /** the work Resolve issues was opened to look up, from the Works tab - none when opened otherwise */
-  protected readonly importLookUp = signal<string | null>(null);
+  protected readonly importLookUp = signal<string[] | null>(null);
   /** the formats an old naming pattern left, ticked on the rename step once it was just changed */
   protected readonly renameFrom = signal<string[]>([]);
   /**
@@ -462,12 +462,12 @@ export class App {
     // 'look up its index' on a file no index entry matches: Resolve issues, as the reminder opens it
     // opened straight on the index question, for that work or every work with none
     effect(() => {
-      const work = this.jobs.lookUpAsked();
-      if (!work) return;
+      const works = this.jobs.lookUpAsked();
+      if (!works?.length) return;
       untracked(() => {
         this.jobs.lookUpAsked.set(null);
         if (this.activeRun() || this.dialogAction()) return;
-        this.importLookUp.set(work);
+        this.importLookUp.set(works);
         this.visit.note('Resolve issues opened on the index question, from a work in the listing');
         this.importOpen.set(true);
       });

@@ -182,9 +182,9 @@ export class ImportDialog implements OnInit {
    * straight on the index question, every page before it passed over, and asks whether to look
    * up just that work or every work with no index entry.
    */
-  readonly lookUpWork = input<string | null>(null);
-  /** the work the window was opened for, while it is still the one asked about */
-  protected readonly focus = signal<string | null>(null);
+  readonly lookUpWorks = input<string[] | null>(null);
+  /** the works the window was opened for - one, or those ticked */
+  protected readonly focus = signal<string[] | null>(null);
   /**
    * Works with no index entry the exclusion lists keep out of `works` - only ever looked up when
    * the window was opened for one of them, or for every missing index, ignored ones included.
@@ -194,9 +194,10 @@ export class ImportDialog implements OnInit {
   protected readonly lookupFor = signal<'this' | 'all' | 'ignored'>('this');
 
   ngOnInit(): void {
-    const work = this.lookUpWork();
-    if (!work || ![...this.works(), ...this.ignored()].some((w) => w.id === work)) return;
-    this.focus.set(work);
+    const asked = new Set(this.lookUpWorks() ?? []);
+    const offered = [...new Set([...this.works(), ...this.ignored()].map((w) => w.id))].filter((id) => asked.has(id));
+    if (!offered.length) return;
+    this.focus.set(offered);
     this.step.set('index');
   }
 
@@ -1160,8 +1161,11 @@ export class ImportDialog implements OnInit {
   protected readonly updateFor = signal<'this' | 'all' | 'ignored'>('this');
   /** the works one of the look-up's choices stands for */
   private worksFor(choice: 'this' | 'all' | 'ignored'): FoundWork[] {
-    const focus = this.focus();
-    if (choice === 'this') return [...this.works(), ...this.ignored()].filter((w) => w.id === focus).slice(0, 1);
+    const focus = new Set(this.focus() ?? []);
+    if (choice === 'this') {
+      const seen = new Set<string>();
+      return [...this.works(), ...this.ignored()].filter((w) => focus.has(w.id) && !seen.has(w.id) && !!seen.add(w.id));
+    }
     if (choice === 'all') return this.works();
     const ids = new Set(this.works().map((w) => w.id));
     return [...this.works(), ...this.ignored().filter((w) => !ids.has(w.id))];

@@ -1,7 +1,9 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { MemoryStore } from './memory-store';
 import { describe, expect, it } from 'vitest';
 import { readUnindexedFile, unindexedRows, LOOSE_PREFIX } from './unindexed-works';
-import { WorksFile } from './library';
+import { Library, WorksFile } from './library';
 import { WorkList } from './work-list';
 import { Bookmark } from './bookmarks';
 import { Jobs } from './jobs';
@@ -136,7 +138,7 @@ describe('files no index entry matches', () => {
     const element = await listed(unindexedRows([file('123 A Title - Writer.html')], nothingIndexed));
     const jobs = TestBed.inject(Jobs);
     element.querySelector<HTMLButtonElement>('.resolve-now')!.click();
-    expect(jobs.lookUpAsked()).toBe('123');
+    expect(jobs.lookUpAsked()).toEqual(['123']);
   });
 
   it('offers nothing to tick, hide or fetch for a file with no work number', async () => {
@@ -145,6 +147,28 @@ describe('files no index entry matches', () => {
     expect(element.querySelector('input.pick')).toBeNull();
     expect(element.querySelector('.entry-actions')).toBeNull();
     expect(element.querySelector('.download-now')).toBeNull();
+  });
+
+  it('offers the look-up in its ⋯ menu, and for every ticked one in the selection bar', async () => {
+    const rows = unindexedRows([file('123 A - W 2024-01-01.html'), file('456 B - W 2024-01-01.html')], nothingIndexed);
+    const element = await listed(rows);
+    const jobs = TestBed.inject(Jobs);
+    const fixture = TestBed.inject(ApplicationRef);
+    // a library the page can write to, so works can be ticked
+    TestBed.inject(Library).store.set(new MemoryStore());
+    fixture.tick();
+
+    element.querySelector<HTMLButtonElement>('.entry-menu-toggle')!.click();
+    fixture.tick();
+    element.querySelector<HTMLButtonElement>('.look-up-now')!.click();
+    expect(jobs.lookUpAsked()).toEqual(['123']);
+
+    for (const box of Array.from(element.querySelectorAll<HTMLInputElement>('input.pick'))) box.click();
+    fixture.tick();
+    const button = element.querySelector<HTMLButtonElement>('.look-up-ticked')!;
+    expect(button.textContent!.trim()).toBe('Look up 2 indexes');
+    button.click();
+    expect([...jobs.lookUpAsked()!].sort()).toEqual(['123', '456']);
   });
 
   // endregion

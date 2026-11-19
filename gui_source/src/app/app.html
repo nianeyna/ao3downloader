@@ -398,7 +398,7 @@
 
 @if (importOpen()) {
   <app-import-dialog [works]="imports.found()" [undatedElsewhere]="imports.undatedIndexed()" [duplicates]="imports.duplicates()"
-                     [misnamed]="imports.misnamed()" [renameFrom]="renameFrom()" [lookUpWork]="importLookUp()" [ignored]="imports.ignoredIndex()"
+                     [misnamed]="imports.misnamed()" [renameFrom]="renameFrom()" [lookUpWorks]="importLookUp()" [ignored]="imports.ignoredIndex()"
                      [store]="library.store()"
                      [formats]="importFormats()" [busy]="!!activeRun()"
                      (askAgainChanged)="setImportOffered($event)"

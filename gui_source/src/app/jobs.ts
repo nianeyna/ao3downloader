@@ -729,11 +729,12 @@ export class Jobs {
    */
   readonly fetchWorksAsked = signal<string[] | null>(null);
   /**
-   * A work's index asked to be looked up from a listing - the *Look up its index from AO3 here*
-   * link on a file no index entry matches, by work number. `App` takes it and opens Resolve
-   * issues straight on the index question, for that work or every work with none.
+   * Works' indexes asked to be looked up from a listing, by work number - a file no index entry
+   * matches: its *Look up its index from AO3 here* link or ⋯ menu item (one), or the selection
+   * bar's *Look up N indexes* (those ticked). `App` takes it and opens Resolve issues straight on
+   * the index question, for those works or every work with none.
    */
-  readonly lookUpAsked = signal<string | null>(null);
+  readonly lookUpAsked = signal<string[] | null>(null);
 
   async loadConfig(): Promise<ServerConfig | null> {
     try {

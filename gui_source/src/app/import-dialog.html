@@ -844,15 +844,19 @@
       <p class="hint index-about">
         An index entry is what FicFairy keeps about a work: its title, author, summary, tags, word and
         chapter counts, and when it was last updated on AO3. It lets you browse, search and filter
-        your works here, and lets later runs tell when AO3 has a newer version.
+        your works here.
       </p>
-      @if (focus(); as work) {
+      @if (focus(); as works) {
         <!-- opened from one work's 'Look up its index from AO3 here' -->
         <fieldset class="lookup-for">
           <legend>Which works?</legend>
           <label class="check">
             <input type="radio" name="lookupFor" value="this" [checked]="lookupFor() === 'this'" (change)="lookupFor.set('this')" />
-            <span>Just for this work <span class="dim">(work {{ work }})</span></span>
+            @if (works.length === 1) {
+              <span>Just for this work <span class="dim">(work {{ works[0] }})</span></span>
+            } @else {
+              <span>Just for these works <span class="dim">({{ works.length | number }})</span></span>
+            }
           </label>
           <label class="check">
             <input type="radio" name="lookupFor" value="all" [checked]="lookupFor() === 'all'" (change)="lookupFor.set('all')" />
@@ -934,7 +938,11 @@
               <!-- opened for a work's own look-up: which of the works with no index entry -->
               <label class="check">
                 <input type="radio" name="updateFor" value="this" [checked]="updateFor() === 'this'" (change)="updateFor.set('this')" />
-                <span>Just this fic</span>
+                @if ((focus() ?? []).length === 1) {
+                  <span>Just this fic</span>
+                } @else {
+                  <span>Just these fics <span class="dim">({{ (focus() ?? []).length | number }})</span></span>
+                }
               </label>
               <label class="check">
                 <input type="radio" name="updateFor" value="all" [checked]="updateFor() === 'all'" (change)="updateFor.set('all')" />
@@ -972,13 +980,6 @@
         </label>
       </fieldset>
       @if (scopeChosen() !== 'skip') {
-        <label class="check overwrite">
-          <input type="checkbox" name="overwrite" [checked]="overwrite()" (change)="overwrite.set($any($event.target).checked)" />
-          <span>
-            Overwrite existing downloads
-            <span class="hint">Check this if you are concerned about file integrity issues and would like to re-download each file again.</span>
-          </span>
-        </label>
         <fieldset class="formats">
           <legend>File types</legend>
           @for (format of offered(); track format) {
@@ -993,6 +994,13 @@
             </label>
           }
         </fieldset>
+        <label class="check overwrite">
+          <input type="checkbox" name="overwrite" [checked]="overwrite()" (change)="overwrite.set($any($event.target).checked)" />
+          <span>
+            Overwrite existing downloads
+            <span class="hint">Check this if you are concerned about file integrity issues and would like to re-download each file again.</span>
+          </span>
+        </label>
       }
       @if (busy()) {
         <p class="warning busy-note" role="note">A run is in progress. It has to finish before an import can start.</p>

@@ -712,6 +712,18 @@
                     }
                   </li>
                 }
+                <!-- a file no index entry matches: Resolve issues, on its index question -->
+                @if (work.unindexed && !isLoose(work)) {
+                  <li role="none">
+                    <button type="button" role="menuitem" class="look-up-now"
+                      [class.unavailable]="runGoing()"
+                      [attr.aria-disabled]="runGoing()"
+                      [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
+                      (click)="!runGoing() && resolveIssues(work)">
+                      Look up its index
+                    </button>
+                  </li>
+                }
                 <!-- works only: a series or an external work has no such item at all -->
                 @if (!work.error && worksToFetch(work).length) {
                   <li role="none">
@@ -898,6 +910,12 @@
         }
         @if (tickedHidden().length) {
           <button type="button" class="button" [disabled]="busy()" (click)="unhideTicked()">{{ unhideLabel() }}</button>
+        }
+        <!-- the ticked works with no index entry: Resolve issues, on its index question -->
+        @if (tickedToLookUp().length) {
+          <button type="button" class="button look-up-ticked" [disabled]="busy() || runGoing()"
+            [title]="runGoing() ? 'Unavailable while a run is already in progress' : ''"
+            (click)="lookUpTicked()">{{ lookUpTickedLabel() }}</button>
         }
         <!-- every ticked work, a series as its works, external works left out: several fics run -->
         <button type="button" class="button fetch-ticked" [disabled]="busy() || runGoing() || !tickedToFetch().length"

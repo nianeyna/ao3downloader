@@ -1682,7 +1682,7 @@ describe('ImportDialog', () => {
 
   // region opened from a work's 'Look up its index from AO3 here'
 
-  async function openFor(work: string, works: FoundWork[] = SOME, elsewhere: FoundFile[] = INDEXED_UNDATED,
+  async function openFor(work: string | string[], works: FoundWork[] = SOME, elsewhere: FoundFile[] = INDEXED_UNDATED,
                          ignored: FoundWork[] = []) {
     fixture = TestBed.createComponent(ImportDialog);
     store = new MemoryStore();
@@ -1690,7 +1690,7 @@ describe('ImportDialog', () => {
     fixture.componentRef.setInput('ignored', ignored);
     fixture.componentRef.setInput('undatedElsewhere', elsewhere);
     fixture.componentRef.setInput('store', store);
-    fixture.componentRef.setInput('lookUpWork', work);
+    fixture.componentRef.setInput('lookUpWorks', Array.isArray(work) ? work : [work]);
     closed = [];
     started = [];
     fixture.componentInstance.closed.subscribe((x) => closed.push(x));
@@ -1723,10 +1723,21 @@ describe('ImportDialog', () => {
     });
   });
 
+  it('says these works and these fics when opened for several ticked works', async () => {
+    await openFor(['1', '3']);
+    expect(radio('lookupFor', 'this')!.closest('label')!.textContent!.replace(/\s+/g, ' ')).toContain('Just for these works (2)');
+    await click('Continue');
+    expect(radio('updateFor', 'this')!.closest('label')!.textContent!.replace(/\s+/g, ' ')).toContain('Just these fics (2)');
+    await choose('updateFetch', 'skip');
+    await click('Continue');
+    expect(started[0].request.links.split('\n').map((l) => l.split('/').pop()).sort()).toEqual(['1', '3']);
+  });
+
   it('explains what an index entry is, and does not ask whether to fetch one - it is yes', async () => {
     await openFor('2');
     expect(element.querySelector('.index-count')!.textContent!.trim()).toBe('1 work has no index entry.');
     expect(element.querySelector('.index-about')!.textContent).toContain('title, author, summary, tags');
+    expect(element.querySelector('.index-about')!.textContent).not.toContain('newer version');
     expect(radio('lookup', 'yes')).toBeNull();
   });
 

@@ -494,6 +494,22 @@ export class WorkList {
     if (works.length) this.jobs.fetchWorksAsked.set(works);
   }
 
+  /** the ticked entries made from files no index entry matches, by work number */
+  protected readonly tickedToLookUp = computed(() => [...new Set(
+    this.selectedShown().filter((w) => w.unindexed && !!w.id && !w.id.startsWith(LOOSE_PREFIX)).map((w) => w.id!),
+  )]);
+
+  protected readonly lookUpTickedLabel = computed(() => {
+    const n = this.tickedToLookUp().length;
+    return `Look up ${n.toLocaleString()} ${n === 1 ? 'index' : 'indexes'}`;
+  });
+
+  /** Resolve issues on its index question, for the ticked works with no index entry */
+  protected lookUpTicked(): void {
+    const works = this.tickedToLookUp();
+    if (works.length && !this.runGoing()) this.jobs.lookUpAsked.set(works);
+  }
+
   protected downloadTicked(): void {
     const works = this.tickedToFetch();
     if (works.length) this.jobs.fetchWorksAsked.set(works);
@@ -945,7 +961,8 @@ export class WorkList {
 
   /** opens Resolve issues on its index question, to look this work (or every one) up on AO3 */
   protected resolveIssues(work: Bookmark): void {
-    if (!this.runGoing() && work.id) this.jobs.lookUpAsked.set(work.id);
+    this.menuFor.set(null);
+    if (!this.runGoing() && work.id && work.unindexed && !this.isLoose(work)) this.jobs.lookUpAsked.set([work.id]);
   }
 
   /** a row for a file whose name holds no work number: nothing to hide, tick or fetch it by */
