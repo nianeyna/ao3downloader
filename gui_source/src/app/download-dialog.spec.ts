@@ -1195,7 +1195,7 @@ describe('DownloadDialog', () => {
 
     const problem = element.querySelector('.range-problem')!;
     expect(problem.textContent).toContain(
-      'The updated on or after date (30 June 2024) is later than the on or before date (1 January 2024)');
+      'The updated on or after date (30 June 2024) is later than the on or before date (1 January 2024). Please fix this to continue.');
     const next = element.querySelector<HTMLButtonElement>('footer .button.primary')!;
     expect(next.disabled).toBe(true);
 
@@ -1211,7 +1211,7 @@ describe('DownloadDialog', () => {
     await open('custom');
     await advanceTo('options');
     await chooseWindow('2999-01-01');
-    expect(element.querySelector('.range-problem')!.textContent).toContain('is later than today');
+    expect(element.querySelector('.range-problem')!.textContent).toContain('is later than today. Please fix this to continue.');
     expect(element.querySelector<HTMLButtonElement>('footer .button.primary')!.disabled).toBe(true);
   });
 

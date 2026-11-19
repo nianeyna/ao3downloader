@@ -1747,8 +1747,8 @@ export class DownloadDialog implements OnDestroy {
     const word = this.action() === 'quick' ? 'bookmarked or updated' : this.rangeWord().toLowerCase();
     return chosenTo
       ? `The ${word} on or after date (${writtenDate(from)}) is later than the on or before date ` +
-        `(${writtenDate(chosenTo)}), so nothing could match. They can be the same day.`
-      : `The ${word} on or after date (${writtenDate(from)}) is later than today, so nothing could match.`;
+        `(${writtenDate(chosenTo)}). Please fix this to continue.`
+      : `The ${word} on or after date (${writtenDate(from)}) is later than today. Please fix this to continue.`;
   });
 
   protected afterOptions(): void {
