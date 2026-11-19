@@ -1102,8 +1102,9 @@ export class DownloadDialog implements OnDestroy {
    * from the newest and stopping at the older end.
    */
   protected readonly dateRange = computed(() => {
-    const oldest = this.dateFrom();
-    const newest = this.betweenDates() ? this.dateTo() : '';
+    // written as a reader reads a date (3 March 2024), as everywhere else a date is said
+    const oldest = writtenDate(this.dateFrom());
+    const newest = this.betweenDates() ? writtenDate(this.dateTo()) : '';
     // a quick scan picks by either date; a custom run's range by the order it reads in
     const what = this.action() === 'quick' ? 'bookmarked or updated' : this.rangeWord().toLowerCase();
     if (!oldest) {
@@ -1732,7 +1733,26 @@ export class DownloadDialog implements OnDestroy {
     () => this.floorRuns()?.find((run) => run.id === this.floorRun()) ?? null,
   );
 
+  /**
+   * What is wrong with the date range, or '' - an *on or after* later than *on or before* (or
+   * than today, when that is left empty) can match nothing. The same day is fine: both ends count.
+   */
+  protected readonly rangeProblem = computed(() => {
+    if (!this.picksDates() || !this.useDates()) return '';
+    const from = this.dateFrom();
+    if (!from) return '';
+    const chosenTo = this.betweenDates() ? this.dateTo() : '';
+    const to = chosenTo || utcToZonedDay(new Date().toISOString());
+    if (from <= to) return '';
+    const word = this.action() === 'quick' ? 'bookmarked or updated' : this.rangeWord().toLowerCase();
+    return chosenTo
+      ? `The ${word} on or after date (${writtenDate(from)}) is later than the on or before date ` +
+        `(${writtenDate(chosenTo)}), so nothing could match. They can be the same day.`
+      : `The ${word} on or after date (${writtenDate(from)}) is later than today, so nothing could match.`;
+  });
+
   protected afterOptions(): void {
+    if (this.step() === 'options' && this.rangeProblem()) return;
     if (this.resuming()) {
       this.toRetryList();
       return;

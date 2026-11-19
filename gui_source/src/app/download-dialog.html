@@ -475,6 +475,9 @@
             <input type="date" name="dateFrom" [value]="dateFrom()"
                    (input)="dateFrom.set($any($event.target).value)" />
           </label>
+          @if (rangeProblem()) {
+            <p class="warning range-problem" role="alert">{{ rangeProblem() }}</p>
+          }
 
           @if (action() === 'quick') {
             <p class="hint">
@@ -492,7 +495,7 @@
             <p class="hint">
               Indexing reads your bookmarks twice, newest first, each time down to
               @if (dateFrom()) {
-                <strong>{{ dateFrom() }}</strong>:
+                <strong>{{ writtenDate(dateFrom()) }}</strong>:
               } @else {
                 the very end - there is no <em>on or after</em> date to stop at, so it
                 <strong>reads the whole listing</strong>, once:
@@ -658,7 +661,8 @@
         <button type="button" class="button subtle" (click)="backFrom('options')">
           {{ hasStepBefore('options') ? 'Back' : 'Cancel' }}
         </button>
-        <button type="button" class="button primary" (click)="afterOptions()">Continue</button>
+        <button type="button" class="button primary" [disabled]="!!rangeProblem()"
+                [title]="rangeProblem() ? 'Fix the date range first' : ''" (click)="afterOptions()">Continue</button>
       </footer>
     }
 
