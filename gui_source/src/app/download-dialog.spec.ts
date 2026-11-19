@@ -3024,10 +3024,10 @@ describe('DownloadDialog', () => {
       expect(currentStep()).toBe('credentials');
       expect(element.querySelector('h2')?.textContent).toContain('Resolve issues found in your library');
       const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
+      // the formats are not said; the works updated are those not only looked up
       expect(lines).toEqual([
-        'Lookup 2 works with missing index',
-        'Download EPUB for any fics found to have date issues in this import',
-        'Will replace any outdated files with newer ones, if they exist',
+        'Look-up 2 works with missing index',
+        'Search 1 work for updates',
       ]);
       expect(button('Start repair')).toBeTruthy();
       // nothing about remembering a username on a repair
@@ -3106,10 +3106,20 @@ describe('DownloadDialog', () => {
       expect(sent.options.overwrite).toBe(false);
     });
 
+    it('says it will re-download and overwrite existing files when told to overwrite', async () => {
+      await openImport({ ...IMPORT, overwrite: true });
+      const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
+      expect(lines).toEqual([
+        'Look-up 2 works with missing index',
+        'Search 1 work for updates',
+        'Will re-download and overwrite existing files to repair them',
+      ]);
+    });
+
     it('keeps every copy you have unless told to replace outdated ones', async () => {
       await openImport({ ...IMPORT, filetypes: ['JSON'], replaceOutdated: false, scope: 'skip' });
       const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
-      expect(lines).toEqual(['Lookup 2 works with missing index']);
+      expect(lines).toEqual(['Look-up 2 works with missing index']);
       await advanceTo('running');
       expect(jobs.started[0].options.replaceOutdated).toBe(false);
     });
@@ -3119,7 +3129,7 @@ describe('DownloadDialog', () => {
                          repair: ['1 A.html', '2 B.pdf'], repairFicHub: true, repairFicHubUndated: false });
       const lines = [...element.querySelectorAll('.import-summary li')].map((li) => li.textContent?.trim());
       expect(lines).toEqual([
-        'Lookup 2 works with missing index',
+        'Look-up 2 works with missing index',
         'Repair 2 files with no date from AO3, replacing each with the latest version',
         "Where AO3 can't, overwrite with FicHub's copy - only when the date guessed from the file's name is the same or older",
       ]);

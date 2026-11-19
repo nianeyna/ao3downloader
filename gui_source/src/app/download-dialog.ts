@@ -175,12 +175,6 @@ const METADATA = 'JSON';
 const USERNAME_KEY = SAVED_USERNAME_KEY;
 const REMEMBER_KEY = REMEMBER_USERNAME_KEY;
 
-/** which works a repair's downloads are for, as its summary says it */
-const IMPORT_SCOPE_WORDS: Record<string, string> = {
-  all: 'all fics found to have issues in this import',
-  dates: 'any fics found to have date issues in this import',
-  index: 'any fics found to have index issues in this import',
-};
 const MAX_LOG = 200;
 
 @Component({
@@ -772,18 +766,12 @@ export class DownloadDialog implements OnDestroy {
     if (!importing) return [];
     const lines: string[] = [];
     const lookups = importing.lookups ?? 0;
-    if (lookups) lines.push(`Lookup ${lookups.toLocaleString()} ${lookups === 1 ? 'work' : 'works'} with missing index`);
-    const formats = (importing.filetypes ?? []).filter((x) => x !== METADATA);
-    if (importing.scope !== 'skip' && formats.length) {
-      const named = formats.length > 1
-        ? `${formats.slice(0, -1).join(', ')} and ${formats[formats.length - 1]}`
-        : formats[0];
-      lines.push(`Download ${named} for ${IMPORT_SCOPE_WORDS[importing.scope] ?? IMPORT_SCOPE_WORDS['all']}`);
-    }
-    if (importing.scope !== 'skip' && importing.overwrite) {
-      lines.push('Will download every file again, current or not (files with no date in their name are kept)');
-    } else if (importing.scope !== 'skip' && importing.replaceOutdated) {
-      lines.push('Will replace any outdated files with newer ones, if they exist');
+    if (lookups) lines.push(`Look-up ${lookups.toLocaleString()} ${lookups === 1 ? 'work' : 'works'} with missing index`);
+    // the works updated are those not only looked up; the formats are not said, at the owner's request
+    const updated = importing.scope === 'skip' ? 0 : Math.max(0, (importing.count ?? 0) - (importing.indexOnly?.length ?? 0));
+    if (updated) lines.push(`Search ${updated.toLocaleString()} ${updated === 1 ? 'work' : 'works'} for updates`);
+    if (updated && importing.overwrite) {
+      lines.push('Will re-download and overwrite existing files to repair them');
     }
     const repairs = importing.repair?.length ?? 0;
     if (repairs) {

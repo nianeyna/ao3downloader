@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { misnamedFiles } from './renames';
 import { ImportDialog } from './import-dialog';
-import { DatingResult, FoundFile, FoundWork, ImportRequest, unindexedWorks } from './imports';
+import { DatingResult, FoundFile, FoundWork, ImportRequest, SwapLeftover, swapLeftovers, unindexedWorks } from './imports';
 import { Jobs } from './jobs';
 import { Library } from './library';
 import { DuplicateGroup, IMPORT_EXCLUDED_FILE, LibraryImports, duplicateGroups } from './imports';
@@ -1679,6 +1679,70 @@ describe('ImportDialog', () => {
   // endregion
 
   // region the index and the formats
+
+  // region files a download was left part-way through replacing
+
+  async function openWithLeftovers(leftovers: SwapLeftover[], works: FoundWork[] = SOME) {
+    fixture = TestBed.createComponent(ImportDialog);
+    store = new MemoryStore();
+    fixture.componentRef.setInput('works', works);
+    fixture.componentRef.setInput('store', store);
+    fixture.componentRef.setInput('leftovers', leftovers);
+    closed = [];
+    started = [];
+    fixture.componentInstance.closed.subscribe((x) => closed.push(x));
+    fixture.componentInstance.start.subscribe((x) => started.push(x));
+    await fixture.whenStable();
+    element = fixture.nativeElement as HTMLElement;
+  }
+
+  const LEFTOVERS = swapLeftovers([
+    // set aside, the new copy never arrived: put back
+    'works/1 A - B 2024-01-01.html.ficfairy-old', 'works/1 A - B 2024-01-01.html.ficfairy-new',
+    // the swap had finished: only the old copy left over
+    'works/2 C - D 2024-01-01.pdf', 'works/2 C - D 2024-01-01.pdf.ficfairy-old',
+    // an unfinished new copy beside your file
+    'works/3 E - F 2024-01-01.epub', 'works/3 E - F 2024-01-01.epub.ficfairy-new',
+  ]);
+
+  it('counts the files left mid-download first among the issues', async () => {
+    await openWithLeftovers(LEFTOVERS);
+    expect(element.querySelector('.overview-leftovers')!.textContent!.trim())
+      .toBe('3 files were left part-way through being replaced by an interrupted download');
+  });
+
+  it('puts back a copy set aside, and removes what is left over beside a file, before anything else', async () => {
+    await openWithLeftovers(LEFTOVERS);
+    await click('Continue');
+    expect(step()).toBe('leftovers');
+    const said = element.querySelector('.leftovers')!.textContent!.replace(/\s+/g, ' ');
+    expect(said).toContain('1 A - B 2024-01-01.html - your copy was set aside and the new one never arrived: it will be put back');
+    expect(said).toContain('2 C - D 2024-01-01.pdf - the new copy is in place: the old one left aside will be removed');
+    expect(said).toContain('3 E - F 2024-01-01.epub - an unfinished new copy is beside it: it will be removed, and your file kept');
+
+    await click('Put back and tidy up');
+    await settle();
+    expect(store.renamed).toEqual([['works/1 A - B 2024-01-01.html.ficfairy-old', 'works/1 A - B 2024-01-01.html']]);
+    expect([...store.deleted].sort()).toEqual([
+      'works/1 A - B 2024-01-01.html.ficfairy-new',
+      'works/2 C - D 2024-01-01.pdf.ficfairy-old',
+      'works/3 E - F 2024-01-01.epub.ficfairy-new',
+    ]);
+    expect(element.querySelector('.leftovers-said')!.textContent!.replace(/\s+/g, ' ')).toContain('Put back 1 file, removed 3.');
+    await click('Continue');
+    expect(step()).not.toBe('leftovers');
+  });
+
+  it('can pass them over, and closes when they were all there was', async () => {
+    await openWithLeftovers(LEFTOVERS, []);
+    await click('Continue');
+    await click('Skip this step');
+    expect(store.renamed).toEqual([]);
+    expect(store.deleted).toEqual([]);
+    expect(closed).toHaveLength(1);
+  });
+
+  // endregion
 
   // region opened from a work's 'Look up its index from AO3 here'
 

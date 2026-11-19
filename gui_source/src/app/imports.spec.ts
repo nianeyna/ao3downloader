@@ -21,6 +21,8 @@ import {
   undatedFiles,
   undatedIndexedFiles,
   unindexedWorks,
+  leftoverAction,
+  swapLeftovers,
 } from './imports';
 import { Library } from './library';
 import { LibraryStore } from './library-store';
@@ -368,6 +370,24 @@ describe('duplicates', () => {
     const result = await removeFiles(store, ['works/1 a.html', 'works/1 b.html']);
     expect(result.removed).toEqual(['works/1 a.html']);
     expect(result.failed.map((f) => f.path)).toEqual(['works/1 b.html']);
+  });
+});
+
+describe('swapLeftovers', () => {
+  it('reads what a download replacing a file was left part-way through, and what to do with each', () => {
+    const found = swapLeftovers([
+      'works/1 A.html.ficfairy-old',
+      'works/2 B.pdf', 'works/2 B.pdf.ficfairy-old', 'works/2 B.pdf.ficfairy-new',
+      'works/3 C.epub', 'works/3 C.epub.ficfairy-new',
+      // a new copy with nothing whole beside it is left alone: it may be all there is
+      'works/4 D.html.ficfairy-new',
+      'works/5 E.html',
+    ]);
+    expect(found.map((x) => [x.path, leftoverAction(x)])).toEqual([
+      ['works/1 A.html', 'restore'],
+      ['works/2 B.pdf', 'tidy'],
+      ['works/3 C.epub', 'tidy'],
+    ]);
   });
 });
 

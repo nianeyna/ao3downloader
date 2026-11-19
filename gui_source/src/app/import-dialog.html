@@ -8,9 +8,55 @@
   </header>
 
   <!-- 1: what was found, in a sentence each - the lists come on the pages after -->
+  <!-- 0: files a download was left part-way through replacing, put right before anything else -->
+  @if (step() === 'leftovers') {
+    <section class="body">
+      <p>
+        A download that replaces a file of yours puts the new copy in beside it, then sets yours
+        aside while the new one takes its place. These were left part-way, when the app stopped:
+      </p>
+      <ul class="leftovers">
+        @for (leftover of leftovers(); track leftover.path) {
+          <li>
+            <code>{{ leftoverName(leftover.path) }}</code> -
+            @if (leftoverAction(leftover) === 'restore') {
+              your copy was set aside and the new one never arrived: it will be put back
+            } @else if (leftover.old) {
+              the new copy is in place: the old one left aside will be removed
+            } @else {
+              an unfinished new copy is beside it: it will be removed, and your file kept
+            }
+          </li>
+        }
+      </ul>
+      @if (leftoversResult(); as result) {
+        <p class="leftovers-said" role="status">
+          Put back {{ result.restored | number }} {{ result.restored === 1 ? 'file' : 'files' }},
+          removed {{ result.removed | number }}.
+          @if (result.failed.length) {
+            Could not tidy: {{ result.failed.join(', ') }} - it will be offered again.
+          }
+        </p>
+      }
+      @if (busy()) {
+        <p class="warning busy-note" role="note">A run is in progress. It has to finish before anything can be put right.</p>
+      }
+    </section>
+    <footer>
+      @if (leftoversResult()) {
+        <button type="button" class="button primary" (click)="fromLeftovers(false)">Continue</button>
+      } @else {
+        <button type="button" class="button subtle" [disabled]="leftoversBusy()" (click)="fromLeftovers(true)">Skip this step</button>
+        <button type="button" class="button primary" [disabled]="busy() || leftoversBusy()" (click)="tidyLeftovers()">
+          {{ leftoversBusy() ? 'Putting right...' : 'Put back and tidy up' }}
+        </button>
+      }
+    </footer>
+  }
+
   @if (step() === 'overview') {
     <section class="body overview">
-      @if (misnamedFound().formats.length || groups().length || undated().length || works().length) {
+      @if (issueLines().length) {
         <p class="overview-heading"><strong>Issues found in import:</strong></p>
         <ul class="overview-issues">
           @for (line of issueLines(); track line.kind) {

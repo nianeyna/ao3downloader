@@ -104,7 +104,56 @@ function byWork(files: FoundFile[]): FoundWork[] {
  * What the import has to resolve, counted in files - the one count the reminder above the tabs
  * and the import window's own overview both give, so the two can never disagree.
  */
+/**
+ * What a download replacing a file of the same name leaves behind if the app stops part-way
+ * (the helper's `Ao3.swap_in`): the new file written beside yours, and yours moved aside while the
+ * new one goes in. Names nothing reads as a work, so nothing else ever sees them.
+ */
+export const SWAP_NEW_SUFFIX = '.ficfairy-new';
+export const SWAP_OLD_SUFFIX = '.ficfairy-old';
+
+/** one file a swap was part-way through, and what is beside it */
+export interface SwapLeftover {
+  /** the file's own name, which the swap was putting the new copy into */
+  path: string;
+  /** your copy, moved aside */
+  old?: string;
+  /** the new copy, written beside it */
+  fresh?: string;
+  /** whether a file is at `path` now */
+  inPlace: boolean;
+}
+
+/**
+ * Every file in `works/` a swap was left part-way through. Your copy set aside with nothing in
+ * its place is put back (`restore`); set aside with the new copy in place, the swap had finished
+ * and only the old copy is left to remove; a new copy beside your file is unfinished and removed.
+ * A new copy with nothing whole beside it is left alone - it may be all there is.
+ */
+export function swapLeftovers(paths: Iterable<string>): SwapLeftover[] {
+  const all = [...paths];
+  const present = new Set(all.map((p) => p.toLowerCase()));
+  const found = new Map<string, SwapLeftover>();
+  for (const path of all) {
+    const old = path.endsWith(SWAP_OLD_SUFFIX);
+    if (!old && !path.endsWith(SWAP_NEW_SUFFIX)) continue;
+    const base = path.slice(0, -(old ? SWAP_OLD_SUFFIX : SWAP_NEW_SUFFIX).length);
+    const entry = found.get(base) ?? { path: base, inPlace: present.has(base.toLowerCase()) };
+    if (old) entry.old = path;
+    else entry.fresh = path;
+    found.set(base, entry);
+  }
+  return [...found.values()].filter((e) => e.old || e.inPlace).sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/** what tidying one leftover does: put your set-aside copy back, or only remove what is left over */
+export function leftoverAction(leftover: SwapLeftover): 'restore' | 'tidy' {
+  return leftover.old && !leftover.inPlace ? 'restore' : 'tidy';
+}
+
 export interface ImportIssueCounts {
+  /** files left part-way through being replaced by a download */
+  leftoverFiles?: number;
   /** files named in a way the app cannot match to a work */
   misnamedFiles: number;
   /** files in a set of two or more of one work in one format */
@@ -120,8 +169,10 @@ export function importIssueCounts(
   undatedElsewhere: FoundFile[],
   duplicates: DuplicateGroup[],
   misnamed: readonly { files: unknown[] }[] = [],
+  leftovers: readonly SwapLeftover[] = [],
 ): ImportIssueCounts {
   return {
+    leftoverFiles: leftovers.length,
     misnamedFiles: misnamed.reduce((n, f) => n + f.files.length, 0),
     duplicateFiles: duplicates.reduce((n, g) => n + g.files.length, 0),
     undatedFiles: undatedFiles(works).length + undatedElsewhere.length,
@@ -130,7 +181,7 @@ export function importIssueCounts(
 }
 
 export interface ImportIssueLine {
-  kind: 'misnamed' | 'duplicates' | 'undated' | 'unindexed';
+  kind: 'leftovers' | 'misnamed' | 'duplicates' | 'undated' | 'unindexed';
   text: string;
 }
 
@@ -138,6 +189,10 @@ export interface ImportIssueLine {
 export function importIssueLines(counts: ImportIssueCounts): ImportIssueLine[] {
   const n = (x: number) => x.toLocaleString();
   const lines: ImportIssueLine[] = [];
+  if (counts.leftoverFiles) {
+    lines.push({ kind: 'leftovers',
+      text: `${n(counts.leftoverFiles)} ${counts.leftoverFiles === 1 ? 'file was' : 'files were'} left part-way through being replaced by an interrupted download` });
+  }
   if (counts.misnamedFiles) {
     lines.push({ kind: 'misnamed',
       text: `${n(counts.misnamedFiles)} ${counts.misnamedFiles === 1 ? 'file is' : 'files are'} named in a way this app cannot match to a work` });
@@ -714,6 +769,8 @@ export class LibraryImports {
   private readonly library = inject(Library);
   private readonly visit = inject(VisitLog);
   readonly found = signal<FoundWork[]>([]);
+  /** files a download replacing them was left part-way through - tidied first of all */
+  readonly leftovers = signal<SwapLeftover[]>([]);
   /**
    * Works with no index entry that the exclusion lists keep out of `found` - every file on the
    * files list, or the work on the index list. Offered only when asked for by name: a work's own
@@ -729,6 +786,7 @@ export class LibraryImports {
   readonly misnamed = signal<Misnamed>({ formats: [], unreadable: [] });
   readonly hasIssues = computed(
     () => this.found().length > 0 || this.undatedIndexed().length > 0 || this.duplicates().length > 0 ||
+      this.leftovers().length > 0 ||
       this.misnamed().formats.length > 0,
   );
   /** the store the last check was of, so a check of a library since closed is dropped */
@@ -883,6 +941,7 @@ export class LibraryImports {
     this.undatedIndexed.set([]);
     this.duplicates.set([]);
     this.misnamed.set({ formats: [], unreadable: [] });
+    this.leftovers.set([]);
     this.checkedStore.set(null);
     this.checking.set(false);
   }
@@ -896,6 +955,8 @@ export class LibraryImports {
       this.undatedIndexed.set([]);
       this.duplicates.set([]);
       this.misnamed.set({ formats: [], unreadable: [] });
+      this.leftovers.set([]);
+    this.leftovers.set([]);
       this.checkedStore.set(null);
       return;
     }
@@ -933,6 +994,8 @@ export class LibraryImports {
       );
       this.duplicates.set(duplicateGroups(paths).filter((g) => !duplicatesExcluded(g, excluded)));
       this.misnamed.set(misnamedFiles(paths));
+      // never on any exclusion list: a file set aside mid-swap is always put right
+      this.leftovers.set(swapLeftovers(listed));
       this.checkedStore.set(store);
     } catch {
       // the library could not be listed: whatever was found before is kept until it can

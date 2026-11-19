@@ -24,7 +24,7 @@ import {
   inferDate,
   isFileDate,
   renamesFor,
-  undatedFiles, importIssueCounts, importIssueLines } from './imports';
+  undatedFiles, importIssueCounts, importIssueLines, SwapLeftover, leftoverAction, patiently } from './imports';
 import { dateFromFilename, dateStamp } from './bookmarks';
 import { WORKS_FOLDER } from './library-setup';
 import { activePattern, patternText } from './naming';
@@ -37,7 +37,7 @@ import { VisitLog } from './visit-log';
 import { Chime } from './chime';
 import { inAo3Zone, writtenDate } from './preferences';
 
-type Step = 'overview' | 'rename' | 'renaming' | 'duplicates' | 'choose' | 'removing' | 'dates' | 'repair' | 'dating' | 'index' | 'formats' | 'filetypes';
+type Step = 'overview' | 'leftovers' | 'rename' | 'renaming' | 'duplicates' | 'choose' | 'removing' | 'dates' | 'repair' | 'dating' | 'index' | 'formats' | 'filetypes';
 
 /** what sifting by hand decided for one group: a file to keep, skipped, or its most recent */
 /** what *Sort any remaining in bulk* can do with the rest */
@@ -212,7 +212,7 @@ export class ImportDialog implements OnInit {
   /** the overview's bullets - worded and counted as the reminder above the tabs is */
   protected readonly issueLines = computed(() =>
     importIssueLines(importIssueCounts(this.works(), this.undatedElsewhere(), this.groups(),
-      this.misnamedFound().formats)),
+      this.misnamedFound().formats, this.leftoversDone() ? [] : this.leftovers())),
   );
 
   // region rename to the app's naming pattern
@@ -1259,31 +1259,15 @@ export class ImportDialog implements OnInit {
     switch (this.firstChoice()) {
       case 'repair':
         if (this.busy()) return;
-        if (this.misnamedFound().formats.length) {
-          await this.toRename();
+        // files a download was left part-way through replacing come first of all
+        if (this.leftovers().length && !this.leftoversDone()) {
+          this.step.set('leftovers');
           return;
         }
-        this.step.set(this.groups().length ? 'duplicates' : this.afterDuplicatesStep());
+        await this.afterLeftovers();
         return;
       case 'exclude':
-        try {
-          const files = new Map<string, FoundFile>();
-          for (const file of [
-            ...this.works().flatMap((w) => w.files),
-            ...this.undatedElsewhere(),
-            ...this.groups().flatMap((g) => g.files),
-          ]) files.set(file.path, file);
-          // a file named another way has no number the app reads: it is listed by name alone
-          for (const file of this.misnamedFound().formats.flatMap((f) => f.files)) {
-            files.set(file.path, { id: file.worknum, path: file.path, name: file.name, format: file.format, date: '' });
-          }
-          if (this.sandbox()) this.note(`files list: ${[...files.values()].map((f) => f.name).join(', ')}`);
-          else await this.imports.excludeFiles([...files.values()]);
-        } catch {
-          // not written: offered again next time, which loses nothing
-        }
-        this.closed.emit(null);
-        return;
+        return this.fromOverviewExclude();
       case 'never':
         this.askAgainChanged.emit(false);
         this.closed.emit(null);
@@ -1293,6 +1277,102 @@ export class ImportDialog implements OnInit {
         this.closed.emit(null);
         return;
     }
+  }
+
+  // region files left part-way through being replaced
+
+  /** files a download replacing them was left part-way through (`swapLeftovers`) */
+  readonly leftovers = input<SwapLeftover[]>([]);
+  /** put right on their page: not asked about again in this window */
+  protected readonly leftoversDone = signal(false);
+  protected readonly leftoversBusy = signal(false);
+  /** what tidying did: how many put back and removed, and what would not go */
+  protected readonly leftoversResult = signal<{ restored: number; removed: number; failed: string[] } | null>(null);
+  protected readonly leftoverAction = leftoverAction;
+  protected readonly leftoverName = (path: string) => path.split('/').pop() ?? path;
+
+  /**
+   * Put back every copy set aside with nothing in its place, and remove what is left over beside
+   * a file - an unfinished new copy, or an old one the swap had finished replacing. Renames never
+   * write over a file, so a copy put back cannot land on another.
+   */
+  protected async tidyLeftovers(): Promise<void> {
+    const store = this.store();
+    if (!store || this.busy() || this.leftoversBusy()) return;
+    this.leftoversBusy.set(true);
+    const result = { restored: 0, removed: 0, failed: [] as string[] };
+    const changed: string[] = [];
+    for (const leftover of this.leftovers()) {
+      try {
+        if (leftoverAction(leftover) === 'restore') {
+          if (this.sandbox()) this.note(`put back: ${leftover.old} -> ${leftover.path}`);
+          else await patiently(() => store.rename(leftover.old!, leftover.path));
+          changed.push(leftover.old!, leftover.path);
+          result.restored++;
+        } else if (leftover.old) {
+          if (this.sandbox()) this.note(`removed: ${leftover.old}`);
+          else await patiently(() => store.delete(leftover.old!));
+          changed.push(leftover.old);
+          result.removed++;
+        }
+        if (leftover.fresh) {
+          if (this.sandbox()) this.note(`removed: ${leftover.fresh}`);
+          else await patiently(() => store.delete(leftover.fresh!));
+          changed.push(leftover.fresh);
+          result.removed++;
+        }
+      } catch {
+        result.failed.push(this.leftoverName(leftover.path));
+      }
+    }
+    if (changed.length && !this.sandbox()) await this.library.refreshAfterRun(changed, store);
+    this.leftoversResult.set(result);
+    this.leftoversDone.set(true);
+    this.leftoversBusy.set(false);
+  }
+
+  /** passed over, or put right: on to the rest of the window */
+  protected async fromLeftovers(skip: boolean): Promise<void> {
+    if (skip) this.leftoversDone.set(true);
+    await this.afterLeftovers();
+  }
+
+  /** the repair, from its first ordinary step: renaming, the duplicates, or the dates and on */
+  private async afterLeftovers(): Promise<void> {
+    // nothing else was found: the window is done
+    if (!this.misnamedFound().formats.length && !this.groups().length && !this.undated().length &&
+        !this.toLookUp().length && !this.allIssues().length) {
+      this.closed.emit(this.dated());
+      return;
+    }
+    if (this.misnamedFound().formats.length) {
+      await this.toRename();
+      return;
+    }
+    this.step.set(this.groups().length ? 'duplicates' : this.afterDuplicatesStep());
+  }
+
+  // endregion
+
+  /** 'No, do not ask me again for these files': every file found goes on the files list */
+  private async fromOverviewExclude(): Promise<void> {
+    try {
+      const files = new Map<string, FoundFile>();
+      for (const file of [
+        ...this.works().flatMap((w) => w.files),
+        ...this.undatedElsewhere(),
+        ...this.groups().flatMap((g) => g.files),
+      ]) files.set(file.path, file);
+      // a file named another way has no number the app reads: it is listed by name alone
+      for (const file of this.misnamedFound().formats.flatMap((f) => f.files)) {
+        files.set(file.path, { id: file.worknum, path: file.path, name: file.name, format: file.format, date: '' });
+      }
+      if (this.sandbox()) this.note(`files list: ${[...files.values()].map((f) => f.name).join(', ')}`);
+      else await this.imports.excludeFiles([...files.values()]);
+    } catch {
+      // not written: offered again next time, which loses nothing
+    }
+    this.closed.emit(null);
   }
 
   /** after the dates: the index question, when there are works without an entry */

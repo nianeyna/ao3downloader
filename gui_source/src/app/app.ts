@@ -248,7 +248,7 @@ export class App {
   /** counted and worded as the import window's own overview, in files, so the two agree */
   protected readonly importIssuesSaid = computed(() =>
     importIssueLines(importIssueCounts(this.imports.found(), this.imports.undatedIndexed(), this.imports.duplicates(),
-      this.imports.misnamed().formats))
+      this.imports.misnamed().formats, this.imports.leftovers()))
       .map((line) => line.text)
       .join('; '),
   );
