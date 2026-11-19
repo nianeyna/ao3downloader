@@ -849,6 +849,12 @@
             <input type="radio" name="lookupFor" value="all" [checked]="lookupFor() === 'all'" (change)="lookupFor.set('all')" />
             <span>For all missing indexes <span class="dim">({{ allUnindexed() | number }})</span></span>
           </label>
+          @if (ignored().length) {
+            <label class="check">
+              <input type="radio" name="lookupFor" value="ignored" [checked]="lookupFor() === 'ignored'" (change)="lookupFor.set('ignored')" />
+              <span>For all missing indexes, even if you added some to an ignore-list previously <span class="dim">({{ withIgnored() | number }})</span></span>
+            </label>
+          }
         </fieldset>
       }
       <fieldset>
@@ -887,7 +893,8 @@
       }
     </section>
     <footer>
-      @if (canGoBack() || toRepair().length) {
+      <!-- opened for one work's look-up, this is the window's first page: nothing to go back to -->
+      @if (!focus() && (canGoBack() || toRepair().length)) {
         <button type="button" class="button subtle" (click)="backFrom('index')">Back</button>
       }
       <button type="button" class="button primary"
@@ -910,8 +917,7 @@
         @if (scopeChosen() !== 'skip') {
           <div class="scope-options">
             <p class="warning fetch-warning" role="note">
-              This only updates files that have a date in their name. A file whose name has no date
-              is kept as it is - go back to the dates page to give it one.
+              This only updates files that have a date in their name. A file with no date in its name is kept as-is.
             </p>
             <label class="check">
               <input type="radio" name="updateScope" value="all" [checked]="scopeChosen() === 'all'" (change)="chooseScope('all')" />

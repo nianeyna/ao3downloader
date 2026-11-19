@@ -185,12 +185,17 @@ export class ImportDialog implements OnInit {
   readonly lookUpWork = input<string | null>(null);
   /** the work the window was opened for, while it is still the one asked about */
   protected readonly focus = signal<string | null>(null);
-  /** just the work the window was opened for, or every work with no index entry */
-  protected readonly lookupFor = signal<'this' | 'all'>('this');
+  /**
+   * Works with no index entry the exclusion lists keep out of `works` - only ever looked up when
+   * the window was opened for one of them, or for every missing index, ignored ones included.
+   */
+  readonly ignored = input<FoundWork[]>([]);
+  /** just the work the window was opened for, every work with no index entry, or those and the ignored ones too */
+  protected readonly lookupFor = signal<'this' | 'all' | 'ignored'>('this');
 
   ngOnInit(): void {
     const work = this.lookUpWork();
-    if (!work || !this.works().some((w) => w.id === work)) return;
+    if (!work || ![...this.works(), ...this.ignored()].some((w) => w.id === work)) return;
     this.focus.set(work);
     this.step.set('index');
   }
@@ -1140,11 +1145,23 @@ export class ImportDialog implements OnInit {
   protected readonly toLookUp = computed(() => {
     const repaired = new Set(this.repairIndexes().map((w) => w.id));
     const focus = this.focus();
-    if (focus && this.lookupFor() === 'this') return this.works().filter((w) => w.id === focus);
-    return this.works().filter((w) => !repaired.has(w.id));
+    if (focus && this.lookupFor() === 'this') {
+      return [...this.works(), ...this.ignored()].filter((w) => w.id === focus).slice(0, 1);
+    }
+    const found = this.works().filter((w) => !repaired.has(w.id));
+    if (focus && this.lookupFor() === 'ignored') {
+      const ids = new Set(found.map((w) => w.id));
+      return [...found, ...this.ignored().filter((w) => !ids.has(w.id))];
+    }
+    return found;
   });
   /** every work with no index entry, for the *all* choice's count when opened for one work */
   protected readonly allUnindexed = computed(() => this.works().length);
+  /** those and every one an exclusion list keeps out, for the choice that takes them all */
+  protected readonly withIgnored = computed(() => {
+    const ids = new Set(this.works().map((w) => w.id));
+    return this.works().length + this.ignored().filter((w) => !ids.has(w.id)).length;
+  });
   protected readonly lookups = computed(() => (this.lookup() === 'yes' ? this.toLookUp().map((w) => w.id) : []));
   /**
    * The works with date issues that can be updated: an undated file, of an indexed work or of
@@ -1395,12 +1412,6 @@ export class ImportDialog implements OnInit {
   }
 
   protected backFrom(step: 'dates' | 'repair' | 'index' | 'formats'): void {
-    // opened on the index question for one work: back is the whole window from its start
-    if (step === 'index' && this.focus()) {
-      this.focus.set(null);
-      this.step.set('overview');
-      return;
-    }
     // the repair page is only choices, so it can always be gone back to; the dates only while
     // nothing has been renamed yet
     const beforeIndex: Step = this.toRepair().length ? 'repair'

@@ -712,6 +712,12 @@ export class LibraryImports {
   private readonly library = inject(Library);
   private readonly visit = inject(VisitLog);
   readonly found = signal<FoundWork[]>([]);
+  /**
+   * Works with no index entry that the exclusion lists keep out of `found` - every file on the
+   * files list, or the work on the index list. Offered only when asked for by name: a work's own
+   * *Look up its index from AO3 here*, which can also take every one of them along.
+   */
+  readonly ignoredIndex = signal<FoundWork[]>([]);
   /** files of indexed works with no date in their name */
   readonly undatedIndexed = signal<FoundFile[]>([]);
   /** whether anything was found to resolve: works with no index entry, or undated files */
@@ -871,6 +877,7 @@ export class LibraryImports {
   forget(): void {
     this.generation++;
     this.found.set([]);
+    this.ignoredIndex.set([]);
     this.undatedIndexed.set([]);
     this.duplicates.set([]);
     this.misnamed.set({ formats: [], unreadable: [] });
@@ -883,6 +890,7 @@ export class LibraryImports {
     const generation = ++this.generation;
     if (!store) {
       this.found.set([]);
+    this.ignoredIndex.set([]);
       this.undatedIndexed.set([]);
       this.duplicates.set([]);
       this.misnamed.set({ formats: [], unreadable: [] });
@@ -916,6 +924,8 @@ export class LibraryImports {
         .filter((w) => indexExcluded(w, excluded))
         .flatMap((w) => w.files.filter((f) => !f.date).map((f) => ({ ...f, unindexed: true })));
       this.found.set(asked);
+      const askedIds = new Set(asked.map((w) => w.id));
+      this.ignoredIndex.set(unindexedWorks(listed, indexed).filter((w) => !askedIds.has(w.id)));
       this.undatedIndexed.set(
         [...undatedIndexedFiles(paths, indexed), ...notAsked].filter((f) => !excluded.dates.has(f.name)),
       );

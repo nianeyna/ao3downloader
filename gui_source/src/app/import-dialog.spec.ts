@@ -1682,10 +1682,12 @@ describe('ImportDialog', () => {
 
   // region opened from a work's 'Look up its index from AO3 here'
 
-  async function openFor(work: string, works: FoundWork[] = SOME, elsewhere: FoundFile[] = INDEXED_UNDATED) {
+  async function openFor(work: string, works: FoundWork[] = SOME, elsewhere: FoundFile[] = INDEXED_UNDATED,
+                         ignored: FoundWork[] = []) {
     fixture = TestBed.createComponent(ImportDialog);
     store = new MemoryStore();
     fixture.componentRef.setInput('works', works);
+    fixture.componentRef.setInput('ignored', ignored);
     fixture.componentRef.setInput('undatedElsewhere', elsewhere);
     fixture.componentRef.setInput('store', store);
     fixture.componentRef.setInput('lookUpWork', work);
@@ -1727,11 +1729,42 @@ describe('ImportDialog', () => {
     expect(started[0].request.links.split('\n').map((l) => l.split('/').pop())).toEqual(['1', '2', '3']);
   });
 
-  it('goes back to the start of the whole window, which then asks about every work', async () => {
+  it('has no going back from its first page, the index question', async () => {
     await openFor('2');
+    expect(button('Back')).toBeUndefined();
+    await click('Continue');
+    // the formats page still goes back to the index question
     await click('Back');
-    expect(step()).toBe('overview');
-    expect(radio('lookupFor', 'this')).toBeNull();
+    expect(step()).toBe('index');
+    expect(button('Back')).toBeUndefined();
+  });
+
+  const IGNORED = unindexedWorks(['works/9 Left Out - X.html'], new Set());
+
+  it('looks up a work an exclusion list keeps out, when opened for it by name', async () => {
+    await openFor('9', SOME, INDEXED_UNDATED, IGNORED);
+    expect(step()).toBe('index');
+    await click('Continue');
+    await choose('updateFetch', 'skip');
+    await click('Continue');
+
+    expect(started[0].request).toMatchObject({ links: 'https://archiveofourown.org/works/9', indexOnly: ['9'] });
+  });
+
+  it('offers every missing index, ignored ones included, only when an exclusion list holds some', async () => {
+    await openFor('2');
+    expect(radio('lookupFor', 'ignored')).toBeNull();
+
+    await openFor('2', SOME, INDEXED_UNDATED, IGNORED);
+    const label = radio('lookupFor', 'ignored')!.closest('label')!.textContent!.replace(/\s+/g, ' ');
+    expect(label).toContain('For all missing indexes, even if you added some to an ignore-list previously');
+    expect(label).toContain('(4)');
+    await choose('lookupFor', 'ignored');
+    await click('Continue');
+    await choose('updateFetch', 'skip');
+    await click('Continue');
+
+    expect(started[0].request.links.split('\n').map((l) => l.split('/').pop())).toEqual(['1', '2', '3', '9']);
   });
 
   it('opens at its start as ever for a work it does not offer', async () => {
@@ -1751,7 +1784,7 @@ describe('ImportDialog', () => {
     expect(element.textContent).toContain('Also download them in other formats?');
     // replacing an outdated copy is what an update does, not a choice of its own
     expect(element.querySelector('input[name="replaceOutdated"]')).toBeNull();
-    expect(element.querySelector('.fetch-warning')!.textContent).toContain('only updates files that have a date in their name');
+    expect(element.querySelector('.fetch-warning')!.textContent!.trim()).toBe('This only updates files that have a date in their name. A file with no date in its name is kept as-is.');
   });
 
   function radio(name: string, value: string): HTMLInputElement | null {

@@ -425,6 +425,16 @@ describe('LibraryImports', () => {
     expect(imports.hasIssues()).toBe(false);
   });
 
+  it('keeps the works an exclusion list leaves out, for a look-up asked for by name', async () => {
+    const imports = await checked(
+      ['works/1 A - B.html', 'works/2 C - D.html', 'works/123 no-index 2024-01-01.pdf'],
+      [{ id: '2', kind: 'files', files: ['2 C - D.html'] },
+       { id: '123', kind: 'index', files: ['123 no-index 2024-01-01.pdf'] }],
+    );
+    expect(imports.found().map((w) => w.id)).toEqual(['1']);
+    expect(imports.ignoredIndex().map((w) => w.id).sort()).toEqual(['123', '2']);
+  });
+
   it('asks about it again once the library has a file for it that was not recorded', async () => {
     const imports = await checked(
       ['works/123 no-index 2024-01-01.pdf', 'works/123 no-index 2024-01-01.epub', 'works/123 no-index 2024-01-01.html'],
