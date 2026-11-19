@@ -31,6 +31,7 @@ export class ReadingSkinsSettings {
   );
 
   protected placeWords(skin: ReadingSkin): string {
+    if (skin.place === 'builtin') return 'Comes with FicFairy';
     return skin.place === 'browser' ? 'Saved to this browser' : 'Saved in your library';
   }
 

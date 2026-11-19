@@ -2,6 +2,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { DebugMode } from './debug-mode';
 import { Library } from './library';
 import { LibraryStore } from './library-store';
+import { BUILT_IN_SKINS } from './reading-skins-built-in';
 import { breaksOutOfStyle } from './skin-html';
 import { safeGet, safeRemove, safeSet } from './storage';
 
@@ -26,9 +27,19 @@ export type SkinPlace = 'browser' | 'library';
 
 export interface ReadingSkin {
   name: string;
-  place: SkinPlace;
+  /** where it is kept - or 'builtin', one that comes with FicFairy and cannot be removed */
+  place: SkinPlace | 'builtin';
   css: string;
+  /** a built-in skin's few words on what it looks like */
+  about?: string;
+  /** a built-in skin that loads pictures from another site */
+  remote?: boolean;
 }
+
+/** the skins that come with FicFairy, as reading skins */
+export const BUILT_IN_READING_SKINS: readonly ReadingSkin[] = BUILT_IN_SKINS.map((x) => ({
+  name: x.name, place: 'builtin' as const, css: x.css, about: x.about, remote: x.remote,
+}));
 
 export function skinId(skin: Pick<ReadingSkin, 'name' | 'place'>): string {
   return `${skin.place}:${skin.name}`;
@@ -76,7 +87,7 @@ export class ReadingSkins {
   readonly reading = signal(false);
   /** what went wrong reading the library's skins, if anything */
   readonly readProblem = signal('');
-  readonly skins = computed(() => [...this.browserSkins(), ...this.librarySkins()]);
+  readonly skins = computed(() => [...BUILT_IN_READING_SKINS, ...this.browserSkins(), ...this.librarySkins()]);
   readonly defaultId = signal(safeGet(DEFAULT_SKIN_KEY));
   readonly defaultSkin = computed(() => this.skins().find((x) => skinId(x) === this.defaultId()) ?? null);
   /** whether the open library can take a skin */
@@ -156,6 +167,7 @@ export class ReadingSkins {
 
   /** remove a skin; answers what was wrong, or null once it is gone */
   async remove(skin: ReadingSkin): Promise<string | null> {
+    if (skin.place === 'builtin') return 'A skin that comes with FicFairy cannot be removed.';
     if (skin.place === 'browser') {
       const kept = this.browserSkins().filter((x) => x.name !== skin.name);
       if (kept.length) safeSet(BROWSER_SKINS_KEY, JSON.stringify(kept.map(({ name, css }) => ({ name, css }))));

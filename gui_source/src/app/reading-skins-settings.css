@@ -81,6 +81,12 @@ h4 {
   font-size: 0.75rem;
 }
 
+.skin-about {
+  flex-basis: 100%;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+
 .remove-skin {
   margin-left: auto;
 }

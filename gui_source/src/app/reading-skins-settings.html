@@ -15,14 +15,14 @@
     <option value="" [selected]="!skins.defaultSkin()">None</option>
     @for (skin of skins.skins(); track id(skin)) {
       <option [value]="id(skin)" [selected]="skins.defaultId() === id(skin)">
-        {{ skin.name }} ({{ skin.place === 'browser' ? 'this browser' : 'library' }})
+        {{ skin.name }} ({{ skin.place === 'builtin' ? 'comes with FicFairy' : skin.place === 'browser' ? 'this browser' : 'library' }})
       </option>
     }
   </select>
 </label>
 <p class="hint">Which skin is the default is kept in this browser.</p>
 
-<h4>Your skins</h4>
+<h4>Skins</h4>
 @if (skins.reading()) {
   <p class="hint reading">Reading the skins saved in your library...</p>
 }
@@ -38,14 +38,23 @@
         @if (skins.defaultId() === id(skin)) {
           <span class="badge">Default</span>
         }
-        <button type="button" class="button subtle remove-skin" (click)="remove(skin)">
-          {{ confirmingRemove() === id(skin) ? 'Click again to remove' : 'Remove' }}
-        </button>
+        @if (skin.place !== 'builtin') {
+          <button type="button" class="button subtle remove-skin" (click)="remove(skin)">
+            {{ confirmingRemove() === id(skin) ? 'Click again to remove' : 'Remove' }}
+          </button>
+        }
+        @if (skin.about) {
+          <span class="skin-about">
+            {{ skin.about }}
+            @if (skin.remote) {
+              Its pictures load from another site each time a work is opened with it, so it needs
+              the internet, and that site sees the request.
+            }
+          </span>
+        }
       </li>
     }
   </ul>
-} @else if (!skins.reading()) {
-  <p class="hint no-skins">No reading skins yet.</p>
 }
 
 <h4>Add a skin</h4>
