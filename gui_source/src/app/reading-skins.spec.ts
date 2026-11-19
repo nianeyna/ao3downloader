@@ -135,12 +135,23 @@ describe('withAo3Shape', () => {
     expect(withAo3Shape(DOWNLOADED)).toBe(DOWNLOADED);
   });
 
-  it('shows a work with its own skin shaped, never with a reading skin over it', () => {
-    const shown = shownWork(SKINNED, SKIN);
+  it('layers the reading skin under a work\'s own skin: basics, then reading skin, then work skin', () => {
+    const doc = shownDoc(shownWork(SKINNED, SKIN));
+    const styles = Array.from(doc.head.querySelectorAll('style')).map((x) => x.textContent ?? '');
 
-    expect(shown).not.toContain(SKIN);
-    expect(shownDoc(shown).querySelector('dl.work.meta')).not.toBeNull();
+    const basics = styles.findIndex((x) => x.includes('dl.work.meta'));
+    const reading = styles.findIndex((x) => x.includes(SKIN));
+    const work = styles.findIndex((x) => x.includes(WORK_SKIN));
+    expect([basics, reading, work]).toEqual([work - 2, work - 1, work]);
+    expect(doc.querySelector('dl.work.meta')).not.toBeNull();
     expect(shownWork(DOWNLOADED, '')).toBe(DOWNLOADED);
+  });
+
+  it('adds no reading skin under a work\'s own skin when none is chosen', () => {
+    const styles = Array.from(shownDoc(shownWork(SKINNED, '')).head.querySelectorAll('style'))
+      .map((x) => x.textContent ?? '');
+
+    expect(styles.some((x) => x.includes('your reading skin'))).toBe(false);
   });
 });
 

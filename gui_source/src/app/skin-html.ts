@@ -169,7 +169,7 @@ export function withReadingSkin(html: string, css: string): string {
  * so they win as they do on AO3. A file with no work skin, or none that can be found, is left as
  * it is. Only what is shown changes - the file itself is never written.
  */
-export function withAo3Shape(html: string): string {
+export function withAo3Shape(html: string, readingSkin = ''): string {
   if (!hasWorkSkin(html)) return html;
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const workskin = doc.getElementById('workskin');
@@ -180,24 +180,33 @@ export function withAo3Shape(html: string): string {
   if (message && workskin.contains(message)) workskin.before(message);
   if (tags) workskin.before(tags);
 
-  const basics = doc.createElement('style');
-  basics.setAttribute('type', 'text/css');
-  basics.textContent = `\n/* AO3's own page basics */${AO3_BASICS}`;
-  // before the work skin's own style (the one naming #workskin), or else first, so the skin wins
+  // AO3's basics, then your reading skin - the site skin's part - then the work's own skin, as
+  // AO3 layers its site skin under a work skin: where they clash, the author's rule wins
+  const layers = [`\n/* AO3's own page basics */${AO3_BASICS}`];
+  if (readingSkin.trim() && !breaksOutOfStyle(readingSkin)) {
+    layers.push(`\n/* your reading skin, from FicFairy - under the work's own skin */\n${readingSkin}\n`);
+  }
+  // before the work skin's own style (the one naming #workskin), or else last, in turn
   const styles = Array.from(doc.head.querySelectorAll('style'));
   const skin = styles.find((x) => (x.textContent ?? '').includes('#workskin'));
-  if (skin) skin.before(basics);
-  else doc.head.prepend(basics);
+  for (const text of layers) {
+    const style = doc.createElement('style');
+    style.setAttribute('type', 'text/css');
+    style.textContent = text;
+    if (skin) skin.before(style);
+    else doc.head.append(style);
+  }
   return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
 }
 
 /**
  * How a downloaded work's html is shown when opened from the app: a work with a skin of its own
- * shaped like AO3's page around it (`withAo3Shape`); one without, given `readingSkin` when there
- * is one (`withReadingSkin`); otherwise exactly as it is.
+ * shaped like AO3's page around it, with `readingSkin` layered under its skin (`withAo3Shape`);
+ * one without, given `readingSkin` when there is one (`withReadingSkin`); otherwise exactly as it
+ * is.
  */
 export function shownWork(html: string, readingSkin: string): string {
-  if (hasWorkSkin(html)) return withAo3Shape(html);
+  if (hasWorkSkin(html)) return withAo3Shape(html, readingSkin);
   return readingSkin ? withReadingSkin(html, readingSkin) : html;
 }
 

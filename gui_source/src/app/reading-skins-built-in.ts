@@ -1,6 +1,6 @@
 /**
  * The reading skins that come with FicFairy - offered beside your own in User settings, as a
- * default for works with no skin, and never removable. Each is CSS written as an AO3 work skin is.
+ * default reading skin, and never removable. Each is CSS written as an AO3 work skin is.
  *
  * A skin that loads pictures from another site makes the browser ask that site for them each
  * time a work is opened with it, as AO3 does for a work using it - said beside it in User settings

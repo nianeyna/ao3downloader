@@ -1,8 +1,9 @@
 <p class="hint">
-  A reading skin is CSS of your own, shown on any downloaded work that has no work skin of its own
-  when you open it from FicFairy - a font, a text size, line spacing, a page width, colours. Nothing
-  is written into your files and nothing is asked of AO3; the skin is put in as the work opens, so a
-  new default shows on every work at once. A work's own skin always wins. HTML only.
+  A reading skin is CSS of your own, shown on every downloaded work when you open it from FicFairy -
+  a font, a text size, line spacing, a page width, colours. It plays the part your site skin plays
+  on AO3: on a work with its own work skin it goes underneath, so where the two disagree the work's
+  own skin wins. Nothing is written into your files and nothing is asked of AO3; the skin is put in
+  as the work opens, so a new default shows on every work at once. HTML only.
 </p>
 <p class="hint">
   Write it as an AO3 work skin is written: every rule starts with <code>#workskin</code>, for example
@@ -10,7 +11,7 @@
 </p>
 
 <label class="field default-skin">
-  <span>Default for works with no skin</span>
+  <span>Default reading skin</span>
   <select name="defaultReadingSkin" (change)="setDefault($any($event.target).value)">
     <option value="" [selected]="!skins.defaultSkin()">None</option>
     @for (skin of skins.skins(); track id(skin)) {

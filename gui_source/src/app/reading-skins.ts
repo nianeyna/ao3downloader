@@ -7,10 +7,11 @@ import { breaksOutOfStyle } from './skin-html';
 import { safeGet, safeRemove, safeSet } from './storage';
 
 /**
- * Reading skins: CSS of your own, shown on any downloaded work that has no work skin of its own
- * when you open it from FicFairy. Nothing is written into the work's file and AO3 is never asked
- * for anything - the skin is put in as the work is opened (`Library.openCopy`, through
- * `withReadingSkin`), so a new default shows on every work at once. Debug mode only, for now.
+ * Reading skins: CSS of your own, shown on every downloaded work when you open it from FicFairy -
+ * the part a site skin plays on AO3, so on a work with its own work skin it goes underneath it
+ * (`withAo3Shape`). Nothing is written into the work's file and AO3 is never asked for anything -
+ * the skin is put in as the work is opened (`Library.openCopy`, through `shownWork`), so a new
+ * default shows on every work at once. Debug mode only, for now.
  */
 
 /** skins kept in this browser, as a list of {name, css} */
