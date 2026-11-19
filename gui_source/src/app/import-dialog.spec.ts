@@ -1748,6 +1748,7 @@ describe('ImportDialog', () => {
       .toContain('All fics with a missing index, including any added to an ignore-list (4)');
     await choose('updateFor', 'all');
     await click('Continue');
+    await click('Continue');
 
     const request = started[0].request;
     expect(request.links.split('\n').map((l) => l.split('/').pop()).sort()).toEqual(['1', '2', '3']);
@@ -1817,10 +1818,17 @@ describe('ImportDialog', () => {
     expect(element.textContent).not.toContain('File types');
     await click('Continue');
     expect(step()).toBe('formats');
-    expect(element.textContent).toContain('File types');
+    expect(element.textContent).not.toContain('File types');
     // replacing an outdated copy is what an update does, not a choice of its own
     expect(element.querySelector('input[name="replaceOutdated"]')).toBeNull();
     expect(element.querySelector('.fetch-hint')!.textContent!.trim()).toBe('This only updates files that have a date in their name. A file with no date in its name is kept as-is.');
+    // the file types, and overwriting, are a page of their own after it
+    await click('Continue');
+    expect(step()).toBe('filetypes');
+    expect(element.textContent).toContain('File types');
+    expect(element.querySelector('input[name="overwrite"]')).not.toBeNull();
+    await click('Back');
+    expect(step()).toBe('formats');
   });
 
   function radio(name: string, value: string): HTMLInputElement | null {
@@ -1842,6 +1850,7 @@ describe('ImportDialog', () => {
     await click('Continue');
     await click('Continue');
     expect(radio('updateScope', 'all')!.checked).toBe(true);
+    await click('Continue');
     await tick('format-EPUB');
     await click('Continue');
 
@@ -1874,6 +1883,7 @@ describe('ImportDialog', () => {
     await click('Continue');
     await click('Continue');
     await click('Continue');
+    await click('Continue');
 
     expect(started[0].request.count).toBe(6_000);
     expect(started[0].request.links.split('\n')).toHaveLength(6_000);
@@ -1883,6 +1893,7 @@ describe('ImportDialog', () => {
     await open(ALL_DATED, false, INDEXED_UNDATED);
     await click('Continue');
     await skipDates();
+    await click('Continue');
     await click('Continue');
     await click('Continue');
     expect(started[0].request.replaceOutdated).toBe(true);
@@ -1959,6 +1970,7 @@ describe('ImportDialog', () => {
     await skipDates();
     await click('Continue');
     await choose('updateScope', 'dates');
+    await click('Continue');
     await tick('format-EPUB');
     await click('Continue');
 
@@ -1973,6 +1985,7 @@ describe('ImportDialog', () => {
     await open(ALL_DATED);
     await click('Continue');
     await click('Continue');
+    await click('Continue');
     expect(element.querySelector('label.overwrite')!.textContent).toContain(
       'Check this if you are concerned about file integrity issues and would like to re-download each file again.');
     await tick('overwrite');
@@ -1984,7 +1997,9 @@ describe('ImportDialog', () => {
     await open(ALL_DATED);
     await click('Continue');
     await click('Continue');
+    await click('Continue');
     await tick('format-EPUB');
+    await click('Back');
     await choose('updateFetch', 'skip');
     expect(radio('updateScope', 'all')).toBeNull();
     expect(element.querySelector('input[name="format-EPUB"]')).toBeNull();
@@ -2016,6 +2031,7 @@ describe('ImportDialog', () => {
     await choose('lookup', 'later');
     await click('Continue');
     expect(primary().textContent?.trim()).toBe('Continue');
+    await click('Continue');
     await click('Continue');
     expect(started[0].request).toMatchObject({
       links: 'https://archiveofourown.org/works/7',

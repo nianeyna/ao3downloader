@@ -37,7 +37,7 @@ import { VisitLog } from './visit-log';
 import { Chime } from './chime';
 import { inAo3Zone, writtenDate } from './preferences';
 
-type Step = 'overview' | 'rename' | 'renaming' | 'duplicates' | 'choose' | 'removing' | 'dates' | 'repair' | 'dating' | 'index' | 'formats';
+type Step = 'overview' | 'rename' | 'renaming' | 'duplicates' | 'choose' | 'removing' | 'dates' | 'repair' | 'dating' | 'index' | 'formats' | 'filetypes';
 
 /** what sifting by hand decided for one group: a file to keep, skipped, or its most recent */
 /** what *Sort any remaining in bulk* can do with the rest */

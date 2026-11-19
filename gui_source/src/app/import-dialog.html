@@ -979,29 +979,6 @@
           <span>Skip this step</span>
         </label>
       </fieldset>
-      @if (scopeChosen() !== 'skip') {
-        <fieldset class="formats">
-          <legend>File types</legend>
-          @for (format of offered(); track format) {
-            <label class="check">
-              <input type="checkbox" [attr.name]="'format-' + format"
-                     [checked]="picked().includes(format)"
-                     (change)="toggleFormat(format, $any($event.target).checked)" />
-              <span>
-                {{ format }}
-                @if (held().has(format)) { <span class="dim">(some already have it)</span> }
-              </span>
-            </label>
-          }
-        </fieldset>
-        <label class="check overwrite">
-          <input type="checkbox" name="overwrite" [checked]="overwrite()" (change)="overwrite.set($any($event.target).checked)" />
-          <span>
-            Overwrite existing downloads
-            <span class="hint">Check this if you are concerned about file integrity issues and would like to re-download each file again.</span>
-          </span>
-        </label>
-      }
       @if (busy()) {
         <p class="warning busy-note" role="note">A run is in progress. It has to finish before an import can start.</p>
       }
@@ -1010,6 +987,47 @@
       @if (canGoBack() || toLookUp().length || toRepair().length) {
         <button type="button" class="button subtle" (click)="backFrom('formats')">Back</button>
       }
+      <!-- updating goes on to the file types; skipping has nothing more to ask -->
+      @if (scopeChosen() !== 'skip') {
+        <button type="button" class="button primary" (click)="step.set('filetypes')">Continue</button>
+      } @else {
+        <button type="button" class="button primary" [disabled]="runs() && busy()" (click)="finish()">
+          {{ runs() ? 'Continue' : 'Done' }}
+        </button>
+      }
+    </footer>
+  }
+
+  <!-- 6: the file types to fetch for the works updated, and whether to overwrite what is there -->
+  @if (step() === 'filetypes') {
+    <section class="body">
+      <fieldset class="formats">
+        <legend>File types</legend>
+        @for (format of offered(); track format) {
+          <label class="check">
+            <input type="checkbox" [attr.name]="'format-' + format"
+                   [checked]="picked().includes(format)"
+                   (change)="toggleFormat(format, $any($event.target).checked)" />
+            <span>
+              {{ format }}
+              @if (held().has(format)) { <span class="dim">(some already have it)</span> }
+            </span>
+          </label>
+        }
+      </fieldset>
+      <label class="check overwrite">
+        <input type="checkbox" name="overwrite" [checked]="overwrite()" (change)="overwrite.set($any($event.target).checked)" />
+        <span>
+          Overwrite existing downloads
+          <span class="hint">Check this if you are concerned about file integrity issues and would like to re-download each file again.</span>
+        </span>
+      </label>
+      @if (busy()) {
+        <p class="warning busy-note" role="note">A run is in progress. It has to finish before an import can start.</p>
+      }
+    </section>
+    <footer>
+      <button type="button" class="button subtle" (click)="step.set('formats')">Back</button>
       <button type="button" class="button primary" [disabled]="runs() && busy()" (click)="finish()">
         {{ runs() ? 'Continue' : 'Done' }}
       </button>
