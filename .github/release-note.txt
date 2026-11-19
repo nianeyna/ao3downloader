@@ -1,1 +1,1 @@
-Auto-resolve issues can now repair undated files gracefully, and look up missing indexes from the Works tab. Fic runs and imports fall back to FicHub when AO3 is unavailable.
+no-post
