@@ -20,7 +20,7 @@ import { IMPORT_EXCLUDED_FILE, LibraryImports } from './imports';
 import { Library } from './library';
 import { LibraryStore } from './library-store';
 import { CUSTOM_FONT, CUSTOM_FONT_KEY, FONT_KEY, PALETTES, PALETTE_KEY, paletteById } from './appearance';
-import { CHIME_KEY, Chime, ChimePlayer } from './chime';
+import { CHIME_KEY, CHIME_SOUND_KEY, Chime, ChimePlayer } from './chime';
 import { IniSetting, TOAST_MS, UserSettings } from './user-settings';
 import { GuestMode } from './guest';
 import { RUN_LOG_LINES_KEY, RUN_LOG_LINES_MIN, TRIM_OLD_RUN_LOGS_KEY } from './run-logs';
@@ -35,7 +35,7 @@ const CONFIG: ServerConfig = {
 
 const INI: IniSetting[] = [
   { key: 'ExtraWaitTime', value: '15', default: '40', kind: 'integer', about: 'seconds to wait' },
-  { key: 'EnableDebugTools', value: 'false', default: 'false', kind: 'boolean', about: 'a debug panel' },
+  { key: 'EnableDebugLogging', value: 'false', default: 'false', kind: 'boolean', about: 'more in the log file' },
 ];
 
 let fixture: ComponentFixture<UserSettings>;
@@ -163,7 +163,6 @@ describe('UserSettings', () => {
   });
 
   it('folds the file naming and debug mode under Advanced, last of all, for anyone not a guest', async () => {
-    TestBed.inject(Jobs).config.set({ ...CONFIG, settings: { ...CONFIG.settings!, debugTools: true } });
     await open();
     const advanced = element.querySelector<HTMLDetailsElement>('details.advanced')!;
     expect(advanced.open).toBe(false);
@@ -285,7 +284,6 @@ describe('UserSettings', () => {
   });
 
   it('never shows a guest the file naming or debug mode, a preview included', async () => {
-    TestBed.inject(Jobs).config.set({ ...CONFIG, settings: { ...CONFIG.settings!, debugTools: true } });
     TestBed.inject(HelperConnection).guest.set(true);
     TestBed.inject(GuestMode).preview.set(true);
     await open();
@@ -322,6 +320,27 @@ describe('UserSettings', () => {
     expect(TestBed.inject(Chime).on()).toBe(true);
   });
 
+
+  it('offers a choice of sounds, plays the one chosen, and puts the bell back on reset', async () => {
+    const play = vi.spyOn(TestBed.inject(ChimePlayer), 'play').mockImplementation(() => {});
+    await open();
+    const select = element.querySelector<HTMLSelectElement>('.appearance select[name="waitChimeSound"]')!;
+    expect([...select.options].map((o) => o.textContent?.trim())).toEqual(
+      ['Bell', 'Fairy sparkle', 'Water droplet', 'Harp']);
+    expect(select.value).toBe('bell');
+
+    select.value = 'sparkle';
+    select.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    // choosing one plays it, and saves it to this browser
+    expect(play.mock.calls.at(-1)![0]!.id).toBe('sparkle');
+    expect(localStorage.getItem(CHIME_SOUND_KEY)).toBe('sparkle');
+    element.querySelector<HTMLButtonElement>('.appearance button.play-chime')!.click();
+    expect(play.mock.calls.at(-1)![0]!.id).toBe('sparkle');
+
+    TestBed.inject(Chime).choose('bell');
+    expect(localStorage.getItem(CHIME_SOUND_KEY)).toBeNull();
+  });
   it('changes the palette at once, keeps it in this browser, and offers it to Reset', async () => {
     await open();
     expect(element.querySelectorAll('.palette').length).toBe(PALETTES.length);
@@ -576,7 +595,7 @@ describe('UserSettings', () => {
     await open();
 
     const rows = Array.from(element.querySelectorAll('.ini [data-setting]'));
-    expect(rows.map((r) => r.getAttribute('data-setting'))).toEqual(['ExtraWaitTime', 'EnableDebugTools']);
+    expect(rows.map((r) => r.getAttribute('data-setting'))).toEqual(['ExtraWaitTime', 'EnableDebugLogging']);
     expect(element.querySelector('.ini')?.textContent).toContain('/home/me/config/settings.ini');
     expect(rows[0].textContent).toContain('seconds to wait');
   });
@@ -602,10 +621,10 @@ describe('UserSettings', () => {
   it('writes a true/false setting as soon as it is picked', async () => {
     await open();
 
-    choose('[data-setting="EnableDebugTools"] select', 'true');
+    choose('[data-setting="EnableDebugLogging"] select', 'true');
     await settle();
 
-    expect(posted).toEqual([{ EnableDebugTools: 'true' }]);
+    expect(posted).toEqual([{ EnableDebugLogging: 'true' }]);
   });
 
   it('offers a question\'s default answer as a list of the answers it has', async () => {
@@ -787,23 +806,15 @@ describe('UserSettings', () => {
   // endregion
   // region where it is kept, and putting it all back
 
-  it('offers debug mode on a downloaded app only when settings.ini turns on EnableDebugTools', async () => {
+  it('offers debug mode on a downloaded app, now that it is the one switch for every debug tool', async () => {
     localStorage.setItem('ao3.debugMode', 'on');
     await open();
-    expect(element.querySelector('.debug-mode')).toBeNull();
-    // what this browser saved is not in force where it is not allowed
-    expect(TestBed.inject(DebugMode).on()).toBe(false);
-
-    TestBed.inject(Jobs).config.set({ ...CONFIG, settings: { debugTools: true } } as ServerConfig);
-    fixture.detectChanges();
-    await fixture.whenStable();
     expect(element.querySelector('.debug-mode')).not.toBeNull();
     expect(TestBed.inject(DebugMode).on()).toBe(true);
     localStorage.removeItem('ao3.debugMode');
   });
 
   it('says at the top right of every section where it is saved, Advanced always last', async () => {
-    TestBed.inject(Jobs).config.set({ ...CONFIG, settings: { ...CONFIG.settings!, debugTools: true } });
     await open();
 
     const sections = [...element.querySelectorAll('.group')];

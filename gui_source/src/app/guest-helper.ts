@@ -31,7 +31,6 @@ export const GUEST_CONFIG: ServerConfig = {
     maxTimeouts: 5,
     debugLogging: false,
     consoleLogging: false,
-    debugTools: false,
     pausedRunTimeoutMinutes: 10,
     questionTimeoutMinutes: 30,
     guessedDateTimeoutMinutes: 1,

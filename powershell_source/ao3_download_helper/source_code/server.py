@@ -529,6 +529,14 @@ def resolve_options(requested) -> dict:
         # both: one picks works by where they sit in the listing and the other by when ao3
         # last touched them, and a run cannot be walking a listing and not walking it.
         'dates': bool(given.get('dates')),
+        # the order a custom run reads your bookmarks listing in, for a slice of pages or a
+        # date range: by when you bookmarked each work, or by when ao3 last updated it. '' is
+        # each shape's own order as it always was - see `listing_order`
+        'order': given.get('order') if given.get('order') in LISTING_ORDERS else '',
+        # a custom run skipping the indexing may still look every indexed work up on AO3, one
+        # at a time, and judge its files against what AO3 says now (`rechecks`) rather than
+        # against the index as it stands
+        'recheck': bool(given.get('recheck')),
         # any run may go without logging in - see USERNAME_ACTIONS for what it still needs
         'skipLogin': bool(given.get('skipLogin')),
         # a typed range: the page sends each end as the UTC moment it begins (from) or ends
@@ -654,7 +662,6 @@ def read_settings(fileops: FileOps) -> dict:
         'maxRetries': fileops.get_ini_value_integer(strings.INI_MAX_RETRIES, 0),
         'maxTimeouts': fileops.get_ini_value_integer(strings.INI_MAX_TIMEOUTS, 3),
         'debugLogging': fileops.get_ini_value_boolean(strings.INI_DEBUG_LOGGING, False),
-        'debugTools': fileops.get_ini_value_boolean(strings.INI_DEBUG_TOOLS, False),
         'consoleLogging': fileops.get_ini_value_boolean(strings.INI_CONSOLE_LOGGING, False),
         # how long a paused background run is kept before it is abandoned - the page warns
         # with this number before a background run is paused
@@ -1226,7 +1233,7 @@ def step_plan(job: Job) -> list[tuple[str, str]]:
         indexing = job.action != ACTION_CUSTOM or job.options['reindex']
         # the custom run's window is its own shape; a quick scan's window keeps the quick
         # scan's two walks, so it falls through to the branch below
-        if job.action == ACTION_CUSTOM and job.options['dates']:
+        if job.action == ACTION_CUSTOM and (job.options['dates'] or rechecks(job)):
             # a window of time chooses from the index and re-reads each one it picked -
             # the unfinished-fics shape rather than a scan. The walk that brings the index
             # up to date first is only there when the run was not told to skip indexing
@@ -1234,9 +1241,14 @@ def step_plan(job: Job) -> list[tuple[str, str]]:
             # listed whenever the run could index, even when it was told not to: a step
             # the user actively turned off is worth seeing struck through, where one this
             # workflow simply never had is only noise. `run_custom_dates` marks it skipped
+            # a range of dates bookmarked reads the listing, and picks works, by that date
+            bookmarked = listing_order(job) == 'bookmarked' and not rechecks(job)
             if metadata:
-                window.append(('index', strings.STEP_INDEX_WINDOW))
-            window.extend([('read', strings.STEP_READ_WINDOW),
+                window.append(('index', strings.STEP_INDEX_BOOKMARKED_WINDOW if bookmarked
+                               else strings.STEP_INDEX_WINDOW))
+            window.extend([('read', strings.STEP_READ_RECHECK if rechecks(job)
+                            else strings.STEP_READ_BOOKMARKED_WINDOW if bookmarked
+                            else strings.STEP_READ_WINDOW),
                            ('series', strings.STEP_SERIES)])
             if checks_non_bookmarks(job):
                 window.append(('nonbookmarks', strings.STEP_NON_BOOKMARKS))
@@ -2733,6 +2745,20 @@ def bookmarks_link(job: Job) -> str:
     return f'{strings.AO3_BASE_URL}/users/{job.username}/bookmarks'
 
 
+# the two orders a custom run can read your bookmarks listing in
+LISTING_ORDERS = ('bookmarked', 'updated')
+
+
+def listing_order(job: Job) -> str:
+    """The order a custom run reads your bookmarks listing in: as asked, else each shape's
+    own - a date range by date updated, everything else by date bookmarked - so a run that
+    was not asked (an older page, a retry of an older run) does exactly what it always did."""
+
+    asked = job.options.get('order')
+    if asked in LISTING_ORDERS: return asked
+    return 'updated' if job.options.get('dates') else 'bookmarked'
+
+
 def sorted_bookmarks_link(job: Job) -> str:
     """Your bookmarks, newest bookmarked first - asked for by name.
 
@@ -3889,7 +3915,7 @@ def run_custom(job: Job, fileops: FileOps, repo: Repository, report) -> None:
     # the run record reads its fic lists off this when the run ends
     job.ao3 = ao3
 
-    if job.options['dates']:
+    if job.options['dates'] or rechecks(job):
         run_custom_dates(job, fileops, ao3, downloadtypes, report)
         finish_run(job, fileops, ao3, report)
         return
@@ -3910,8 +3936,15 @@ def run_custom(job: Job, fileops: FileOps, repo: Repository, report) -> None:
     if job.options['reindex'] and metadata:
         progress.report(report, progress.PHASE, name=progress.INDEXING)
         print(strings.AO3_INFO_INDEXING)
-        records = walk_listing(job, fileops, ao3, 'all', sorted_bookmarks_link(job),
-                               anchored=True, ceiling=retry_ceiling(job), own_bookmarks=True)
+        # a slice may be read by date updated instead: the same walk, a different listing.
+        # a fic ao3 updates moves to the top there, so a broken walk starts again rather than
+        # being picked up from a page (`anchored`)
+        by_updated = job.action == ACTION_CUSTOM and listing_order(job) == 'updated'
+        records = walk_listing(job, fileops, ao3, 'all',
+                               f'{bookmarks_link(job)}?{strings.AO3_SORT_BY_UPDATED}' if by_updated
+                               else sorted_bookmarks_link(job),
+                               anchored=not by_updated, ceiling=retry_ceiling(job),
+                               own_bookmarks=True)
         walked = not ao3.walk_skipped
         walk_broke = ao3.walk_failed
     else:
@@ -5350,6 +5383,17 @@ def refresh_and_download(job: Job, fileops: FileOps, ao3: Ao3, records: list[dic
     job.steps.skip('update') if skipped_step else job.steps.done('update')
 
 
+def rechecks(job: 'Job') -> bool:
+    """A custom run that skips walking the listing but looks every indexed work up on AO3 -
+    each one re-read, its entry rewritten, and its files judged against what AO3 says now. The
+    date window's per-fic pass with no window: every work in the index, dated or not. Only
+    without indexing (a walk would have read them) and without a window (which re-reads its
+    own works anyway)."""
+
+    return job.action == ACTION_CUSTOM and bool(job.options.get('recheck')) and \
+        not job.options.get('reindex', True) and not job.options.get('dates')
+
+
 def run_custom_dates(job: Job, fileops: FileOps, ao3: Ao3, downloadtypes: list[str],
                      report) -> None:
     """The custom run's other shape: a window of time rather than a slice of the listing.
@@ -5389,17 +5433,29 @@ def run_custom_dates(job: Job, fileops: FileOps, ao3: Ao3, downloadtypes: list[s
             job.steps.skip('update')
         return
 
+    # a range of dates bookmarked rather than dates updated: the listing read newest
+    # bookmarked first, stopping at the first bookmark made before the range, and the works
+    # picked by the date each was bookmarked
+    bookmarked = listing_order(job) == 'bookmarked' and not rechecks(job)
     if job.options['reindex'] and metadata:
         job.steps.start('index')
         progress.report(report, progress.PHASE, name=progress.INDEXING)
-        print(strings.AO3_INFO_DATE_INDEXING.format(start) if start
-              else strings.AO3_INFO_DATE_NO_FLOOR)
-        # the whole index is read below rather than just what came back here: a fic in the
-        # window that is no longer bookmarked is still one the window asked for. a retry
-        # starts at the window's end: nothing updated after it is chosen
-        walk_listing(job, fileops, ao3, 'updated',
-                     f'{bookmarks_link(job)}?{strings.AO3_SORT_BY_UPDATED}', anchored=False,
-                     ceiling=retry_ceiling(job, end), stop_before=start, own_bookmarks=True)
+        if bookmarked:
+            print(strings.AO3_INFO_DATE_INDEXING_BOOKMARKED.format(start) if start
+                  else strings.AO3_INFO_DATE_NO_FLOOR)
+            # the quick scan's first walk, given the range's older end as its floor
+            walk_listing(job, fileops, ao3, 'bookmarked', sorted_bookmarks_link(job),
+                         anchored=True, ceiling=retry_ceiling(job, end), stop_before=start,
+                         stop_on='bookmarked', own_bookmarks=True)
+        else:
+            print(strings.AO3_INFO_DATE_INDEXING.format(start) if start
+                  else strings.AO3_INFO_DATE_NO_FLOOR)
+            # the whole index is read below rather than just what came back here: a fic in
+            # the window that is no longer bookmarked is still one the window asked for. a
+            # retry starts at the window's end: nothing updated after it is chosen
+            walk_listing(job, fileops, ao3, 'updated',
+                         f'{bookmarks_link(job)}?{strings.AO3_SORT_BY_UPDATED}', anchored=False,
+                         ceiling=retry_ceiling(job, end), stop_before=start, own_bookmarks=True)
         finish_walk_step(job, ao3, 'index')
     elif metadata:
         # asked for, and turned off - so it is shown as skipped rather than dropped
@@ -5408,10 +5464,21 @@ def run_custom_dates(job: Job, fileops: FileOps, ao3: Ao3, downloadtypes: list[s
 
     job.steps.start('read')
     progress.report(report, progress.PHASE, name=progress.SCANNING)
-    print(strings.AO3_INFO_DATE_WINDOW.format(start or strings.AO3_INFO_DATE_ANY,
-                                              end or strings.AO3_INFO_DATE_ANY))
-
-    chosen = works_updated_between(shared.read_index(fileops), start, end)
+    recheck = rechecks(job)
+    if recheck:
+        # every indexed work, dated or not: each is looked up on AO3 before anything is judged
+        chosen = newest_first(shared.read_index(fileops))
+    elif bookmarked:
+        print(strings.AO3_INFO_DATE_WINDOW_BOOKMARKED.format(start or strings.AO3_INFO_DATE_ANY,
+                                                             end or strings.AO3_INFO_DATE_ANY))
+        # only a bookmark has a date bookmarked: a work you never bookmarked, or one whose
+        # entry predates the field, is not in a range of them
+        chosen = newest_first(works_dated_between(shared.read_index(fileops), 'date_bookmarked',
+                                                  start, end))
+    else:
+        print(strings.AO3_INFO_DATE_WINDOW.format(start or strings.AO3_INFO_DATE_ANY,
+                                                  end or strings.AO3_INFO_DATE_ANY))
+        chosen = works_updated_between(shared.read_index(fileops), start, end)
     job.steps.done('read')
 
     # the works the window picked out of the index were not all read on the walk, so their
@@ -5422,13 +5489,14 @@ def run_custom_dates(job: Job, fileops: FileOps, ao3: Ao3, downloadtypes: list[s
         chosen, index_series_and_non_bookmarks(job, fileops, ao3, report)))
 
     if not chosen:
-        print(strings.AO3_INFO_DATE_NONE)
+        print(strings.AO3_INFO_RECHECK_NONE if recheck else strings.AO3_INFO_DATE_NONE)
         # an empty window is an answer, not a failure
         job.steps.skip('check')
         job.steps.skip('update')
         return
 
-    print(strings.AO3_INFO_DATE_FOUND.format(len(chosen)))
+    print(strings.AO3_INFO_RECHECK.format(len(chosen)) if recheck
+          else strings.AO3_INFO_DATE_FOUND.format(len(chosen)))
     refresh_and_download(job, fileops, ao3, chosen, downloadtypes, report)
 
 
@@ -6400,15 +6468,20 @@ class Handler(BaseHTTPRequestHandler):
         elif not options['collectionWorks']: options['series'] = False
         # a chosen floor is checked by the run, once it can read the history through the page:
         # one that turns out not to qualify falls back to the usual rules and says so
-        # a custom run told to skip indexing writes no json, because json is the index
-        indexing_run = options['reindex'] or action != ACTION_CUSTOM
+        # only a custom run skipping its indexing, with no window, looks every indexed work up
+        if action != ACTION_CUSTOM or options['reindex'] or options['dates']:
+            options['recheck'] = False
+        # a custom run told to skip indexing writes no json, because json is the index - unless
+        # it looks every indexed work up on AO3, which rewrites each entry it reads
+        indexing_run = options['reindex'] or action != ACTION_CUSTOM or options['recheck']
         filetypes = resolve_filetypes(body.get('filetypes'), force=indexing_run)
         # a collections run that is not indexing their works downloads nothing, so its record
         # must not say it saved html
         if action in COLLECTION_ACTIONS and not options['collectionWorks']:
             filetypes = list(FORCED_FILETYPES)
         # re-reading a non-bookmark writes its entry, which a run told not to index has ruled out
-        if not indexing_run: options['nonBookmarks'] = False
+        # (and one looking every indexed work up re-reads the non-bookmarks among them anyway)
+        if not indexing_run or options['recheck']: options['nonBookmarks'] = False
 
         url = (body.get('url') or '').strip()
         # checked here rather than on the thread, so a bad link is a straight answer to the

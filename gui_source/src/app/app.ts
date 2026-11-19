@@ -1,4 +1,5 @@
 import { ProgressBar } from './progress-bar';
+import { UnindexedWorks } from './unindexed-works';
 import { NamePattern, namePatternText } from './naming';
 import { formatsOfPattern } from './renames';
 import { inAo3Zone, shownTime } from './preferences';
@@ -417,16 +418,14 @@ export class App {
   protected readonly canRun = computed(() => !!this.library.store());
 
   /**
-   * Whether settings.ini has turned the debug tools on.
+   * Whether debug mode is on - which once was settings.ini's `EnableDebugTools`.
    *
    * Gates the runs that are kept for working on the app rather than for using it.
    * They still work, and they are still the passes the recommended run is built
    * from - but offering them beside it invites picking one of the parts when the
    * whole is what was wanted.
    */
-  protected readonly debugTools = computed(
-    () => !!this.jobs.config()?.settings?.debugTools,
-  );
+  protected readonly debugTools = computed(() => this.debugMode.on());
 
   constructor() {
     // the selection bar is pinned above the version bar, which wraps onto more lines on a
@@ -454,6 +453,14 @@ export class App {
         if (this.activeRun() || this.dialogAction()) return;
         this.setView('bookmarks');
         this.openRun(works.length === 1 ? 'work' : 'works', works.join('\n'));
+      });
+    });
+    // 'look up its index' on a file no index entry matches: Resolve issues, as the reminder opens it
+    effect(() => {
+      if (!this.jobs.resolveIssuesAsked()) return;
+      untracked(() => {
+        this.jobs.resolveIssuesAsked.set(0);
+        this.openImport();
       });
     });
     effect(() => {
@@ -641,7 +648,9 @@ export class App {
     this.updates.acknowledgeFailure();
   }
 
-  protected readonly works = computed<Bookmark[]>(() => this.data()?.works ?? []);
+  private readonly unindexed = inject(UnindexedWorks);
+  /** the index's works, then every file in works/ no entry matches - listed from its name */
+  protected readonly works = computed<Bookmark[]>(() => [...(this.data()?.works ?? []), ...this.unindexed.rows()]);
   protected readonly owner = computed(() => ownerFromSource(this.data()?.source ?? ''));
 
   /**

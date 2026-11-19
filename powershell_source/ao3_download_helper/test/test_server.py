@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from source_code import exceptions, parse_text, progress, server, strings
+from source_code import exceptions, parse_text, progress, server, settings_file, strings
 from source_code.fileio import FileOps as RealFileOps
 from source_code.storage import LocalStorage
 
@@ -105,7 +105,7 @@ def test_html_is_offered_by_default_but_can_be_turned_off():
 def test_resolve_options_defaults_match_the_console_defaults():
     assert server.resolve_options(None) == {
         'start': 1, 'pages': 0, 'series': False, 'images': False, 'workdates': False,
-        'reindex': True, 'dates': False, 'skipLogin': False, 'dateFrom': '', 'dateTo': '',
+        'reindex': True, 'dates': False, 'order': '', 'recheck': False, 'skipLogin': False, 'dateFrom': '', 'dateTo': '',
         'overwrite': False, 'floorRun': '', 'nonBookmarks': False, 'resume': '', 'retryMode': '',
         'collectionWorks': False, 'subcollections': False, 'parentCollections': False,
         'replaceOutdated': False, 'indexOnly': [],
@@ -117,12 +117,13 @@ def test_resolve_options_defaults_match_the_console_defaults():
 def test_resolve_options_reads_what_was_asked_for():
     result = server.resolve_options(
         {'start': '5', 'pages': '8', 'series': True, 'images': True, 'workdates': True,
-         'reindex': False, 'dates': True, 'dateFrom': '2026-01-01',
+         'reindex': False, 'dates': True, 'order': 'bookmarked', 'dateFrom': '2026-01-01',
          'dateTo': '2026-06-30', 'overwrite': True, 'nonBookmarks': True,
          'collectionWorks': True, 'subcollections': True, 'parentCollections': True})
 
     assert result == {'start': 5, 'pages': 8, 'series': True, 'images': True,
-                      'workdates': True, 'reindex': False, 'dates': True, 'skipLogin': False,
+                      'workdates': True, 'reindex': False, 'dates': True, 'order': 'bookmarked',
+                      'recheck': False, 'skipLogin': False,
                       'dateFrom': '2026-01-01', 'dateTo': '2026-06-30',
                       'overwrite': True, 'floorRun': '', 'nonBookmarks': True,
                       'resume': '', 'retryMode': '', 'collectionWorks': True, 'subcollections': True,
@@ -1456,6 +1457,69 @@ def test_a_custom_run_told_to_skip_indexing_reads_no_listing(fake_environment):
     assert [x['id'] for x in download.call_args.args[3]] == ['111']
 
 
+# region looking every indexed work up on AO3 (`recheck`)
+
+def test_a_custom_run_told_to_recheck_looks_every_indexed_work_up_dated_or_not(fake_environment):
+    # no listing walked; every work in the index, the undated one too, goes through the
+    # per-fic pass that re-reads it on AO3, rewrites its entry and judges its files by that
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options({'reindex': False, 'recheck': True}))
+    ao3 = MagicMock()
+    ao3.series_marked = {}
+    undated = finished('222')
+    undated.pop('date_updated', None)
+
+    with patch.object(server, 'Ao3', return_value=ao3), \
+         patch.object(server.shared, 'read_index', return_value=[finished('111'), undated]), \
+         patch.object(server, 'index_series_and_non_bookmarks', return_value=[]), \
+         patch.object(server, 'download_planned') as planned, \
+         patch.object(server, 'refresh_and_download') as pass_:
+        server.run_custom(job, fake_environment['fileops'], fake_environment['repo'], None)
+
+    ao3.get_metadata.assert_not_called()
+    planned.assert_not_called()
+    assert sorted(x['id'] for x in pass_.call_args.args[3]) == ['111', '222']
+
+
+def test_a_recheck_lists_its_own_steps():
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options({'reindex': False, 'recheck': True}))
+
+    plan = dict(server.step_plan(job))
+
+    assert list(plan) == ['login', 'index', 'read', 'series', 'check', 'update', 'fichub',
+                          'cleanup', 'report']
+    assert plan['read'] == strings.STEP_READ_RECHECK
+
+
+@pytest.mark.parametrize('options', [
+    {'recheck': True},                                     # indexing: the walk reads them
+    {'reindex': False, 'recheck': True, 'dates': True},     # a window re-reads its own
+])
+def test_recheck_means_nothing_outside_a_custom_run_skipping_its_indexing(options):
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options(options))
+
+    assert not server.rechecks(job)
+
+
+def test_a_recheck_keeps_json_and_leaves_non_bookmarks_to_itself():
+    # it rewrites every entry it reads, so json stays; and it reads every non-bookmark anyway
+    sent, [job], _ = start_request(server.ACTION_CUSTOM, '', reindex=False, recheck=True,
+                                   nonBookmarks=True)
+
+    assert 'JSON' in job.filetypes
+    assert job.options['recheck'] is True
+    assert job.options['nonBookmarks'] is False
+
+
+def test_recheck_is_cleared_for_any_other_run():
+    _, [job], _ = start_request(server.ACTION_CUSTOM, '', recheck=True)
+    assert job.options['recheck'] is False
+
+# endregion
+
+
 def test_a_custom_run_indexes_by_default(fake_environment):
     job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone')
     ao3 = MagicMock()
@@ -1591,17 +1655,15 @@ def test_asking_an_unknown_job_to_skip_says_so():
     assert sent['status'] == 404
 
 
-def test_the_debug_panel_is_off_unless_settings_ini_turns_it_on(fake_environment):
-    # it is for working on the app, not for using it, and skipping really does skip
+def test_the_debug_tools_are_not_a_setting_any_more(fake_environment):
+    # debug mode, the page's own switch, turns them on: settings.ini no longer has a say
     fileops = fake_environment['fileops']
-    fileops.get_ini_value_boolean.return_value = False
+    fileops.get_ini_value_boolean.return_value = True
     # read_settings builds the example file name, which does arithmetic on this
     fileops.get_ini_value_integer.return_value = 50
 
-    assert server.read_settings(fileops)['debugTools'] is False
-
-    fileops.get_ini_value_boolean.return_value = True
-    assert server.read_settings(fileops)['debugTools'] is True
+    assert 'debugTools' not in server.read_settings(fileops)
+    assert 'EnableDebugTools' not in settings_file.template_text()
 
 # endregion
 
@@ -2740,6 +2802,80 @@ def test_a_custom_run_given_pages_still_scans(fake_environment):
         server.run_custom(job, fake_environment['fileops'], fake_environment['repo'], None)
 
     ao3.get_metadata.assert_called_once()
+
+
+# region a custom run's slice or range, read by date bookmarked or by date updated
+
+def test_each_custom_shape_keeps_its_own_order_when_none_is_asked():
+    # an older page, or a retry of an older run, sends no order: nothing changes for them
+    pages = server.Job(server.ACTION_CUSTOM, ['JSON'], 'Someone', server.resolve_options({'pages': 3}))
+    dates = server.Job(server.ACTION_CUSTOM, ['JSON'], 'Someone', server.resolve_options({'dates': True}))
+
+    assert server.listing_order(pages) == 'bookmarked'
+    assert server.listing_order(dates) == 'updated'
+
+
+def test_an_order_that_is_not_one_is_not_kept():
+    assert server.resolve_options({'order': 'kudos'})['order'] == ''
+
+
+def walked_pages(fake_environment, options):
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options(options))
+    ao3 = MagicMock()
+    ao3.get_metadata.return_value = []
+    with patch.object(server, 'Ao3', return_value=ao3), \
+         patch.object(server, 'download_planned'):
+        server.run_custom(job, fake_environment['fileops'], fake_environment['repo'], None)
+    return ao3.get_metadata.call_args.args[0]
+
+
+def test_a_slice_of_pages_is_read_by_date_bookmarked_unless_asked_otherwise(fake_environment):
+    assert strings.AO3_SORT_BY_BOOKMARKED in walked_pages(fake_environment, {'pages': 3})
+    assert strings.AO3_SORT_BY_BOOKMARKED in walked_pages(fake_environment,
+                                                          {'pages': 3, 'order': 'bookmarked'})
+
+
+def test_a_slice_of_pages_can_be_read_by_date_updated(fake_environment):
+    link = walked_pages(fake_environment, {'pages': 3, 'order': 'updated'})
+
+    assert strings.AO3_SORT_BY_UPDATED in link
+    assert strings.AO3_SORT_BY_BOOKMARKED not in link
+
+
+def test_a_range_of_dates_bookmarked_walks_by_date_bookmarked_down_to_its_older_end(fake_environment):
+    ao3, _ = run_window(fake_environment, {'dateFrom': '2026-01-01', 'order': 'bookmarked'})
+
+    call = ao3.get_metadata.call_args
+    assert strings.AO3_SORT_BY_BOOKMARKED in call.args[0]
+    assert call.kwargs['stop_before'] == '2026-01-01'
+    assert call.kwargs['stop_on'] == 'bookmarked'
+
+
+def test_a_range_of_dates_bookmarked_picks_works_by_the_day_they_were_bookmarked(fake_environment):
+    index = [
+        dict(dated('in', '01 Jan 2020'), date_bookmarked='10 Mar 2026'),
+        dict(dated('updated in range only', '10 Mar 2026'), date_bookmarked='01 Jan 2020'),
+        dated('never bookmarked', '10 Mar 2026'),
+    ]
+
+    _, pass_ = run_window(fake_environment,
+                          {'dateFrom': '2026-03-01', 'dateTo': '2026-03-31', 'order': 'bookmarked'},
+                          index)
+
+    assert [x['id'] for x in pass_.call_args.args[3]] == ['in']
+
+
+def test_a_range_of_dates_bookmarked_says_so_on_its_checklist():
+    job = server.Job(server.ACTION_CUSTOM, ['JSON', 'HTML'], 'Someone',
+                     server.resolve_options({'dates': True, 'order': 'bookmarked'}))
+
+    plan = dict(server.step_plan(job))
+
+    assert plan['index'] == strings.STEP_INDEX_BOOKMARKED_WINDOW
+    assert plan['read'] == strings.STEP_READ_BOOKMARKED_WINDOW
+
+# endregion
 
 
 def test_a_date_window_says_so_on_its_checklist():

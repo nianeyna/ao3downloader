@@ -197,6 +197,21 @@ function checkbox(labelText: string): HTMLInputElement | undefined {
     ?.querySelector('input') as HTMLInputElement | undefined;
 }
 
+/**
+ * Picks a custom run's page range or date range: the slice first, which shows the two, then the
+ * one asked for. A quick scan's debug date range has no slice above it, and is picked as it is.
+ */
+async function pickSlice(name: string): Promise<void> {
+  const slice = checkbox('A slice of your bookmarks listing');
+  if (slice && !slice.checked) {
+    slice.click();
+    await fixture.whenStable();
+  }
+  const range = checkbox(name)!;
+  if (!range.checked) range.click();
+  await fixture.whenStable();
+}
+
 function currentStep(): string {
   return element.querySelector('.dialog')?.getAttribute('data-step') ?? '';
 }
@@ -208,7 +223,7 @@ function currentStep(): string {
  * the file types and everything else asks them after, and several runs put an
  * acknowledgement in between. Counting clicks made every test quietly depend on which.
  */
-async function advanceTo(target: 'options' | 'filetypes' | 'credentials' | 'running') {
+async function advanceTo(target: 'options' | 'more-options' | 'filetypes' | 'credentials' | 'running') {
   for (let guard = 0; guard < 8; guard++) {
     const at = currentStep();
     if (at === target || at === 'running') return;
@@ -262,18 +277,53 @@ async function advanceTo(target: 'options' | 'filetypes' | 'credentials' | 'runn
 async function toPageOptions() {
   await open('custom');
   await advanceTo('options');
-  checkbox('A slice of your bookmarks listing')!.click();
+  await pickSlice('Choose my own page range');
   await fixture.whenStable();
 }
 
 describe('DownloadDialog', () => {
-  it('says what order a slice of the bookmarks listing is in', async () => {
+  it('nests the page range and the date range under one slice, shown once it is picked', async () => {
     await open('custom');
     await advanceTo('options');
-    const slice = Array.from(element.querySelectorAll<HTMLLabelElement>('label.check'))
-      .find((l) => l.textContent?.includes('A slice of your bookmarks listing'));
+    const slice = checkbox('A slice of your bookmarks listing')!;
+    expect(slice.checked).toBe(false);
+    expect(element.querySelector('.slice-options')).toBeNull();
+
+    // picked, it shows the two with the page range ticked to begin with
+    slice.click();
+    await fixture.whenStable();
+    const nested = element.querySelector('.slice-options')!;
+    expect([...nested.querySelectorAll('label.check')].map((l) => l.textContent?.trim())).toEqual(
+      ['Choose my own page range', 'Choose my own date range']);
+    expect(nested.querySelectorAll('strong').length).toBe(2);
+    expect(checkbox('Choose my own page range')!.checked).toBe(true);
+    expect(element.querySelector('input[name=start]')).toBeTruthy();
+
+    checkbox('Choose my own date range')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('input[name=dateFrom]')).toBeTruthy();
+
+    // picking something else puts the two away; picking the slice again takes back the last one
+    checkbox('All bookmarks')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('.slice-options')).toBeNull();
+    checkbox('A slice of your bookmarks listing')!.click();
+    await fixture.whenStable();
+    expect(checkbox('Choose my own date range')!.checked).toBe(true);
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ dates: true });
+  });
+
+  it('says what order a slice of the bookmarks listing is in, once it is chosen', async () => {
+    await open('custom');
+    await advanceTo('options');
+    expect(checkbox('A slice of your bookmarks listing')).toBeTruthy();
+    expect(element.querySelector('.slice-order-hint')).toBeNull();
+    await pickSlice('Choose my own page range');
+    await fixture.whenStable();
     // the slice walks the listing sorted by date bookmarked (sorted_bookmarks_link)
-    expect(slice?.textContent).toContain('in the order you bookmarked them, newest first');
+    expect(element.querySelector('.slice-order-hint')!.textContent).toContain(
+      'in the order you bookmarked them, newest first');
   });
 
   it('starts the link box with a work number handed over from a listing', async () => {
@@ -508,7 +558,7 @@ describe('DownloadDialog', () => {
   for (const action of ['bookmarks', 'custom'] as JobAction[]) {
     it(`says a ${action} run's overwrite takes in the non-bookmarks only when both are ticked`, async () => {
       await open(action);
-      await advanceTo('options');
+      await advanceTo(action === 'custom' ? 'more-options' : 'options');
       const note = () => element.querySelector('.overwrite-non-bookmarks')?.textContent ?? '';
       expect(note()).toBe('');
 
@@ -545,19 +595,19 @@ describe('DownloadDialog', () => {
   it('offers the rest of each series on every run that indexes works', async () => {
     for (const action of ['bookmarks', 'quick', 'custom', 'work'] as const) {
       await open(action);
-      await advanceTo('options');
+      await advanceTo(action === 'custom' ? 'more-options' : 'options');
 
-      expect(checkbox('encountered series'), action).toBeTruthy();
+      expect(checkbox('download all its other works too'), action).toBeTruthy();
     }
     expect(element.textContent).toContain(
-      'If a bookmarked work belongs to a series, download the rest of the series too - even ' +
-        'if its other works are not bookmarked.',
+      'Downloads all works whenever a series is found - even if its other works are not ' +
+        'bookmarked by you.',
     );
   });
 
   it('offers saving images separately only on a custom run', async () => {
     await open('custom');
-    await advanceTo('options');
+    await advanceTo('more-options');
     expect(checkbox('images separately')).toBeTruthy();
 
     for (const action of ['bookmarks', 'sync', 'new', 'update'] as const) {
@@ -570,7 +620,7 @@ describe('DownloadDialog', () => {
   it('says plainly what saving images costs and what it is not, once it is ticked', async () => {
     // most people do not want this: the pictures are already inside the downloaded work
     await open('custom');
-    await advanceTo('options');
+    await advanceTo('more-options');
     expect(element.querySelector('.body')?.textContent).not.toContain('already embedded');
 
     checkbox('images separately')!.click();
@@ -627,7 +677,7 @@ describe('DownloadDialog', () => {
    * options step at all.
    */
   async function openQuickDates() {
-    jobs.settingsOverride = { ...CONFIG.settings!, debugTools: true };
+    debugOn();
     await open('quick');
     await advanceTo('options');
   }
@@ -915,7 +965,7 @@ describe('DownloadDialog', () => {
       await open(action);
       await advanceTo(currentStep() === 'options' ? 'options' : 'filetypes');
 
-      expect(checkbox('encountered series'), action).toBeUndefined();
+      expect(checkbox('download all its other works too'), action).toBeUndefined();
     }
   });
 
@@ -961,7 +1011,7 @@ describe('DownloadDialog', () => {
     // it has no options step at all
     expect(currentStep()).not.toBe('options');
     expect(element.querySelector('input[name="pages"]')).toBeNull();
-    expect(checkbox('encountered series')).toBeUndefined();
+    expect(checkbox('download all its other works too')).toBeUndefined();
     expect(checkbox('publication date')).toBeUndefined();
     expect(checkbox('images separately')).toBeUndefined();
   });
@@ -969,7 +1019,7 @@ describe('DownloadDialog', () => {
   it('notes in the visit log which options were left as the default and which were changed', async () => {
     await open('bookmarks');
     await advanceTo('options');
-    checkbox('encountered series')!.click();
+    checkbox('download all its other works too')!.click();
     await fixture.whenStable();
     await advanceTo('running');
 
@@ -986,7 +1036,7 @@ describe('DownloadDialog', () => {
     await open('bookmarks');
     await advanceTo('options');
 
-    checkbox('encountered series')!.click();
+    checkbox('download all its other works too')!.click();
     await fixture.whenStable();
 
     await advanceTo('running');
@@ -1002,12 +1052,16 @@ describe('DownloadDialog', () => {
       workdates: false,
       // only a custom run may turn this off, so every other run always indexes
       reindex: true,
+      // a custom run skipping its indexing may look each work up; nothing else may
+      recheck: false,
       // offered on a full scan, but off unless it is asked for
       overwrite: false,
       // offered on a full scan too, and off unless it is asked for
       nonBookmarks: false,
       // the date window is a custom run's alternative to pages; nothing else offers it
       dates: false,
+      // a custom run's slice or range alone is read in an order chosen for it
+      order: '',
       dateFrom: '',
       dateTo: '',
       // only a quick scan pointed at an earlier scan sends one
@@ -1024,7 +1078,7 @@ describe('DownloadDialog', () => {
 
   it('sends a custom run told to save images separately', async () => {
     await open('custom');
-    await advanceTo('options');
+    await advanceTo('more-options');
     checkbox('images separately')!.click();
     await fixture.whenStable();
 
@@ -1052,7 +1106,7 @@ describe('DownloadDialog', () => {
 
   /** tick the date range, and fill in the dates the chosen shape of window offers */
   async function chooseWindow(from: string, to = '') {
-    checkbox('date range')!.click();
+    await pickSlice('date range');
     await fixture.whenStable();
 
     if (to) {
@@ -1075,8 +1129,9 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
     await chooseWindow('2024-01-01', '2024-06-30');
 
-    expect(element.querySelector('.range-zone')?.textContent).toContain('Australia/Sydney');
-    // and the dates go to the helper as the UTC moments they stand for
+    // the custom run no longer says so beside the boxes, at the owner's request
+    expect(element.querySelector('.range-zone')).toBeNull();
+    // the dates go to the helper as the UTC moments they stand for
     await advanceTo('running');
     // typed in the AO3 zone, sent as the UTC moment that day begins there
     expect(jobs.started[0].options.dateFrom).toBe('2023-12-31T13:00:00+00:00');
@@ -1122,44 +1177,47 @@ describe('DownloadDialog', () => {
     await chooseWindow('2024-01-01');
 
     expect(element.textContent).toContain(
-      'any works that were updated between today and 2024-01-01',
+      'any works that were updated between 2024-01-01 and today',
     );
 
     await chooseWindow('2024-01-01', '2024-06-30');
 
+    // oldest first, as a reader says a range
     expect(element.textContent).toContain(
-      'any works that were updated between 2024-06-30 and 2024-01-01',
+      'any works that were updated between 2024-01-01 and 2024-06-30',
     );
   });
 
   // the earliest date is what the indexing walk stops at, so without one it reads the lot
-  it('warns that a window with no earliest date indexes the whole listing', async () => {
+  it('says in one line what a custom date range reads, and what it will fetch', async () => {
     await open('custom');
     await advanceTo('options');
     await chooseWindow('');
 
-    expect(element.textContent).toContain('reads the whole listing');
-
-    await chooseWindow('2024-01-01');
-
+    const hint = () => element.querySelector('.range-hint')!.textContent!.replace(/\s+/g, ' ');
+    expect(hint()).toContain('Reads a slice of your bookmarks to find new or updated works (date inclusive).');
+    expect(hint()).toContain('This run will fetch any works, whenever they were updated');
+    // the longer account of the walk is gone, at the owner's request
     expect(element.textContent).not.toContain('reads the whole listing');
-    expect(element.textContent).toContain('stops at the first fic older than');
+    expect(element.textContent).not.toContain('re-read one at a time');
+    expect(element.textContent).toContain("Updated on or after (leave empty to go all the way back)");
+
+    await chooseWindow('2024-01-01', '2024-06-30');
+    expect(element.textContent).toContain("Updated on or before (leave empty to use today's date)");
   });
 
-  // the two are alternatives, so choosing the window has to take the page inputs away
-  // rather than leave a slice showing that the run will not honour
   it('hides the page inputs while the date window is chosen', async () => {
     await toPageOptions();
 
     expect(element.querySelector('input[name="start"]')).not.toBeNull();
 
-    checkbox('date range')!.click();
+    await pickSlice('date range');
     await fixture.whenStable();
 
     expect(element.querySelector('input[name="start"]')).toBeNull();
     expect(element.querySelector('input[name="pages"]')).toBeNull();
 
-    checkbox('bookmarks listing')!.click();
+    await pickSlice('page range');
     await fixture.whenStable();
 
     expect(element.querySelector('input[name="start"]')).not.toBeNull();
@@ -1175,7 +1233,7 @@ describe('DownloadDialog', () => {
     await advanceTo('running');
 
     expect(element.textContent).toContain(
-      'any works that were updated between today and 2024-01-01',
+      'any works that were updated between 2024-01-01 and today',
     );
   });
 
@@ -2066,7 +2124,7 @@ describe('DownloadDialog', () => {
 
   it('reads back the options chosen on the way in', async () => {
     await open('custom');
-    await advanceTo('options');
+    await advanceTo('more-options');
     checkbox('Overwrite existing downloads')!.click();
     await fixture.whenStable();
 
@@ -2120,7 +2178,7 @@ describe('DownloadDialog', () => {
   it('says what happens to the rest of a series, in words', async () => {
     await open('bookmarks');
     await advanceTo('options');
-    checkbox('encountered series')!.click();
+    checkbox('download all its other works too')!.click();
     await fixture.whenStable();
     await advanceTo('running');
 
@@ -2163,7 +2221,7 @@ describe('DownloadDialog', () => {
     expect(currentStep()).toBe('options');
     expect(checkbox('Index and download encountered works')?.checked).toBe(false);
     // series only mean anything once there are works to follow them from
-    expect(checkbox('encountered series')).toBeUndefined();
+    expect(checkbox('download all its other works too')).toBeUndefined();
     expect(element.querySelector('.dialog input[type="number"]')).toBeNull();
   });
 
@@ -2208,7 +2266,7 @@ describe('DownloadDialog', () => {
     await fixture.whenStable();
 
     expect(element.textContent).toContain('the collection');
-    checkbox('encountered series')!.click();
+    checkbox('download all its other works too')!.click();
     await fixture.whenStable();
     button('Continue')!.click();
     await fixture.whenStable();
@@ -2571,7 +2629,7 @@ describe('DownloadDialog', () => {
     'lets a %s run overwrite files nothing says are out of date',
     async (action) => {
       await open(action);
-      await advanceTo('options');
+      await advanceTo(action === 'custom' ? 'more-options' : 'options');
 
       checkbox('Overwrite existing downloads')!.click();
       await fixture.whenStable();
@@ -2606,7 +2664,7 @@ describe('DownloadDialog', () => {
     'lets a %s run check non-bookmarks for updates, saying what it checks',
     async (action) => {
       await open(action);
-      await advanceTo('options');
+      await advanceTo(action === 'custom' ? 'more-options' : 'options');
 
       const box = checkbox('Check all non-bookmarks for updates too');
       expect(element.querySelector('.dialog .body')?.textContent).toContain(
@@ -2633,12 +2691,19 @@ describe('DownloadDialog', () => {
   // re-reading a work writes its entry, which skipping the indexing has ruled out
   it('does not offer it to a custom run told to skip indexing', async () => {
     await open('custom');
-    await advanceTo('options');
-
+    await advanceTo('more-options');
     checkbox('Check all non-bookmarks for updates too')!.click();
-    checkbox('Skip indexing')!.click();
     await fixture.whenStable();
 
+    // back to what it covers, and choosing to skip the indexing takes it off the next page
+    button('Back')!.click();
+    await fixture.whenStable();
+    checkbox('Just update existing works')!.click();
+    await fixture.whenStable();
+    button('Continue')!.click();
+    await fixture.whenStable();
+
+    expect(currentStep()).toBe('more-options');
     expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
     await advanceTo('running');
     expect(jobs.started[0].options.nonBookmarks).toBe(false);
@@ -2659,7 +2724,7 @@ describe('DownloadDialog', () => {
   it('sends a quick scan the date range it was given', async () => {
     await openQuickDates();
 
-    checkbox('Choose my own date range')!.click();
+    await pickSlice('Choose my own date range');
     await fixture.whenStable();
     const from = element.querySelector<HTMLInputElement>('input[name="dateFrom"]')!;
     from.value = '2026-01-01';
@@ -2684,7 +2749,7 @@ describe('DownloadDialog', () => {
   // the same method as the ordinary quick scan, given two dates instead of an earlier scan
   it('explains that a quick scan date range reads by date bookmarked, then by date updated', async () => {
     await openQuickDates();
-    checkbox('Choose my own date range')!.click();
+    await pickSlice('Choose my own date range');
     await fixture.whenStable();
     const from = element.querySelector<HTMLInputElement>('input[name="dateFrom"]')!;
     from.value = '2026-01-01';
@@ -2694,26 +2759,74 @@ describe('DownloadDialog', () => {
     const said = element.querySelector('.body')?.textContent ?? '';
     expect(said).toContain('by date bookmarked');
     expect(said).toContain('by date updated');
-    expect(said).toContain('any works that were bookmarked or updated between today and 2026-01-01');
+    expect(said).toContain('any works that were bookmarked or updated between 2026-01-01 and today');
     // the custom run's single-walk wording does not belong here
     expect(said).not.toContain('re-read one at a time');
   });
 
-  it('keeps the custom run date range worded as a single walk by date updated', async () => {
+  it('reads a custom date range by date updated unless asked to read it by date bookmarked', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Choose my own date range')!.click();
+    await pickSlice('Choose my own date range');
     await fixture.whenStable();
 
-    const said = element.querySelector('.body')?.textContent ?? '';
-    expect(said).toContain('sorted by when AO3 last updated each work');
-    expect(said).not.toContain('by date bookmarked');
+    // above the range's own choices, and starting on what a range always did
+    const body = element.querySelector('.body')!;
+    const order = body.querySelector('fieldset.listing-order')!;
+    expect(order.compareDocumentPosition(body.querySelector('input[name=window]')!) &
+      Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(checkbox('Date updated')!.checked).toBe(true);
+    expect(body.textContent).toContain('Everything updated since a date');
+
+    checkbox('Date bookmarked')!.click();
+    await fixture.whenStable();
+    await chooseWindow('2024-01-01', '2024-06-30');
+    expect(body.textContent).toContain('Everything bookmarked since a date');
+    expect(body.textContent).toContain("Bookmarked on or before (leave empty to use today's date)");
+    expect(body.textContent).toContain('Bookmarked on or after (leave empty to go all the way back)');
+    expect(body.textContent).toContain('any works that were bookmarked between 2024-01-01 and 2024-06-30');
+
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ dates: true, order: 'bookmarked' });
+  });
+
+  it('reads a slice of pages by date bookmarked unless asked to read it by date updated', async () => {
+    await open('custom');
+    await advanceTo('options');
+    await pickSlice('Choose my own page range');
+    await fixture.whenStable();
+
+    // above the page numbers, starting on what a slice always did
+    const body = element.querySelector('.body')!;
+    const order = body.querySelector('fieldset.listing-order')!;
+    expect(order.compareDocumentPosition(body.querySelector('input[name=start]')!) &
+      Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(checkbox('Date bookmarked')!.checked).toBe(true);
+    expect(element.querySelector('.slice-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'Reads a slice of your bookmarks to find new or updated works. Fetches your bookmarks in the ' +
+      'order you bookmarked them, newest first. This run will fetch all pages');
+    expect(element.textContent).not.toContain('positions in the whole listing');
+
+    checkbox('Date updated')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('.slice-order-hint')!.textContent).toContain(
+      'in the order they were last updated on AO3, newest first');
+
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ dates: false, order: 'updated' });
+  });
+
+  it('sends no order for a run that covers all bookmarks', async () => {
+    await open('custom');
+    await advanceTo('running');
+
+    expect(jobs.started[0].options.order).toBe('');
   });
 
   it('gives a quick scan over a date range its own caveats', async () => {
     await openQuickDates();
 
-    checkbox('Choose my own date range')!.click();
+    await pickSlice('Choose my own date range');
     await fixture.whenStable();
     await walkToNote();
 
@@ -3096,11 +3209,11 @@ describe('DownloadDialog', () => {
   it('offers skipping the indexing only on a custom run', async () => {
     await open('custom');
     await advanceTo('options');
-    expect(checkbox('Skip indexing')).toBeTruthy();
+    expect(checkbox('Just update existing works')).toBeTruthy();
 
     await open('bookmarks');
     await advanceTo('options');
-    expect(checkbox('Skip indexing')).toBeUndefined();
+    expect(checkbox('Just update existing works')).toBeUndefined();
   });
 
   it('warns, once indexing is skipped, that files are judged against the last index', async () => {
@@ -3108,10 +3221,12 @@ describe('DownloadDialog', () => {
     await advanceTo('options');
     expect(element.querySelector('.skip-index-warning')).toBeNull();
 
-    checkbox('Skip indexing')!.click();
+    checkbox('Just update existing works')!.click();
+    fixture.detectChanges();
+    checkbox('Check for outdated against current index')!.click();
     fixture.detectChanges();
     expect(element.querySelector('.skip-index-warning')!.textContent).toContain(
-      'not against live AO3 data',
+      'it will miss any update from AO3 that is more recent than its last index',
     );
   });
 
@@ -3123,7 +3238,11 @@ describe('DownloadDialog', () => {
 
     button('Continue')!.click();
     await fixture.whenStable();
+    // the rest of its options come on a page of their own, after what it covers
+    expect(currentStep()).toBe('more-options');
 
+    button('Continue')!.click();
+    await fixture.whenStable();
     expect(currentStep()).toBe('filetypes');
   });
 
@@ -3154,9 +3273,7 @@ describe('DownloadDialog', () => {
     // json *is* the index, so a run that indexes writes it and a run that does not cannot
     debugOn();
     await open('custom');
-    await advanceTo('options');
-    button('Continue')!.click();
-    await fixture.whenStable();
+    await advanceTo('filetypes');
 
     const json = checkbox('JSON')!;
     expect(json.checked).toBe(true);
@@ -3167,10 +3284,12 @@ describe('DownloadDialog', () => {
     debugOn();
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip indexing')!.click();
+    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
-    button('Continue')!.click();
+    // looking every work up on AO3 (the default) writes the index; the index choice does not
+    checkbox('Check for outdated against current index')!.click();
     await fixture.whenStable();
+    await advanceTo('filetypes');
 
     const json = checkbox('JSON')!;
     expect(json.checked).toBe(false);
@@ -3181,7 +3300,10 @@ describe('DownloadDialog', () => {
   it('does not ask the helper for JSON it will not write', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip indexing')!.click();
+    checkbox('Just update existing works')!.click();
+    await fixture.whenStable();
+    // looking every work up on AO3 (the default) writes the index; the index choice does not
+    checkbox('Check for outdated against current index')!.click();
     await fixture.whenStable();
 
     await advanceTo('running');
@@ -3210,12 +3332,104 @@ describe('DownloadDialog', () => {
   it('sends a custom run told to skip indexing', async () => {
     await open('custom');
     await advanceTo('options');
-    checkbox('Skip indexing')!.click();
+    checkbox('Just update existing works')!.click();
     await fixture.whenStable();
 
     await advanceTo('running');
 
     expect(jobs.started[0].options.reindex).toBe(false);
+  });
+
+  it("offers skipping the indexing as a choice of what a custom run covers, with its hint and warning", async () => {
+    await open('custom');
+    await advanceTo('options');
+    expect(element.querySelector('.skip-index-hint')).toBeNull();
+
+    const choice = checkbox('Just update existing works')!;
+    expect(choice.type).toBe('radio');
+    expect(choice.name).toBe('coverage');
+    choice.click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('.skip-index-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      "Only checks existing works in FicFairy for downloads/updates (skips 'walking' your bookmarks).");
+    // looking every work up on AO3 is the default, so there is no warning until the index is chosen
+    expect(element.querySelector('.skip-index-warning')).toBeNull();
+    // an alternative to the others: choosing it puts the date range away
+    expect(checkbox('A slice of your bookmarks listing')!.checked).toBe(false);
+    expect(element.querySelector('.slice-options')).toBeNull();
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ reindex: false, dates: false, pages: 0 });
+  });
+
+  it('looks every work up on AO3 unless asked to judge against the index, and keeps JSON', async () => {
+    await open('custom');
+    await advanceTo('options');
+    checkbox('Just update existing works')!.click();
+    await fixture.whenStable();
+
+    const byIndex = checkbox('Check for outdated against current index')!;
+    const byAo3 = checkbox('Check for outdated against latest on AO3')!;
+    // listed first, and the default
+    const radios = [...element.querySelectorAll<HTMLInputElement>('.existing-check input[type=radio]')];
+    expect(radios.map(r => r.value)).toEqual(['ao3', 'index']);
+    expect(byAo3.checked).toBe(true);
+    expect(element.querySelector('.recheck-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'Looks up every work on AO3 for changes. One at a time');
+    expect(element.querySelector('.skip-index-warning')).toBeNull();
+    byIndex.click();
+    await fixture.whenStable();
+    expect(element.querySelector('.recheck-hint')).toBeNull();
+    expect(element.querySelector('.existing-check')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'Indexes (the work summary, chapter count, tags shown in FicFairy) do not get updated.');
+    byAo3.click();
+    await fixture.whenStable();
+
+    await advanceTo('running');
+    expect(jobs.started[0].options).toMatchObject({ reindex: false, recheck: true });
+    // every entry it reads is rewritten, so the index is written
+    expect(jobs.started[0].filetypes).toContain('JSON');
+  });
+
+  it('sends no recheck when judging against the index', async () => {
+    await open('custom');
+    await advanceTo('options');
+    checkbox('Just update existing works')!.click();
+    await fixture.whenStable();
+    checkbox('Check for outdated against current index')!.click();
+    await fixture.whenStable();
+    await advanceTo('running');
+
+    expect(jobs.started[0].options).toMatchObject({ reindex: false, recheck: false });
+    expect(jobs.started[0].filetypes).not.toContain('JSON');
+  });
+
+  it("says whether a work with no index entry is picked up only under the custom run's outdated-check choices", async () => {
+    await open('custom');
+    await advanceTo('options');
+    expect(element.querySelectorAll('.coverage-hint').length).toBe(0);
+    checkbox('Just update existing works')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('.no-entry-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'Will not download or update works that do not have an index.');
+    // and the non-bookmarks choice is put away: every indexed work is covered already
+    expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
+    checkbox('Check for outdated against current index')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('.no-entry-hint')!.textContent!.replace(/\s+/g, ' ')).toContain(
+      'Will not download or update works that do not have an index.');
+    expect(checkbox('Check all non-bookmarks for updates too')).toBeUndefined();
+  });
+
+  it('words the overwrite and series options plainly', async () => {
+    await open('custom');
+    await advanceTo('more-options');
+    const label = (text: string) => checkbox(text)!.closest('label')!.parentElement!.textContent!.replace(/\s+/g, ' ');
+    expect(checkbox('Overwrite existing downloads')).toBeTruthy();
+    expect(label('Overwrite existing downloads')).toContain(
+      'Choose which formats get replaced on the next page. Check this if you are concerned about file integrity issues and would like to re-download each file again.');
+    expect(label('If a work is a part of a series, download all its other works too')).toContain(
+      'Downloads all works whenever a series is found - even if its other works are not bookmarked by you.');
   });
 
   it('asks the lighter runs nothing about pages', async () => {
@@ -3240,19 +3454,19 @@ describe('DownloadDialog', () => {
   // region the debug panel
 
   async function runningWithDebug(on: boolean) {
-    jobs.settingsOverride = { ...CONFIG.settings!, debugTools: on };
+    if (on) debugOn();
     await open('sync');
     await advanceTo('running');
   }
 
-  it('hides the debug panel unless settings.ini asks for it', async () => {
+  it('hides the debug panel unless debug mode is on', async () => {
     // skipping a step really skips it, so this is not something to leave lying about
     await runningWithDebug(false);
 
     expect(element.querySelector('.settings.debug')).toBeNull();
   });
 
-  it('shows the debug panel when settings.ini asks for it', async () => {
+  it('shows the debug panel while debug mode is on', async () => {
     await runningWithDebug(true);
 
     const panel = element.querySelector('.settings.debug');
@@ -4006,11 +4220,14 @@ describe('DownloadDialog', () => {
     checkbox('Retry an earlier run')!.click();
     await fixture.whenStable();
 
-    for (const label of ['Skip indexing', 'Overwrite existing downloads',
-                         'Get all works from encountered series']) {
-      // disabled by the fieldset around them, which the property does not reflect
-      expect(checkbox(label)!.matches(':disabled')).toBe(true);
+    // a custom run asks them on a page of their own, and a retry takes them all from its run -
+    // so they are not on this page, and Continue goes to the runs to retry rather than to them
+    for (const label of ['Overwrite existing downloads', 'download all its other works too']) {
+      expect(checkbox(label)).toBeUndefined();
     }
+    button('Continue')!.click();
+    await fixture.whenStable();
+    expect(currentStep()).not.toBe('more-options');
   });
 
   it('says under a run that cannot be retried why not, where it is listed', async () => {

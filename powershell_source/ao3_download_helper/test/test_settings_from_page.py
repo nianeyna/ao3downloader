@@ -21,7 +21,7 @@ ExtraWaitTime=15
 SavePassword=false
 
 # a switch
-EnableDebugTools=false
+EnableDebugLogging=false
 
 # where the page finds the helper
 HelperUrl=http://127.0.0.1:4400
@@ -33,7 +33,7 @@ HelperUrl=http://127.0.0.1:4400
 def test_every_setting_but_the_password_and_the_hosting_ones_is_offered_with_its_explanation():
     offered = settings_file.editable_settings('[settings]\nExtraWaitTime=3\n', TEMPLATE)
 
-    assert [s['key'] for s in offered] == ['ExtraWaitTime', 'EnableDebugTools']
+    assert [s['key'] for s in offered] == ['ExtraWaitTime', 'EnableDebugLogging']
     wait, tools = offered
     assert wait == {'key': 'ExtraWaitTime', 'value': '3', 'default': '15', 'kind': 'integer',
                     'about': 'seconds to wait after every request (more is gentler on ao3)'}
@@ -75,11 +75,11 @@ def test_a_commented_out_value_is_not_read_as_the_setting():
 # region writing it
 
 def test_only_the_value_changes_and_everything_around_it_stays_as_written():
-    text = '[settings]\n# mine\nExtraWaitTime = 15   \n# ExtraWaitTime=1\nEnableDebugTools=false\n'
+    text = '[settings]\n# mine\nExtraWaitTime = 15   \n# ExtraWaitTime=1\nEnableDebugLogging=false\n'
 
     written = settings_file.set_values(text, {'ExtraWaitTime': '20'})
 
-    assert written == '[settings]\n# mine\nExtraWaitTime = 20   \n# ExtraWaitTime=1\nEnableDebugTools=false\n'
+    assert written == '[settings]\n# mine\nExtraWaitTime = 20   \n# ExtraWaitTime=1\nEnableDebugLogging=false\n'
 
 
 @pytest.mark.parametrize('kind, given, wanted', [
@@ -120,7 +120,7 @@ def test_a_setting_the_page_may_not_edit_is_refused(tmp_path, key):
 
 def test_reset_puts_back_every_default_in_place_and_leaves_the_hosting_settings(tmp_path):
     path = tmp_path / 'settings.ini'
-    path.write_text('[settings]\n# mine\nExtraWaitTime=99\nEnableDebugTools=true\n'
+    path.write_text('[settings]\n# mine\nExtraWaitTime=99\nEnableDebugLogging=true\n'
                     'HelperUrl=http://127.0.0.1:5000\n', encoding='utf-8')
 
     settings = settings_file.update_settings_file(str(path), {}, '[settings]\nExtraWaitTime=40\n',
@@ -128,7 +128,7 @@ def test_reset_puts_back_every_default_in_place_and_leaves_the_hosting_settings(
 
     text = path.read_text(encoding='utf-8')
     assert '# mine\nExtraWaitTime=40\n' in text
-    assert 'EnableDebugTools=false' in text
+    assert 'EnableDebugLogging=false' in text
     assert 'HelperUrl=http://127.0.0.1:5000' in text
     assert {s['key']: s['value'] for s in settings}['ExtraWaitTime'] == '40'
 
@@ -146,12 +146,12 @@ def test_a_setting_the_file_lacks_is_added_with_its_explanation_then_set(tmp_pat
     path = tmp_path / 'settings.ini'
     path.write_text('[settings]\nExtraWaitTime=15\n', encoding='utf-8')
 
-    settings_file.update_settings_file(str(path), {'EnableDebugTools': True})
+    settings_file.update_settings_file(str(path), {'EnableConsoleLogging': True})
 
     text = path.read_text(encoding='utf-8')
     assert text.startswith('[settings]\nExtraWaitTime=15\n')
-    assert 'EnableDebugTools=true' in text
-    assert '# setting this to true adds a debug panel' in text
+    assert 'EnableConsoleLogging=true' in text
+    assert '# setting this to true makes the helper print to its own window' in text
 
 # endregion
 

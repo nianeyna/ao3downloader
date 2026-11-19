@@ -15,7 +15,7 @@ import {
 import { WorkLink } from './work-link';
 import { Chime } from './chime';
 
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import {
   ActiveRun,
   AnswerChoice,
@@ -88,6 +88,8 @@ type Step =
   | 'link'
   | 'filetypes'
   | 'options'
+  /** a custom run's remaining options, on a page after what it covers */
+  | 'more-options'
   /** a quick scan choosing which earlier scan to measure back to */
   | 'floor'
   /** a quick scan whose floor would be a scan that could not download some works */
@@ -183,7 +185,7 @@ const MAX_LOG = 200;
 
 @Component({
   selector: 'app-download-dialog',
-  imports: [DecimalPipe, WorkLink],
+  imports: [DecimalPipe, NgTemplateOutlet, WorkLink],
   templateUrl: './download-dialog.html',
   styleUrl: './download-dialog.css',
 })
@@ -295,18 +297,37 @@ export class DownloadDialog implements OnDestroy {
   /** the combined run's note only: turns it off for next time, once accepted */
   protected readonly dontAskAgain = signal(false);
 
-  /** a custom run may work from the index rather than reading AO3's listing again */
-  protected readonly reindex = signal(true);
+  /**
+   * A custom run may work from the index rather than reading AO3's listing again - its own
+   * choice of what the run covers (`coverage` 'existing'), or, on a retry, whatever the run it
+   * retries did (`retryReindex`)
+   */
+  protected readonly reindex = computed(() =>
+    this.resuming() ? this.retryReindex() : this.coverage() !== 'existing');
+  private readonly retryReindex = signal(true);
+  /**
+   * Skipping the indexing, how a custom run judges the files of the works in the index: against
+   * the index as it stands (`index`, nothing read from AO3), or against AO3 now (`ao3`: each work
+   * looked up, its entry rewritten - `recheck`, the default and listed first, at the owner's request)
+   */
+  protected readonly existingCheck = signal<'index' | 'ao3'>('ao3');
+  /** a custom run looking every indexed work up on AO3 rather than walking the listing */
+  protected readonly recheck = computed(() =>
+    this.picksReindex() && !this.resuming() && this.coverage() === 'existing' &&
+    this.existingCheck() === 'ao3');
+  /** whether the run writes the index: by indexing, or by rewriting each work it looks up */
+  protected readonly writesIndex = computed(() => this.reindex() || this.recheck());
   /**
    * What this run reaches for, as one choice rather than several flags.
    *
-   * 'all' is the whole listing, 'pages' a slice of it, 'dates' a window of time. They are
+   * 'all' is the whole listing, 'pages' a slice of it, 'dates' a window of time, 'existing' no
+   * listing at all - only the works already in the index (a custom run skipping its indexing). They are
    * alternatives - a run cannot be walking a listing and not walking it - so one signal
    * with three values cannot hold a combination that means nothing, which two booleans
    * could. A quick scan uses the same signal for its own pair: 'all' there means back to
    * its last completed run.
    */
-  protected readonly coverage = signal<'all' | 'pages' | 'dates' | 'run' | 'resume'>('all');
+  protected readonly coverage = signal<'all' | 'pages' | 'dates' | 'run' | 'resume' | 'existing'>('all');
   /**
    * A custom run picking up where an unfinished run left off. It then runs as that run -
    * its workflow, file types and options - so nothing else on the way in is a choice.
@@ -359,7 +380,7 @@ export class DownloadDialog implements OnDestroy {
         `${ceiling} - fics dated after that are left for your next scan.`;
     } else if (run.action === 'custom' && ranged) {
       const end = day(options['dateTo']);
-      dates = `Fics AO3 updated from ${day(options['dateFrom']) || 'any date'} to ` +
+      dates = `${options['order'] === 'bookmarked' ? 'Fics you bookmarked' : 'Fics AO3 updated'} from ${day(options['dateFrom']) || 'any date'} to ` +
         `${end && end < began ? end : began}.`;
     } else if (['bookmarks', 'custom', 'quick', 'sync', 'new'].includes(run.action)) {
       dates = `Up to ${began}, when its first attempt started - bookmarks after that are left ` +
@@ -378,7 +399,9 @@ export class DownloadDialog implements OnDestroy {
       skipLogin: 'without logging in',
     };
     const on = Object.entries(named).filter(([key]) => options[key] === true).map(([, name]) => name);
-    if (options['reindex'] === false) on.push('skip indexing');
+    if (options['reindex'] === false) {
+      on.push(options['recheck'] ? 'skip indexing, each indexed work looked up on AO3' : 'skip indexing');
+    }
     const settings = [
       `${run.actionName || run.action}, as it was run`,
       `File types: ${(run.filetypes ?? []).join(', ') || 'none'}`,
@@ -467,6 +490,34 @@ export class DownloadDialog implements OnDestroy {
    * narrows what is picked out of the index afterwards.
    */
   protected readonly betweenDates = signal(false);
+  /**
+   * The order a custom run reads your bookmarks listing in, one for each shape so each starts
+   * at what that shape always did: a slice of pages by date bookmarked, a date range by date
+   * updated. Nothing changes for a run where it is left alone.
+   */
+  /**
+   * Which slice the custom run's *A slice of your bookmarks listing* opens on: the one last
+   * picked under it, so choosing the slice again after something else takes it back there.
+   */
+  protected readonly sliceBy = signal<'pages' | 'dates'>('pages');
+  protected chooseSlice(by: 'pages' | 'dates'): void {
+    this.sliceBy.set(by);
+    this.coverage.set(by);
+  }
+  protected readonly pagesOrder = signal<'bookmarked' | 'updated'>('bookmarked');
+  protected readonly datesOrder = signal<'bookmarked' | 'updated'>('updated');
+  /** the order offered, and sent, for the shape chosen - a custom run's slice or range alone */
+  protected readonly offersOrder = computed(
+    () => this.action() === 'custom' && (this.coverage() === 'pages' || this.coverage() === 'dates'),
+  );
+  protected readonly listingOrder = computed(() =>
+    this.coverage() === 'dates' ? this.datesOrder() : this.pagesOrder());
+  protected setListingOrder(order: 'bookmarked' | 'updated'): void {
+    (this.coverage() === 'dates' ? this.datesOrder : this.pagesOrder).set(order);
+  }
+  /** the date a custom range is read by, as its boxes say it; a quick scan's are updated */
+  protected readonly rangeWord = computed(() =>
+    this.action() === 'custom' && this.datesOrder() === 'bookmarked' ? 'Bookmarked' : 'Updated');
   protected readonly dateFrom = signal('');
   protected readonly dateTo = signal('');
 
@@ -954,6 +1005,16 @@ export class DownloadDialog implements OnDestroy {
    * want and then changing one behind you reads as the dialog overruling you. The rest
    * follow the same order because two orders is one more than anybody needs to learn.
    */
+  /** a custom run splits its options: what it covers first, everything else on the next page */
+  protected readonly splitOptions = computed(() => this.action() === 'custom');
+  /** whether that next page has anything on it - a retry takes every choice from its run */
+  protected readonly hasMoreOptions = computed(
+    () =>
+      this.splitOptions() &&
+      !this.resuming() &&
+      (this.picksSeries() || this.picksNonBookmarks() || this.picksOverwrite() || this.picksImages()),
+  );
+
   protected readonly firstStep = computed<Step>(() => {
     if (this.needsLink()) return 'link';
     if (this.hasOptions()) return 'options';
@@ -1013,7 +1074,9 @@ export class DownloadDialog implements OnDestroy {
     if (this.workdates()) chosen.push('look up publication dates');
     if (this.picksSeries() && this.series()) chosen.push('the rest of each series');
     if (this.picksImages() && this.images()) chosen.push('save images separately');
-    if (this.picksReindex() && !this.reindex()) chosen.push('no reindexing');
+    if (this.picksReindex() && !this.reindex()) {
+      chosen.push(this.recheck() ? 'each indexed work looked up on AO3' : 'no reindexing');
+    }
     if (this.picksOverwrite() && this.overwrite()) chosen.push('overwrite existing files');
     if (this.picksNonBookmarks() && this.nonBookmarks()) chosen.push('check non-bookmarks');
     if (this.picksCollectionWorks() && this.collectionWorks()) chosen.push('the works in them');
@@ -1033,20 +1096,21 @@ export class DownloadDialog implements OnDestroy {
   /**
    * The window this run covers, in words - the date range's answer to `pageRange`.
    *
-   * Read newest first, because that is the direction the run works in: it walks the
-   * listing down from the most recently updated fic and stops at the older end.
+   * Said oldest first, as a reader says a range - though the run walks the other way, down
+   * from the newest and stopping at the older end.
    */
   protected readonly dateRange = computed(() => {
     const oldest = this.dateFrom();
     const newest = this.betweenDates() ? this.dateTo() : '';
-    // a quick scan picks by either date; a custom run's window is by date updated alone
-    const what = this.action() === 'quick' ? 'bookmarked or updated' : 'updated';
+    // a quick scan picks by either date; a custom run's range by the order it reads in
+    const what = this.action() === 'quick' ? 'bookmarked or updated' : this.rangeWord().toLowerCase();
     if (!oldest) {
       return newest
         ? `any works that were ${what} on or before ${newest}, however long ago`
         : `any works, whenever they were ${what}`;
     }
-    return `any works that were ${what} between ${newest || 'today'} and ${oldest}`;
+    // oldest first, as a reader says a range
+    return `any works that were ${what} between ${oldest} and ${newest || 'today'}`;
   });
 
   /**
@@ -1087,8 +1151,12 @@ export class DownloadDialog implements OnDestroy {
       });
     } else if (this.picksDates() && this.useDates()) {
       rows.push({ label: 'Covers', value: this.dateRange() });
+      rows.push({ label: 'Ordered by', value: `date ${this.listingOrder()}` });
     } else if (this.picksPages()) {
       rows.push({ label: 'Covers', value: this.pageRange() });
+      rows.push({ label: 'Ordered by', value: `date ${this.listingOrder()}` });
+    } else if (this.action() === 'custom' && this.coverage() === 'existing') {
+      rows.push({ label: 'Covers', value: 'every work already in your index' });
     } else if (this.picksDates() || this.action() === 'quick') {
       // the third choice: no slice and no window, so it reaches as far as the run can
       rows.push({
@@ -1104,7 +1172,9 @@ export class DownloadDialog implements OnDestroy {
         label: 'Indexing',
         value: this.reindex()
           ? "reading AO3's listing"
-          : 'skipped - working from the saved index',
+          : this.recheck()
+            ? 'listing skipped - each indexed work looked up on AO3, its entry updated'
+            : 'skipped - working from the saved index',
       });
     }
     if (this.picksCollectionWorks()) {
@@ -1159,12 +1229,12 @@ export class DownloadDialog implements OnDestroy {
   protected readonly settings = computed(() => this.config()?.settings ?? null);
 
   /**
-   * Whether settings.ini has turned on the debug panel.
+   * Whether debug mode is on: the debug panel, and the quick scan's date range.
    *
    * Off unless deliberately asked for: skipping a step really does skip it, and what that
    * step would have done does not happen.
    */
-  protected readonly debugTools = computed(() => !!this.settings()?.debugTools);
+  protected readonly debugTools = computed(() => this.debugMode.on());
   /** set once a skip has been asked for, so it cannot be sent twice by accident */
   protected readonly skipping = signal(false);
 
@@ -1593,7 +1663,7 @@ export class DownloadDialog implements OnDestroy {
 
   protected isSelected(filetype: string): boolean {
     if (this.resuming()) return (this.chosenResume()?.filetypes ?? []).includes(filetype);
-    if (this.picksReindex() && filetype === METADATA) return this.reindex();
+    if (this.picksReindex() && filetype === METADATA) return this.writesIndex();
     return this.selected().includes(filetype);
   }
 
@@ -1610,7 +1680,7 @@ export class DownloadDialog implements OnDestroy {
     if (!this.isLocked(filetype)) return '';
     if (this.resuming()) return 'from the earlier run';
     if (this.picksReindex() && filetype === METADATA) {
-      return this.reindex() ? 'with indexing' : 'not indexing';
+      return this.reindex() ? 'with indexing' : this.recheck() ? 'each work looked up' : 'not indexing';
     }
     return 'always on';
   }
@@ -1641,7 +1711,7 @@ export class DownloadDialog implements OnDestroy {
     if (!this.picksFiletypes()) return [METADATA];
     if (!this.picksReindex()) return this.selected();
     const rest = this.selected().filter((x) => x !== METADATA);
-    return this.reindex() ? [METADATA, ...rest] : rest;
+    return this.writesIndex() ? [METADATA, ...rest] : rest;
   });
 
   protected readonly baselineOf = baselineOf;
@@ -1663,6 +1733,11 @@ export class DownloadDialog implements OnDestroy {
   protected afterOptions(): void {
     if (this.resuming()) {
       this.toRetryList();
+      return;
+    }
+    // a custom run asks the rest of its options on a page of their own
+    if (this.step() === 'options' && this.hasMoreOptions()) {
+      this.step.set('more-options');
       return;
     }
     if (this.picksFloorRun()) {
@@ -1756,7 +1831,7 @@ export class DownloadDialog implements OnDestroy {
     this.images.set(!!options['images']);
     this.overwrite.set(!!options['overwrite']);
     this.nonBookmarks.set(!!options['nonBookmarks']);
-    this.reindex.set(options['reindex'] !== false);
+    this.retryReindex.set(options['reindex'] !== false);
     // a retry logs in as the run it retries did: one that went without asks for no password,
     // and one reading your own listing is found by the account it read
     this.skipLogin.set(!!options['skipLogin']);
@@ -1781,6 +1856,7 @@ export class DownloadDialog implements OnDestroy {
     const earlier: Step[] = [];
     if (this.needsLink()) earlier.push('link');
     if (this.hasOptions()) earlier.push('options');
+    if (this.hasMoreOptions()) earlier.push('more-options');
     if (this.picksFloorRun()) earlier.push('floor');
     if (this.resuming()) earlier.push('resume', 'retry-how');
     if (this.picksFiletypes()) earlier.push('filetypes');
@@ -2127,9 +2203,13 @@ export class DownloadDialog implements OnDestroy {
         nonBookmarks: this.picksNonBookmarks() && this.nonBookmarks(),
         // only a custom run can turn this off; everything else always indexes
         reindex: this.picksReindex() ? this.reindex() : true,
+        // skipping the indexing, every indexed work may still be looked up on AO3
+        recheck: this.recheck(),
         // a window of time and a slice of the listing are alternatives, so the one not
         // chosen is not sent at all rather than sent and ignored
         dates: this.picksDates() && this.useDates(),
+        // a custom run's slice or range, read in the order chosen for it; '' otherwise
+        order: this.offersOrder() ? this.listingOrder() : '',
         // typed in the person's AO3 zone, sent as the UTC moments that day begins and the
         // newer end's ends - how the helper keeps them; it dates them in that zone again
         dateFrom: this.useDates() ? zonedDayToUtc(this.dateFrom()) : '',

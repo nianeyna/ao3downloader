@@ -281,6 +281,10 @@
               <span>
                 @if (action() === 'quick') {
                   (Recommended) Anything that has changed since my last run
+                  <span class="hint coverage-hint">
+                    A work with no index entry yet is picked up and checked only if it is one of your
+                    AO3 bookmarks, bookmarked or updated on AO3 since your last scan.
+                  </span>
                 } @else {
                   All bookmarks
                 }
@@ -288,33 +292,111 @@
             </label>
 
             @if (action() !== 'quick') {
+              <!-- one choice, with the two ways of slicing it nested under it: the page range or the
+                   date range, each still its own coverage underneath -->
               <label class="check">
-                <input type="radio" name="coverage" [checked]="coverage() === 'pages'"
-                       (change)="coverage.set('pages')" />
-                <span>A slice of your bookmarks listing - in the order you bookmarked them, newest first</span>
+                <input type="radio" name="coverage" [checked]="coverage() === 'pages' || coverage() === 'dates'"
+                       (change)="coverage.set(sliceBy())" />
+                <span>A slice of your bookmarks listing</span>
               </label>
+              <!-- once the slice is picked: the page range ticked to begin with (`sliceBy`), and
+                   the one last picked when the slice is picked again -->
+              @if (coverage() === 'pages' || coverage() === 'dates') {
+                <div class="slice-options">
+                  <label class="check">
+                    <input type="radio" name="sliceBy" value="pages" [checked]="sliceBy() === 'pages'"
+                           (change)="chooseSlice('pages')" />
+                    <span>Choose my own <strong>page range</strong></span>
+                  </label>
+                  <label class="check">
+                    <input type="radio" name="sliceBy" value="dates" [checked]="sliceBy() === 'dates'"
+                           (change)="chooseSlice('dates')" />
+                    <span>Choose my own <strong>date range</strong></span>
+                  </label>
+                </div>
+              }
             } @else {
               <!-- the next page lists the scans that can be measured back to -->
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'run'"
                        (change)="coverage.set('run')" />
-                <span>Choose which earlier scan to measure back to</span>
+                <span>
+                  Choose which earlier scan to measure back to
+                  <span class="hint coverage-hint">
+                    A work with no index entry yet is picked up and checked only if it is one of your
+                    AO3 bookmarks, bookmarked or updated on AO3 since the scan you choose.
+                  </span>
+                </span>
               </label>
             }
 
-            @if (picksDates()) {
+            <!-- the quick scan's own date range: only reachable with debug mode on; see picksDates.
+                 a custom run's is nested under its slice, above -->
+            @if (picksDates() && action() === 'quick') {
               <label class="check">
                 <input type="radio" name="coverage" [checked]="coverage() === 'dates'"
                        (change)="coverage.set('dates')" />
                 <span>
-                  @if (action() === 'quick') {
-                    <!-- only reachable with the debug tools on; see picksDates -->
-                    [DEBUG] Choose my own date range
-                  } @else {
-                    Choose my own date range
-                  }
+                  [DEBUG] Choose my own date range
+                  <span class="hint coverage-hint">
+                    A work with no index entry yet is picked up and checked only if it is one of
+                    your AO3 bookmarks, bookmarked or updated on AO3 within the range.
+                  </span>
                 </span>
               </label>
+            }
+
+            <!-- no listing at all: the works already in the index (it skips the indexing) -->
+            @if (action() === 'custom') {
+              <label class="check">
+                <input type="radio" name="coverage" [checked]="coverage() === 'existing'"
+                       (change)="coverage.set('existing')" />
+                <span>Just update existing works</span>
+              </label>
+              <!-- once chosen, how its files are judged sits under it, nested -->
+              @if (coverage() === 'existing') {
+                <div class="existing-options">
+                  <p class="hint skip-index-hint">
+                    Only checks existing works in FicFairy for downloads/updates (skips 'walking' your
+                    bookmarks). A good choice if you just need to download new formats for existing works in your library. Checks all
+                    works with an index in the library, including non-bookmarks.
+                  </p>
+                  <fieldset class="existing-check">
+                    <legend>How to tell if a file is outdated</legend>
+                    <label class="check">
+                      <input type="radio" name="existingCheck" value="ao3" [checked]="existingCheck() === 'ao3'"
+                             (change)="existingCheck.set('ao3')" />
+                      <span>Check for outdated against latest on AO3</span>
+                    </label>
+                    @if (existingCheck() === 'ao3') {
+                      <p class="hint nested recheck-hint no-entry-hint">
+                        Looks up every work on AO3 for changes. One at a time, each index entry (the work
+                        summary, chapter count, tags shown in FicFairy) is updated, and any downloaded files
+                        are judged against the most recent that AO3 has to offer to check whether they need
+                        updating. Will not download or update works that do not have an index.
+                      </p>
+                    }
+                    <label class="check">
+                      <input type="radio" name="existingCheck" value="index" [checked]="existingCheck() === 'index'"
+                             (change)="existingCheck.set('index')" />
+                      <span>Check for outdated against current index</span>
+                    </label>
+                    @if (existingCheck() === 'index') {
+                      <p class="hint nested no-entry-hint">
+                        Does not check AO3 directly to see if there has been any update - instead, checks
+                        downloaded files against your last index to determine whether or not an update needs
+                        to be fetched. Will not download or update works that do not have an index. Indexes
+                        (the work summary, chapter count, tags shown in FicFairy) do not get updated.
+                      </p>
+                      <p class="hint warn skip-index-warning nested">
+                        This only brings fics up to date to their latest index. A fic with an outdated index
+                        may not be caught and brought completely up to date - it will miss any update from
+                        AO3 that is more recent than its last index.
+                      </p>
+                    }
+                  </fieldset>
+                </div>
+              }
             }
 
             <!-- last: it takes every other choice from the run it retries. not for a guest: the
@@ -345,12 +427,29 @@
         }
 
         @if (picksDates() && useDates()) {
+          <!-- a custom run's range may be of dates bookmarked or dates updated; the quick scan's
+               debug range reads both -->
+          @if (offersOrder()) {
+          <fieldset class="listing-order">
+            <legend>Order by</legend>
+            <label class="check">
+              <input type="radio" name="listingOrder" value="bookmarked"
+                     [checked]="listingOrder() === 'bookmarked'" (change)="setListingOrder('bookmarked')" />
+              <span>Date bookmarked</span>
+            </label>
+            <label class="check">
+              <input type="radio" name="listingOrder" value="updated"
+                     [checked]="listingOrder() === 'updated'" (change)="setListingOrder('updated')" />
+              <span>Date updated</span>
+            </label>
+          </fieldset>
+          }
           <fieldset>
             <legend>Which date range</legend>
             <label class="check">
               <input type="radio" name="window" [checked]="!betweenDates()"
                      (change)="betweenDates.set(false)" />
-              <span>Everything updated since a date</span>
+              <span>Everything {{ rangeWord().toLowerCase() }} since a date</span>
             </label>
             <label class="check">
               <input type="radio" name="window" [checked]="betweenDates()"
@@ -361,32 +460,31 @@
 
           <!--
             the newer end comes first because the run works in that direction: it walks
-            down from the most recently updated fic and stops at the older end
+            down from the newest and stops at the older end
           -->
           @if (betweenDates()) {
             <label class="field">
-              <span>Updated on or before</span>
+              <span>{{ rangeWord() }} on or before (leave empty to use today's date)</span>
               <input type="date" name="dateTo" [value]="dateTo()"
                      (input)="dateTo.set($any($event.target).value)" />
             </label>
           }
 
           <label class="field">
-            <span>Updated on or after</span>
+            <span>{{ rangeWord() }} on or after (leave empty to go all the way back)</span>
             <input type="date" name="dateFrom" [value]="dateFrom()"
                    (input)="dateFrom.set($any($event.target).value)" />
           </label>
 
-          <p class="hint">
-            Both ends count. This run will fetch <strong>{{ dateRange() }}</strong>.
-          </p>
-          <!-- the dates are the person's own, in the zone AO3 dates fics in for them, so the
-               two are compared as typed - see User settings -->
-          <p class="hint range-zone">
-            Dates are in your AO3 time zone, <strong>{{ ao3Zone }}</strong> - change it in User settings.
-          </p>
-
           @if (action() === 'quick') {
+            <p class="hint">
+              Both ends count. This run will fetch <strong>{{ dateRange() }}</strong>.
+            </p>
+            <!-- the dates are the person's own, in the zone AO3 dates fics in for them, so the
+                 two are compared as typed - see User settings -->
+            <p class="hint range-zone">
+              Dates are in your AO3 time zone, <strong>{{ ao3Zone }}</strong> - change it in User settings.
+            </p>
             <!--
               the quick scan's own method, given two dates instead of an earlier scan: both
               walks run from the newest bookmark down to the older end of the range
@@ -416,29 +514,10 @@
               checked against your files, and anything missing or behind is downloaded - each
               fic once.
             </p>
-          } @else if (reindex()) {
-            <p class="hint">
-              Indexing reads your bookmarks sorted by when AO3 last updated each work, and
-              @if (dateFrom()) {
-                stops at the first fic older than <strong>{{ dateFrom() }}</strong> -
-                everything past that point is outside the range by definition.
-              } @else {
-                with no <em>on or after</em> date to stop at, <strong>reads the whole
-                listing</strong>. Give it an earliest date to keep the run short.
-              }
-            </p>
           } @else {
-            <p class="hint">
-              With indexing skipped, this picks works out of your existing index without
-              reading AO3's listing at all - so a fic whose entry is out of date can be
-              picked, or missed, on the strength of that entry.
-            </p>
-          }
-
-          @if (action() !== 'quick') {
-            <p class="hint">
-              Whichever fics it picks are then re-read one at a time, newest first, and
-              anything missing or behind is downloaded.
+            <p class="hint range-hint">
+              Reads a slice of your bookmarks to find new or updated works (date inclusive). This
+              run will fetch <strong>{{ dateRange() }}</strong>.
             </p>
           }
         }
@@ -448,6 +527,20 @@
         <fieldset class="bare" [disabled]="resuming()" [hidden]="resuming()">
 
         @if (picksPages()) {
+          <fieldset class="listing-order">
+            <legend>Order by</legend>
+            <label class="check">
+              <input type="radio" name="listingOrder" value="bookmarked"
+                     [checked]="listingOrder() === 'bookmarked'" (change)="setListingOrder('bookmarked')" />
+              <span>Date bookmarked</span>
+            </label>
+            <label class="check">
+              <input type="radio" name="listingOrder" value="updated"
+                     [checked]="listingOrder() === 'updated'" (change)="setListingOrder('updated')" />
+              <span>Date updated</span>
+            </label>
+          </fieldset>
+
           <label class="field">
             <span>Start on page number</span>
             <input
@@ -472,10 +565,16 @@
             />
           </label>
 
-          <p class="hint">
-            Both are positions in the whole listing, so you can cover a slice in the middle
-            of it - useful for picking up where a stopped run left off. This run will fetch
-            <strong>{{ pageRange() }}</strong>.
+          <p class="hint slice-hint">
+            Reads a slice of your bookmarks to find new or updated works.
+            <span class="slice-order-hint">
+              @if (pagesOrder() === 'updated') {
+                Fetches your bookmarks in the order they were last updated on AO3, newest first.
+              } @else {
+                Fetches your bookmarks in the order you bookmarked them, newest first.
+              }
+            </span>
+            This run will fetch <strong>{{ pageRange() }}</strong>.
           </p>
         }
 
@@ -484,29 +583,6 @@
           never in the listing. only a full scan goes the long way round, so it is the only
           run where ticking this could do anything
         -->
-        @if (picksReindex()) {
-          <label class="check">
-            <input
-              type="checkbox"
-              name="reindex"
-              [checked]="!reindex()"
-              (change)="reindex.set(!$any($event.target).checked)"
-            />
-            <span>Skip indexing - work from what is already indexed</span>
-          </label>
-          <p class="hint">
-            Useful for downloading your fics in a new format, or to fill in any blanks in
-            your downloaded files if your index is already up-to-date
-          </p>
-          @if (!reindex()) {
-            <p class="hint warn skip-index-warning">
-              Your files are only checked against your last index, not against live AO3 data:
-              a fic AO3 has updated since it was last indexed will not be seen as needing an
-              update.
-            </p>
-          }
-        }
-
         @if (picksCollectionWorks()) {
           <label class="check">
             <input
@@ -568,18 +644,38 @@
           </p>
         }
 
+        <!-- the rest of the options: a custom run asks them on a page of their own, after what it
+             covers - one page held too much -->
+        @if (!splitOptions()) {
+          <ng-container [ngTemplateOutlet]="laterOptions" />
+        }
+
+        </fieldset>
+
+
+      </section>
+      <footer>
+        <button type="button" class="button subtle" (click)="backFrom('options')">
+          {{ hasStepBefore('options') ? 'Back' : 'Cancel' }}
+        </button>
+        <button type="button" class="button primary" (click)="afterOptions()">Continue</button>
+      </footer>
+    }
+
+    <!-- a custom run's options after what it covers: the same ones a full scan shows on one page -->
+    <ng-template #laterOptions>
         @if (picksSeries()) {
           <label class="check">
             <input type="checkbox" [checked]="series()" (change)="series.set($any($event.target).checked)" />
-            <span>Get all works from encountered series</span>
+            <span>If a work is a part of a series, download all its other works too</span>
           </label>
           <p class="hint">
             @if (picksCollectionWorks()) {
-              If a work in the collection belongs to a series, download the rest of the series
-              too - even if its other works are not in the collection.
+              Downloads all works whenever a series is found - even if its other works are not in
+              the collection.
             } @else {
-              If a bookmarked work belongs to a series, download the rest of the series too - even
-              if its other works are not bookmarked.
+              Downloads all works whenever a series is found - even if its other works are not
+              bookmarked by you.
             }
           </p>
         }
@@ -610,11 +706,11 @@
               [checked]="overwrite()"
               (change)="overwrite.set($any($event.target).checked)"
             />
-            <span>Overwrite existing downloads, even if there has been no update</span>
+            <span>Overwrite existing downloads</span>
           </label>
           <p class="hint">
-            Check this if you are concerned about file integrity issues and would like to
-            re-download each file again, in the formats you ask for.
+            Choose which formats get replaced on the next page. Check this if you are concerned
+            about file integrity issues and would like to re-download each file again.
           </p>
           <!-- the non-bookmarks it re-reads are downloaded with the rest, so they are overwritten too -->
           @if (overwrite() && picksNonBookmarks() && nonBookmarks()) {
@@ -637,15 +733,14 @@
             </p>
           }
         }
+    </ng-template>
 
-        </fieldset>
-
-
+    @if (step() === 'more-options') {
+      <section class="body">
+        <ng-container [ngTemplateOutlet]="laterOptions" />
       </section>
       <footer>
-        <button type="button" class="button subtle" (click)="backFrom('options')">
-          {{ hasStepBefore('options') ? 'Back' : 'Cancel' }}
-        </button>
+        <button type="button" class="button subtle" (click)="backFrom('more-options')">Back</button>
         <button type="button" class="button primary" (click)="afterOptions()">Continue</button>
       </footer>
     }

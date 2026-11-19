@@ -45,7 +45,6 @@ INI_NAME_LENGTH = 'FileNameLength'
 INI_NAME_PATTERN = 'FileNamePattern'
 INI_DEBUG_LOGGING = 'EnableDebugLogging'
 # adds a debug panel to the download window. for working on the app, not for using it.
-INI_DEBUG_TOOLS = 'EnableDebugTools'
 # prints every request and every line a run says to the helper's own console
 INI_CONSOLE_LOGGING = 'EnableConsoleLogging'
 # how long a background run may sit paused before the helper abandons it
@@ -377,10 +376,14 @@ AO3_INFO_IMAGES_DONE = 'saved {} images from {} works'
 
 # a custom run covering a window of time rather than a slice of the listing
 AO3_INFO_DATE_WINDOW = 'looking for works ao3 last updated between {} and {}'
+AO3_INFO_DATE_WINDOW_BOOKMARKED = 'looking for works you bookmarked between {} and {}'
 AO3_INFO_DATE_ANY = 'the beginning'
 AO3_INFO_DATE_NONE = 'no indexed works fall in that window'
 AO3_INFO_DATE_FOUND = '{} indexed works fall in that window'
+AO3_INFO_RECHECK = 'looking up every work in your index on AO3, one at a time - {} works'
+AO3_INFO_RECHECK_NONE = 'there are no works in your index to look up'
 AO3_INFO_DATE_INDEXING = 'indexing bookmarks by when ao3 last updated them, back to {}'
+AO3_INFO_DATE_INDEXING_BOOKMARKED = 'indexing bookmarks by when you bookmarked them, back to {}'
 AO3_INFO_DATE_NO_FLOOR = 'no earliest date given, so this indexes the whole listing'
 
 AO3_INFO_USING_LAST_INDEX = 'skipping indexing - working from what is already in your index'
@@ -445,6 +448,9 @@ STEP_DOWNLOAD_NEW = 'Download newly added works'
 STEP_READ_INDEX = 'Read existing index for unfinished fics'
 STEP_INDEX_WINDOW = 'Index works AO3 has updated since that date'
 STEP_READ_WINDOW = 'Find indexed works updated in that date range'
+STEP_READ_BOOKMARKED_WINDOW = 'Find indexed works bookmarked in that date range'
+# a custom run skipping the indexing, told to look every indexed work up on AO3 (`recheck`)
+STEP_READ_RECHECK = 'Read every work in your index'
 STEP_UPDATE_WINDOW = 'Download or update each fic as necessary'
 STEP_UPDATE = 'Re-index each fic, then download or update as necessary'
 STEP_FILL_GAPS = 'Fetch any format still missing'

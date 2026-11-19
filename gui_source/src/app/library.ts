@@ -34,6 +34,15 @@ import { VisitLog } from './visit-log';
 const CACHE = "this browser's cache";
 export type LocalCopy = File | DropboxCopy;
 
+/** a file in `works/` the listing can open, with what its name and the file itself say */
+export interface WorksFile {
+  name: string;
+  /** when the file last changed, where that is known */
+  modified: number | null;
+  format: OpenableFormat;
+  copy: LocalCopy;
+}
+
 export interface DropboxCopy {
   dropboxPath: string;
   modified: number;
@@ -194,6 +203,12 @@ export class Library {
   readonly openedName = signal('');
   /** each work's newest downloaded copy in every format, by work number */
   readonly copies = signal<Copies>(emptyCopies());
+  /**
+   * Every file in `works/` in a format the listing opens, as last listed - what the Works tab
+   * shows files with no index entry from (`UnindexedWorks`), whether or not their names can be
+   * matched to a work.
+   */
+  readonly worksFiles = signal<WorksFile[]>([]);
   readonly htmlFiles = computed(() => this.copies().html);
   /** each work's newest downloaded PDF, by work number - what the listing's PDF button opens */
   readonly pdfFiles = computed(() => this.copies().pdf);
@@ -746,6 +761,7 @@ export class Library {
     this.sourceName.set('');
     this.copies.set(emptyCopies());
     this.copySource = null;
+    this.worksFiles.set([]);
     this.worksListing = null;
     this.fromCache.set(null);
     this.hidden.set(new Map());
@@ -1301,11 +1317,21 @@ export class Library {
 
   /** each work's newest copy in every format, from the files in works/ */
   private mapCopies(files: File[]): Copies {
+    this.worksFiles.set(files.filter((f) => openableFormat(baseName(f))).map((f) => ({
+      name: baseName(f), modified: f.lastModified || null, format: openableFormat(baseName(f))!, copy: f,
+    })));
     this.copySource = () => this.mapFileCopies(files);
     return this.mapFileCopies(files);
   }
 
   private dropboxCopiesOf(files: DropboxFile[], root: string): Copies {
+    this.worksFiles.set(files.filter((f) => {
+      const inside = f.path.slice(root.length).split('/').filter(Boolean);
+      return inside[0]?.toLowerCase() === WORKS_FOLDER && openableFormat(f.name);
+    }).map((f) => ({
+      name: f.name, modified: f.modified || null, format: openableFormat(f.name)!,
+      copy: { dropboxPath: f.path, modified: f.modified },
+    })));
     this.copySource = () => dropboxCopies(files, root);
     return dropboxCopies(files, root);
   }

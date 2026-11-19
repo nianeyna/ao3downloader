@@ -56,13 +56,6 @@ export interface ServerSettings {
   debugLogging: boolean;
   /** whether the helper prints every request and every run line to its own console */
   consoleLogging?: boolean;
-  /**
-   * Whether settings.ini turns on the debug panel in the download window.
-   *
-   * For working on the app rather than for using it: skipping a step really does skip it,
-   * so this stays off unless somebody has deliberately asked for it.
-   */
-  debugTools?: boolean;
   /** minutes a paused background run is kept before the helper abandons it; 0 is never */
   pausedRunTimeoutMinutes?: number;
   /** minutes a question waits for its answer before taking its default; 0 is at once */
@@ -168,6 +161,8 @@ export interface JobOptions {
    * skipped indexing would judge everything against however stale the index happened to be.
    */
   reindex: boolean;
+  /** skipping the indexing, look every indexed work up on AO3 (a custom run's alone) */
+  recheck?: boolean;
   /**
    * Whether to cover a date window instead of a slice of the listing.
    *
@@ -175,6 +170,11 @@ export interface JobOptions {
    * `start`/`pages` and `dateFrom`/`dateTo` the helper reads at all.
    */
   dates: boolean;
+  /**
+   * A custom run's order for its slice of pages or its date range: by date bookmarked or by
+   * date updated. Empty is each shape's own - pages by date bookmarked, a range by date updated
+   */
+  order?: '' | 'bookmarked' | 'updated';
   /** inclusive ends of that window, YYYY-MM-DD; empty means no limit at that end */
   dateFrom: string;
   dateTo: string;
@@ -728,6 +728,11 @@ export class Jobs {
    * link box; nothing else reads it.
    */
   readonly fetchWorksAsked = signal<string[] | null>(null);
+  /**
+   * Resolve issues asked for from a listing - the *look up its index* link on a file no index
+   * entry matches. `App` takes it and opens the window, as the reminder's button does.
+   */
+  readonly resolveIssuesAsked = signal(0);
 
   async loadConfig(): Promise<ServerConfig | null> {
     try {
