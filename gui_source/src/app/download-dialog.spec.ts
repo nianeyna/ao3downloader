@@ -1207,6 +1207,19 @@ describe('DownloadDialog', () => {
     expect(element.querySelector<HTMLButtonElement>('footer .button.primary')!.disabled).toBe(false);
   });
 
+  it('holds a backwards range read by date bookmarked the same way', async () => {
+    await open('custom');
+    await advanceTo('options');
+    await pickSlice('Choose my own date range');
+    await fixture.whenStable();
+    checkbox('Date bookmarked')!.click();
+    await fixture.whenStable();
+    await chooseWindow('2024-06-30', '2024-01-01');
+    expect(element.querySelector('.range-problem')!.textContent).toBe(
+      'The bookmarked on or after date (30 June 2024) is later than the on or before date (1 January 2024). Please fix this to continue.');
+    expect(element.querySelector<HTMLButtonElement>('footer .button.primary')!.disabled).toBe(true);
+  });
+
   it('will not go on with an on or after date later than today, when on or before is left empty', async () => {
     await open('custom');
     await advanceTo('options');
