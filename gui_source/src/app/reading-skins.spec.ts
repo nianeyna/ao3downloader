@@ -236,7 +236,7 @@ describe('ReadingSkinsSettings', () => {
     expect(element.querySelector('.skin-outcome')?.textContent).toContain('saved in your library');
     expect(element.querySelector('[data-skin="library:Cosy"] .skin-place')?.textContent).toContain('library');
     const options = [...element.querySelectorAll<HTMLOptionElement>('select[name=defaultReadingSkin] option')];
-    expect(options.map((x) => x.value)).toEqual(['', 'builtin:Medieval parchment', 'library:Cosy']);
+    expect(options.map((x) => x.value)).toEqual(['', ...BUILT_IN_READING_SKINS.map((x) => `builtin:${x.name}`), 'library:Cosy']);
   });
 
   it('says a built-in skin comes with FicFairy, what it looks like and that it loads pictures, with no Remove', async () => {

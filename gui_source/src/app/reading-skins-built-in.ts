@@ -57,4 +57,68 @@ export const BUILT_IN_SKINS: readonly BuiltInSkin[] = [
   color: #2a2a2a;
 }`,
   },
+  {
+    name: 'Frog',
+    about: 'Moss green around a cream page with a coral border, Century Gothic, and a frog banner across the top. Adapted from an AO3 site skin, keeping only what a downloaded work has.',
+    remote: true,
+    css: `body {
+  background: #cbd380;
+  color: #774120;
+  margin: 0;
+  padding: 0 4%;
+}
+
+#workskin {
+  max-width: 50em;
+  margin: 2em auto;
+  padding: 0 30px 30px;
+  background: #f7eee5;
+  color: #774120;
+  border: 2px solid #d4836e;
+  font-family: "Century Gothic", sans-serif;
+}
+
+/* AO3's header picture, as a banner across the top of the page */
+#workskin::before {
+  content: "";
+  display: block;
+  height: 14em;
+  margin: 0 -30px 1.5em;
+  background: #d4836e url("https://i.imgur.com/RROXAQE.png") center center / cover no-repeat;
+  border-bottom: 2px solid #946549;
+}
+
+#workskin h1,
+#workskin h2,
+#workskin h3,
+#workskin .heading {
+  font-family: "Century Gothic", sans-serif;
+  font-weight: normal;
+  font-variant: small-caps;
+  color: #d4836e;
+}
+
+#workskin a {
+  color: #d4836e;
+  font-variant: small-caps;
+}
+
+#workskin #chapters,
+#workskin .userstuff {
+  font-family: "Century Gothic", sans-serif;
+}
+
+#workskin .meta dl.tags {
+  background: #f7eee5;
+  border: 2px solid #d4836e;
+}
+
+#workskin .meta dl.tags a {
+  color: #946549;
+}
+
+#workskin .meta.group {
+  border-bottom: 3px double #d4836e;
+}`,
+  },
 ];
