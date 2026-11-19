@@ -255,6 +255,8 @@ export class Library {
    * Never written into the file.
    */
   readonly readingSkin = signal('');
+  /** whether the reading skin is layered under a work's own skin, or left off such a work */
+  readonly layerReadingSkin = signal(true);
 
   private readonly folders = inject(FolderStore);
   private readonly dropbox = inject(DropboxSession);
@@ -609,7 +611,7 @@ export class Library {
         if (format === 'html') {
           blob = await read.text().then((text) => {
             if (!skin && !hasWorkSkin(text)) return read;
-            return new Blob([shownWork(text, skin)], { type: read.type });
+            return new Blob([shownWork(text, skin, this.layerReadingSkin())], { type: read.type });
           }, () => read);
         }
         const url = URL.createObjectURL(blob);

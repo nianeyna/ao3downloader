@@ -18,6 +18,8 @@ import { safeGet, safeRemove, safeSet } from './storage';
 export const BROWSER_SKINS_KEY = 'ao3.readingSkins';
 /** which skin to show by default, as `browser:<name>` or `library:<name>`; none when unset */
 export const DEFAULT_SKIN_KEY = 'ao3.readingSkinDefault';
+/** 'off' when the reading skin is left off a work with its own skin; layered under it otherwise */
+export const LAYER_SKIN_KEY = 'ao3.readingSkinLayer';
 /** where the library keeps skins of your own - apart from `skins/<worknum>.css`, AO3's */
 export const LIBRARY_SKINS_FOLDER = 'skins/custom';
 /** a skin longer than this is refused - AO3's own work skins are far shorter */
@@ -90,6 +92,8 @@ export class ReadingSkins {
   readonly readProblem = signal('');
   readonly skins = computed(() => [...BUILT_IN_READING_SKINS, ...this.browserSkins(), ...this.librarySkins()]);
   readonly defaultId = signal(safeGet(DEFAULT_SKIN_KEY));
+  /** whether the reading skin goes under a work's own skin (the default), or is left off it */
+  readonly layer = signal(safeGet(LAYER_SKIN_KEY) !== 'off');
   readonly defaultSkin = computed(() => this.skins().find((x) => skinId(x) === this.defaultId()) ?? null);
   /** whether the open library can take a skin */
   readonly libraryWritable = computed(() => !!this.library.store());
@@ -105,6 +109,7 @@ export class ReadingSkins {
     // what the library shows: the default skin while debug mode is on, nothing otherwise
     effect(() => {
       this.library.readingSkin.set(this.debugMode.on() ? this.defaultSkin()?.css ?? '' : '');
+      this.library.layerReadingSkin.set(this.layer());
     });
   }
 
@@ -186,6 +191,12 @@ export class ReadingSkins {
     }
     if (this.defaultId() === skinId(skin)) this.setDefault('');
     return null;
+  }
+
+  setLayer(on: boolean): void {
+    this.layer.set(on);
+    if (on) safeRemove(LAYER_SKIN_KEY);
+    else safeSet(LAYER_SKIN_KEY, 'off');
   }
 
   setDefault(id: string): void {

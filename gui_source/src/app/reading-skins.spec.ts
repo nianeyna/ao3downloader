@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { DebugMode } from './debug-mode';
 import { Library } from './library';
 import { MemoryStore } from './memory-store';
-import { BROWSER_SKINS_KEY, BUILT_IN_READING_SKINS, DEFAULT_SKIN_KEY, ReadingSkins, skinProblem } from './reading-skins';
+import { BROWSER_SKINS_KEY, BUILT_IN_READING_SKINS, DEFAULT_SKIN_KEY, LAYER_SKIN_KEY, ReadingSkins, skinProblem } from './reading-skins';
 import { ReadingSkinsSettings } from './reading-skins-settings';
 import { hasWorkSkin, shownWork, withAo3Shape, withReadingSkin } from './skin-html';
 
@@ -147,6 +147,17 @@ describe('withAo3Shape', () => {
     expect(shownWork(DOWNLOADED, '')).toBe(DOWNLOADED);
   });
 
+  it('leaves the reading skin off a work with its own skin when layering is turned off', () => {
+    const doc = shownDoc(shownWork(SKINNED, SKIN, false));
+    const styles = Array.from(doc.head.querySelectorAll('style')).map((x) => x.textContent ?? '');
+
+    expect(styles.some((x) => x.includes(SKIN))).toBe(false);
+    expect(styles.some((x) => x.includes(WORK_SKIN))).toBe(true);
+    // still shaped like AO3's page, and a work with no skin still gets the reading skin
+    expect(doc.querySelector('dl.work.meta')).not.toBeNull();
+    expect(shownWork(DOWNLOADED, SKIN, false)).toContain(SKIN);
+  });
+
   it('adds no reading skin under a work\'s own skin when none is chosen', () => {
     const styles = Array.from(shownDoc(shownWork(SKINNED, '')).head.querySelectorAll('style'))
       .map((x) => x.textContent ?? '');
@@ -274,6 +285,20 @@ describe('ReadingSkins', () => {
     }
   });
 
+  it('layers by default, and keeps the choice to leave it off in this browser', () => {
+    const { library, skins } = setUp(new MemoryStore());
+    expect(skins.layer()).toBe(true);
+    expect(library.layerReadingSkin()).toBe(true);
+
+    skins.setLayer(false);
+    TestBed.tick();
+
+    expect(localStorage.getItem(LAYER_SKIN_KEY)).toBe('off');
+    expect(library.layerReadingSkin()).toBe(false);
+    skins.setLayer(true);
+    expect(localStorage.getItem(LAYER_SKIN_KEY)).toBeNull();
+  });
+
   it('removing the default skin leaves none chosen', async () => {
     const store = new MemoryStore();
     const { library, skins } = setUp(store);
@@ -378,6 +403,23 @@ describe('ReadingSkinsSettings', () => {
     expect(row.querySelector('.skin-place')?.textContent).toContain('Comes with FicFairy');
     expect(row.querySelector('.skin-about')?.textContent).toContain('another site');
     expect(row.querySelector('.remove-skin')).toBeNull();
+  });
+
+  it('offers layering ticked, and says what unticking it does', async () => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: DebugMode, useValue: { on: () => true } }],
+    });
+    const fixture = TestBed.createComponent(ReadingSkinsSettings);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+    const box = element.querySelector<HTMLInputElement>('input[name=layerReadingSkin]')!;
+    expect(box.checked).toBe(true);
+
+    box.click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('.layer-hint')?.textContent).toContain('author\'s skin alone');
+    expect(TestBed.inject(ReadingSkins).layer()).toBe(false);
   });
 
   it('holds Save until there is a name and some CSS', async () => {

@@ -42,6 +42,14 @@ export class ReadingSkinsSettings {
     this.outcome.set(chosen ? `"${chosen.name}" is now your default reading skin.` : 'No default reading skin.');
   }
 
+  protected setLayer(on: boolean): void {
+    this.skins.setLayer(on);
+    this.problem.set('');
+    this.outcome.set(on
+      ? 'Your reading skin now goes under a work\'s own skin.'
+      : 'A work with its own skin now shows that skin alone.');
+  }
+
   /** a `.css` file chosen: its text goes in the box, and its name in the name box if that is empty */
   protected async chooseFile(input: HTMLInputElement): Promise<void> {
     const file = input.files?.[0];

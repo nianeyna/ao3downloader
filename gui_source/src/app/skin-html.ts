@@ -201,12 +201,13 @@ export function withAo3Shape(html: string, readingSkin = ''): string {
 
 /**
  * How a downloaded work's html is shown when opened from the app: a work with a skin of its own
- * shaped like AO3's page around it, with `readingSkin` layered under its skin (`withAo3Shape`);
+ * shaped like AO3's page around it, with `readingSkin` layered under its skin unless `layer` is
+ * off (`withAo3Shape`);
  * one without, given `readingSkin` when there is one (`withReadingSkin`); otherwise exactly as it
  * is.
  */
-export function shownWork(html: string, readingSkin: string): string {
-  if (hasWorkSkin(html)) return withAo3Shape(html, readingSkin);
+export function shownWork(html: string, readingSkin: string, layer = true): string {
+  if (hasWorkSkin(html)) return withAo3Shape(html, layer ? readingSkin : '');
   return readingSkin ? withReadingSkin(html, readingSkin) : html;
 }
 

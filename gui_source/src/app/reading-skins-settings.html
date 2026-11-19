@@ -1,9 +1,8 @@
 <p class="hint">
   A reading skin is CSS of your own, shown on every downloaded work when you open it from FicFairy -
-  a font, a text size, line spacing, a page width, colours. It plays the part your site skin plays
-  on AO3: on a work with its own work skin it goes underneath, so where the two disagree the work's
-  own skin wins. Nothing is written into your files and nothing is asked of AO3; the skin is put in
-  as the work opens, so a new default shows on every work at once. HTML only.
+  a font, a text size, line spacing, a page width, colours - the part your site skin plays on AO3.
+  Nothing is written into your files and nothing is asked of AO3; the skin is put in as the work
+  opens, so a new default shows on every work at once. HTML only.
 </p>
 <p class="hint">
   Write it as an AO3 work skin is written: every rule starts with <code>#workskin</code>, for example
@@ -21,7 +20,21 @@
     }
   </select>
 </label>
-<p class="hint">Which skin is the default is kept in this browser.</p>
+<label class="check layer-skin">
+  <input type="checkbox" name="layerReadingSkin" [checked]="skins.layer()"
+         (change)="setLayer($any($event.target).checked)" />
+  Layer my reading skin under a work's own skin
+</label>
+<p class="hint layer-hint">
+  @if (skins.layer()) {
+    On a work whose author gave it a work skin, yours goes underneath - as your site skin does on
+    AO3 - and the author's wins where they disagree.
+  } @else {
+    A work whose author gave it a work skin shows the author's skin alone. Works without one still
+    get yours.
+  }
+</p>
+<p class="hint">Which skin is the default, and this choice, are kept in this browser.</p>
 
 <h4>Skins</h4>
 @if (skins.reading()) {
