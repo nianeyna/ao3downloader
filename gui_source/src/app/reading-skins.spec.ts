@@ -4,7 +4,7 @@ import { Library } from './library';
 import { MemoryStore } from './memory-store';
 import { BROWSER_SKINS_KEY, BUILT_IN_READING_SKINS, DEFAULT_SKIN_KEY, ReadingSkins, skinProblem } from './reading-skins';
 import { ReadingSkinsSettings } from './reading-skins-settings';
-import { hasWorkSkin, withReadingSkin } from './skin-html';
+import { hasWorkSkin, shownWork, withAo3Shape, withReadingSkin } from './skin-html';
 
 /** AO3's downloaded html, as it is shaped - its own small style block, and no #workskin */
 const DOWNLOADED = `<!DOCTYPE html>
@@ -94,6 +94,53 @@ describe('withReadingSkin', () => {
     expect(withReadingSkin(DOWNLOADED, '  ')).toBe(DOWNLOADED);
     expect(withReadingSkin(DOWNLOADED, 'p {} </style><script>')).toBe(DOWNLOADED);
     expect(withReadingSkin('<p>just text</p>', SKIN)).toBe('<p>just text</p>');
+  });
+});
+
+/** a download the helper gave AO3's own work skin: the skin last in the head, the body in #workskin */
+const WORK_SKIN = '#workskin .papyrus { font-family: papyrus, fantasy; }';
+const SKINNED = DOWNLOADED
+  .replace('</head>', `<style type="text/css">\n${WORK_SKIN}\n</style>\n</head>`)
+  .replace('<body>', '<body>\n<div id="workskin">')
+  .replace('</body>', '</div>\n</body>');
+
+describe('withAo3Shape', () => {
+  function shownDoc(html: string): Document {
+    return new DOMParser().parseFromString(html, 'text/html');
+  }
+
+  it('shapes a work with its own skin like AO3\'s page, its tags out ahead of #workskin', () => {
+    const doc = shownDoc(withAo3Shape(SKINNED));
+
+    const order = Array.from(doc.body.children).map((x) => x.id || x.className);
+    expect(order).toEqual(['message', 'work meta group', 'workskin']);
+    expect(doc.querySelector('dl.work.meta dd.character.tags a.tag')).not.toBeNull();
+    expect(doc.querySelector('#workskin div.preface.group h2.title.heading')?.textContent).toBe('A Work');
+    expect(doc.querySelector('#workskin #chapters')?.textContent).toContain('Once upon a time.');
+  });
+
+  it('puts AO3\'s basics just before the work skin, so the author\'s rules win', () => {
+    const styles = Array.from(shownDoc(withAo3Shape(SKINNED)).head.querySelectorAll('style'))
+      .map((x) => x.textContent ?? '');
+
+    const basics = styles.findIndex((x) => x.includes('dl.work.meta'));
+    const skin = styles.findIndex((x) => x.includes(WORK_SKIN));
+    expect(basics).toBeGreaterThan(-1);
+    expect(basics).toBe(skin - 1);
+    // the download's own styles stay first
+    expect(styles[0]).toContain('.meta h1');
+  });
+
+  it('leaves a work with no skin of its own as it is', () => {
+    expect(withAo3Shape(DOWNLOADED)).toBe(DOWNLOADED);
+  });
+
+  it('shows a work with its own skin shaped, never with a reading skin over it', () => {
+    const shown = shownWork(SKINNED, SKIN);
+
+    expect(shown).not.toContain(SKIN);
+    expect(shownDoc(shown).querySelector('dl.work.meta')).not.toBeNull();
+    expect(shownWork(DOWNLOADED, '')).toBe(DOWNLOADED);
   });
 });
 
@@ -228,6 +275,27 @@ describe('ReadingSkins', () => {
     expect(await store.read('skins/custom/Cosy.css')).toBeNull();
     expect(localStorage.getItem(DEFAULT_SKIN_KEY)).toBeNull();
     expect(library.readingSkin()).toBe('');
+  });
+
+  it('shows a work with its own skin shaped like AO3\'s page even with no reading skin chosen', async () => {
+    const { library } = setUp(new MemoryStore());
+    const file = new File([SKINNED], '1 A Work - Writer 2025-01-01.html', { type: 'text/html' });
+    const tab = { location: { href: '' }, close: () => {} };
+    const realOpen = window.open;
+    const realCreate = URL.createObjectURL;
+    let shown: Blob | null = null;
+    window.open = (() => tab) as unknown as typeof window.open;
+    URL.createObjectURL = ((blob: Blob) => { shown = blob; return 'blob:the-work'; }) as typeof URL.createObjectURL;
+    try {
+      library.openCopy(file, 'html', null);
+      await settle();
+    } finally {
+      window.open = realOpen;
+      URL.createObjectURL = realCreate;
+    }
+
+    expect(await shown!.text()).toContain('work meta group');
+    expect(await file.text()).toBe(SKINNED);
   });
 
   it('shows a work with the default skin as it opens, and leaves the file alone', async () => {

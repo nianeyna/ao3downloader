@@ -159,3 +159,45 @@ export function withReadingSkin(html: string, css: string): string {
   doc.head.appendChild(style);
   return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
 }
+
+/**
+ * A download that already carries its own work skin (the run's *Fetch work skin for HTML
+ * downloads* put it in, the whole body inside `#workskin`), shaped like AO3's work page as it is
+ * shown - as `withReadingSkin` shapes one with your reading skin - so the author's skin lands as it
+ * does on AO3: the tags box taken out ahead of `#workskin` and classed as AO3 classes it, the
+ * preface given AO3's elements, and `AO3_BASICS` put in just before the work skin's own styles,
+ * so they win as they do on AO3. A file with no work skin, or none that can be found, is left as
+ * it is. Only what is shown changes - the file itself is never written.
+ */
+export function withAo3Shape(html: string): string {
+  if (!hasWorkSkin(html)) return html;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const workskin = doc.getElementById('workskin');
+  if (!workskin) return html;
+  const message = doc.querySelector('#preface > p.message');
+  const tags = shapeLikeAo3(doc);
+  // ahead of the work, in the order AO3's page has them
+  if (message && workskin.contains(message)) workskin.before(message);
+  if (tags) workskin.before(tags);
+
+  const basics = doc.createElement('style');
+  basics.setAttribute('type', 'text/css');
+  basics.textContent = `\n/* AO3's own page basics */${AO3_BASICS}`;
+  // before the work skin's own style (the one naming #workskin), or else first, so the skin wins
+  const styles = Array.from(doc.head.querySelectorAll('style'));
+  const skin = styles.find((x) => (x.textContent ?? '').includes('#workskin'));
+  if (skin) skin.before(basics);
+  else doc.head.prepend(basics);
+  return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+}
+
+/**
+ * How a downloaded work's html is shown when opened from the app: a work with a skin of its own
+ * shaped like AO3's page around it (`withAo3Shape`); one without, given `readingSkin` when there
+ * is one (`withReadingSkin`); otherwise exactly as it is.
+ */
+export function shownWork(html: string, readingSkin: string): string {
+  if (hasWorkSkin(html)) return withAo3Shape(html);
+  return readingSkin ? withReadingSkin(html, readingSkin) : html;
+}
+
