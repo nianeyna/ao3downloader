@@ -385,7 +385,7 @@ describe('swapLeftovers', () => {
     ]);
     expect(found.map((x) => [x.path, leftoverAction(x)])).toEqual([
       ['works/1 A.html', 'restore'],
-      ['works/2 B.pdf', 'tidy'],
+      ['works/2 B.pdf', 'restore'],
       ['works/3 C.epub', 'tidy'],
     ]);
   });

@@ -125,10 +125,10 @@ export interface SwapLeftover {
 }
 
 /**
- * Every file in `works/` a swap was left part-way through. Your copy set aside with nothing in
- * its place is put back (`restore`); set aside with the new copy in place, the swap had finished
- * and only the old copy is left to remove; a new copy beside your file is unfinished and removed.
- * A new copy with nothing whole beside it is left alone - it may be all there is.
+ * Every file in `works/` a swap was left part-way through. **Your copy set aside is always put
+ * back** under its own name (`restore`) - a new copy in its place is removed first, since it may
+ * not be whole - and a new copy beside your file is removed. A new copy with nothing whole beside
+ * it is left alone: it may be all there is.
  */
 export function swapLeftovers(paths: Iterable<string>): SwapLeftover[] {
   const all = [...paths];
@@ -146,9 +146,9 @@ export function swapLeftovers(paths: Iterable<string>): SwapLeftover[] {
   return [...found.values()].filter((e) => e.old || e.inPlace).sort((a, b) => a.path.localeCompare(b.path));
 }
 
-/** what tidying one leftover does: put your set-aside copy back, or only remove what is left over */
+/** what tidying one leftover does: put your set-aside copy back, or only remove an unfinished new one */
 export function leftoverAction(leftover: SwapLeftover): 'restore' | 'tidy' {
-  return leftover.old && !leftover.inPlace ? 'restore' : 'tidy';
+  return leftover.old ? 'restore' : 'tidy';
 }
 
 export interface ImportIssueCounts {

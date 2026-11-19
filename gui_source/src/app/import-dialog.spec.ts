@@ -1699,7 +1699,7 @@ describe('ImportDialog', () => {
   const LEFTOVERS = swapLeftovers([
     // set aside, the new copy never arrived: put back
     'works/1 A - B 2024-01-01.html.ficfairy-old', 'works/1 A - B 2024-01-01.html.ficfairy-new',
-    // the swap had finished: only the old copy left over
+    // a new copy in place: yours is put back all the same
     'works/2 C - D 2024-01-01.pdf', 'works/2 C - D 2024-01-01.pdf.ficfairy-old',
     // an unfinished new copy beside your file
     'works/3 E - F 2024-01-01.epub', 'works/3 E - F 2024-01-01.epub.ficfairy-new',
@@ -1711,24 +1711,27 @@ describe('ImportDialog', () => {
       .toBe('3 files were left part-way through being replaced by an interrupted download');
   });
 
-  it('puts back a copy set aside, and removes what is left over beside a file, before anything else', async () => {
+  it('always puts back a copy set aside, removing any new copy in its place, before anything else', async () => {
     await openWithLeftovers(LEFTOVERS);
     await click('Continue');
     expect(step()).toBe('leftovers');
     const said = element.querySelector('.leftovers')!.textContent!.replace(/\s+/g, ' ');
     expect(said).toContain('1 A - B 2024-01-01.html - your copy was set aside and the new one never arrived: it will be put back');
-    expect(said).toContain('2 C - D 2024-01-01.pdf - the new copy is in place: the old one left aside will be removed');
+    expect(said).toContain('2 C - D 2024-01-01.pdf - your copy was set aside while a new one took its place: the new copy will be removed, in case it is damaged, and yours put back');
     expect(said).toContain('3 E - F 2024-01-01.epub - an unfinished new copy is beside it: it will be removed, and your file kept');
 
     await click('Put back and tidy up');
     await settle();
-    expect(store.renamed).toEqual([['works/1 A - B 2024-01-01.html.ficfairy-old', 'works/1 A - B 2024-01-01.html']]);
+    expect(store.renamed).toEqual([
+      ['works/1 A - B 2024-01-01.html.ficfairy-old', 'works/1 A - B 2024-01-01.html'],
+      ['works/2 C - D 2024-01-01.pdf.ficfairy-old', 'works/2 C - D 2024-01-01.pdf'],
+    ]);
     expect([...store.deleted].sort()).toEqual([
       'works/1 A - B 2024-01-01.html.ficfairy-new',
-      'works/2 C - D 2024-01-01.pdf.ficfairy-old',
+      'works/2 C - D 2024-01-01.pdf',
       'works/3 E - F 2024-01-01.epub.ficfairy-new',
     ]);
-    expect(element.querySelector('.leftovers-said')!.textContent!.replace(/\s+/g, ' ')).toContain('Put back 1 file, removed 3.');
+    expect(element.querySelector('.leftovers-said')!.textContent!.replace(/\s+/g, ' ')).toContain('Put back 2 files, removed 3.');
     await click('Continue');
     expect(step()).not.toBe('leftovers');
   });

@@ -2512,11 +2512,19 @@ class Ao3:
         some name: a write that goes wrong is deleted with the old copy untouched, and a move
         that fails puts the old copy back. Raises `SavedFileException` (a failure for the work,
         the copy kept) when the new file cannot be put in place. An aside left by a step that
-        could not be undone is a name nothing reads as a work, and is tidied up by the next swap.
+        could not be undone is a name nothing reads as a work: an old copy left aside by an earlier
+        swap is put back before this one starts (the copy in its name may not be whole), and
+        Resolve issues puts any others right.
         """
 
         target = os.path.join(self.fileops.downloadfolder, name)
         shown = os.path.basename(name)
+        aside = target + strings.SWAP_OLD_SUFFIX
+        # an earlier swap left your copy aside: it is put back first, whatever is in its name now
+        if self.fileops.exists(aside) is True:
+            if not (self.fileops.delete_file(target) is True and self.fileops.rename_file(aside, target) is True):
+                print(strings.INFO_SWAP_FAILED.format(shown))
+                raise exceptions.SavedFileException(strings.SWAP_FAILED_REASON.format(shown, shown))
         fresh = self.fileops.save_bytes(name + strings.SWAP_NEW_SUFFIX, content)
         try:
             intact = self.fileops.saved_intact(fresh, len(content)) is True
@@ -2529,11 +2537,6 @@ class Ao3:
             raise exceptions.SavedFileException(
                 strings.DAMAGED_REASON_KEPT_OLD.format(shown, problem, shown))
 
-        aside = target + strings.SWAP_OLD_SUFFIX
-        try:
-            if self.fileops.exists(aside): self.fileops.delete_file(aside)
-        except Exception:
-            pass
         moved_aside = self.fileops.rename_file(target, aside) is True
         if moved_aside and self.fileops.rename_file(fresh, target) is True:
             self.fileops.delete_file(aside)

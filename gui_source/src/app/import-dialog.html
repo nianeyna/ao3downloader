@@ -19,10 +19,11 @@
         @for (leftover of leftovers(); track leftover.path) {
           <li>
             <code>{{ leftoverName(leftover.path) }}</code> -
-            @if (leftoverAction(leftover) === 'restore') {
+            @if (leftoverAction(leftover) === 'restore' && leftover.inPlace) {
+              your copy was set aside while a new one took its place: the new copy will be removed, in
+              case it is damaged, and yours put back
+            } @else if (leftoverAction(leftover) === 'restore') {
               your copy was set aside and the new one never arrived: it will be put back
-            } @else if (leftover.old) {
-              the new copy is in place: the old one left aside will be removed
             } @else {
               an unfinished new copy is beside it: it will be removed, and your file kept
             }

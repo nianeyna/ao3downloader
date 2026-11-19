@@ -1305,15 +1305,16 @@ export class ImportDialog implements OnInit {
     for (const leftover of this.leftovers()) {
       try {
         if (leftoverAction(leftover) === 'restore') {
+          // the copy in its place may not be whole: yours always wins, so it goes first
+          if (leftover.inPlace) {
+            if (this.sandbox()) this.note(`removed: ${leftover.path}`);
+            else await patiently(() => store.delete(leftover.path));
+            result.removed++;
+          }
           if (this.sandbox()) this.note(`put back: ${leftover.old} -> ${leftover.path}`);
           else await patiently(() => store.rename(leftover.old!, leftover.path));
           changed.push(leftover.old!, leftover.path);
           result.restored++;
-        } else if (leftover.old) {
-          if (this.sandbox()) this.note(`removed: ${leftover.old}`);
-          else await patiently(() => store.delete(leftover.old!));
-          changed.push(leftover.old);
-          result.removed++;
         }
         if (leftover.fresh) {
           if (this.sandbox()) this.note(`removed: ${leftover.fresh}`);

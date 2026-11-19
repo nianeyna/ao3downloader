@@ -2416,6 +2416,23 @@ def test_a_same_name_download_that_lands_short_keeps_the_copy_it_would_have_repl
     assert 'the old copy still exists' in capsys.readouterr().out
 
 
+def test_an_old_copy_left_aside_by_an_earlier_swap_is_put_back_before_the_next_one(tmp_path):
+    ao3 = saving_for_real(tmp_path)
+    works = tmp_path / strings.WORKS_FOLDER_NAME
+    (works / '123 A 2024-12-14.html').write_bytes(b'maybe damaged')
+    (works / ('123 A 2024-12-14.html' + strings.SWAP_OLD_SUFFIX)).write_bytes(b'yours')
+    seen = []
+    real = ao3.fileops.save_bytes.side_effect
+    # what is in the file's name when the new download is written beside it
+    ao3.fileops.save_bytes.side_effect = lambda n, c: seen.append((works / '123 A 2024-12-14.html').read_bytes()) or real(n, c)
+
+    ao3.save_download(WORK, 'HTML', '123 A 2024-12-14.html', b'fresh')
+
+    assert seen == [b'yours']
+    assert sorted(os.listdir(works)) == ['123 A 2024-12-14.html']
+    assert (works / '123 A 2024-12-14.html').read_bytes() == b'fresh'
+
+
 def test_a_same_name_download_that_cannot_be_moved_into_place_puts_the_old_copy_back(tmp_path, capsys):
     ao3 = saving_for_real(tmp_path)
     (tmp_path / strings.WORKS_FOLDER_NAME / '123 A 2024-12-14.html').write_bytes(b'yours')
