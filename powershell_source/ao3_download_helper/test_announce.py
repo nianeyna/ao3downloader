@@ -20,7 +20,7 @@ def test_the_committed_release_note_fits_both_sites_whole_for_any_version():
 def test_x_ends_with_the_address_and_bluesky_with_words_that_open_it():
     assert announce.compose_x('1.2.3', 'Faster Dropbox.\n') == (
         'v1.2.3 is live \U0001FA84\nFaster Dropbox.\n'
-        '\u21aa https://github.com/alexandria-p/ficfairy/releases/latest')
+        '\u21aa https://github.com/alexandria-p/FicFairy/releases/latest')
     assert announce.compose_bluesky('1.2.3', 'Faster Dropbox.\n') == (
         'v1.2.3 is live \U0001FA84\nFaster Dropbox.\n\u21aa Get it here\u2728')
 

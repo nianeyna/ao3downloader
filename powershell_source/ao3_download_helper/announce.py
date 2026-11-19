@@ -4,7 +4,7 @@ The post is the same on both sites but for its last line:
 
     v1.2.3 is live 🪄
     <the release note>
-    ↪ https://github.com/alexandria-p/ficfairy/releases/latest     (X: it counts any link as 23)
+    ↪ https://github.com/alexandria-p/FicFairy/releases/latest     (X: it counts any link as 23)
     ↪ Get it here✨                                                (Bluesky: the words are the link)
 
 **Bluesky** is posted to by the deploy (`deploy-hosted.yml`'s `announce` job) once the release's
@@ -46,7 +46,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 NOTE_FILE = ROOT / '.github' / 'release-note.txt'
-RELEASE_LINK = 'https://github.com/alexandria-p/ficfairy/releases/latest'
+RELEASE_LINK = 'https://github.com/alexandria-p/FicFairy/releases/latest'
 FALLBACK_NOTE = 'Small fixes and improvements.'
 # a release note that is only this posts nothing: the release goes out unannounced
 SKIP_NOTE = 'no-post'

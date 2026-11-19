@@ -1,1 +1,1 @@
-Resolve issues can now repair undated files from AO3, FicHub or your index, and look up an index from the Works tab. Fic runs and imports fall back to FicHub when AO3 is down. Overwriting a file no longer risks your old copy.
+Resolve issues can now repair undated files gracefully, and look up missing indexes from the Works tab. Fic runs and imports fall back to FicHub when AO3 is unavailable.
