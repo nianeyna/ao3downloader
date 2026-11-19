@@ -11,25 +11,28 @@
   <!-- 0: files a download was left part-way through replacing, put right before anything else -->
   @if (step() === 'leftovers') {
     <section class="body">
-      <p>
-        A download that replaces a file of yours puts the new copy in beside it, then sets yours
-        aside while the new one takes its place. These were left part-way, when the app stopped:
-      </p>
-      <ul class="leftovers">
-        @for (leftover of leftovers(); track leftover.path) {
-          <li>
-            <code>{{ leftoverName(leftover.path) }}</code> -
-            @if (leftoverAction(leftover) === 'restore' && leftover.inPlace) {
-              your copy was set aside while a new one took its place: the new copy will be removed, in
-              case it is damaged, and yours put back
-            } @else if (leftoverAction(leftover) === 'restore') {
-              your copy was set aside and the new one never arrived: it will be put back
-            } @else {
-              an unfinished new copy is beside it: it will be removed, and your file kept
-            }
-          </li>
-        }
-      </ul>
+      <!-- once done, only what was done: the library is read again, and the list goes with it -->
+      @if (!leftoversResult()) {
+        <p>
+          A download that replaces a file of yours puts the new copy in beside it, then sets yours
+          aside while the new one takes its place. These were left part-way, when the app stopped:
+        </p>
+        <ul class="leftovers">
+          @for (leftover of leftovers(); track leftover.path) {
+            <li>
+              <code>{{ leftoverName(leftover.path) }}</code> -
+              @if (leftoverAction(leftover) === 'restore' && leftover.inPlace) {
+                your copy was set aside while a new one took its place: the new copy will be removed, in
+                case it is damaged, and yours put back
+              } @else if (leftoverAction(leftover) === 'restore') {
+                your copy was set aside and the new one never arrived: it will be put back
+              } @else {
+                an unfinished new copy is beside it: it will be removed, and your file kept
+              }
+            </li>
+          }
+        </ul>
+      }
       @if (leftoversResult(); as result) {
         <p class="leftovers-said" role="status">
           Put back {{ result.restored | number }} {{ result.restored === 1 ? 'file' : 'files' }},

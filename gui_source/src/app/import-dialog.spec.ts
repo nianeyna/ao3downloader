@@ -1732,6 +1732,7 @@ describe('ImportDialog', () => {
       'works/3 E - F 2024-01-01.epub.ficfairy-new',
     ]);
     expect(element.querySelector('.leftovers-said')!.textContent!.replace(/\s+/g, ' ')).toContain('Put back 2 files, removed 3.');
+    expect(element.querySelector('.leftovers')).toBeNull();
     await click('Continue');
     expect(step()).not.toBe('leftovers');
   });
