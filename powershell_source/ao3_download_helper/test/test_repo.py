@@ -545,6 +545,36 @@ def test_my_request_timeout_streak_resets_on_response(mock_repo):
     assert mock_repo.session.request.call_count == 6
 
 
+def test_a_rate_limit_break_does_not_reset_the_timeout_count(mock_repo, monkeypatch):
+    monkeypatch.setattr('source_code.repo.sleep', lambda s: None)
+    mock_repo.max_retries = 30
+    mock_repo.max_timeouts = 3
+    timeout = requests.exceptions.Timeout('boom')
+    slow_down = make_response(status_code=429, headers={'retry-after': '1'})
+    # two timeouts, ao3 asks for a break, then one more timeout: that is the third, so it gives up
+    mock_repo.session.request.side_effect = [timeout, timeout, slow_down, timeout, make_response(status_code=200)]
+
+    with pytest.raises(exceptions.TimeoutException):
+        mock_repo.my_request('GET', AO3_URL)
+
+    assert mock_repo.session.request.call_count == 4
+
+
+def test_a_rate_limit_break_says_the_timeout_count_it_carries_on_from(mock_repo, monkeypatch, capsys):
+    monkeypatch.setattr('source_code.repo.sleep', lambda s: None)
+    mock_repo.max_retries = 30
+    mock_repo.max_timeouts = 4
+    timeout = requests.exceptions.Timeout('boom')
+    slow_down = make_response(status_code=429, headers={'retry-after': '1'})
+    succeeding = make_response(status_code=200, text='ok')
+    mock_repo.session.request.side_effect = [timeout, timeout, slow_down, timeout, succeeding]
+
+    assert mock_repo.my_request('GET', AO3_URL) is succeeding
+    said = capsys.readouterr().out
+    assert '(timeout 3 of 4)' in said
+    assert said.count('(timeout 1 of 4)') == 1
+
+
 def test_my_request_max_timeouts_zero_disables_cutoff(mock_repo):
     mock_repo.max_retries = 2
     mock_repo.max_timeouts = 0  # early cutoff disabled — behavior governed by max_retries

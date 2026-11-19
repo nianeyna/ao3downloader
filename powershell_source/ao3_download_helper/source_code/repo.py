@@ -392,7 +392,11 @@ class Repository:
                     self.log_error(url, strings.ERROR_HTTP_REQUEST, e)
                     raise
 
-            timeouts = 0
+            # an answer ends a run of timeouts - all but ao3 asking us to slow down, which says
+            # nothing about whether the page loads: after the break the count carries on from
+            # where it was, so a third timeout is still the third, not the first again
+            if response.status_code != codes['too_many_requests']:
+                timeouts = 0
 
             # ao3's maintenance page comes back in place of whatever was asked for, whatever
             # its status. asked about a couple of times, out loud, then given up on for the run
