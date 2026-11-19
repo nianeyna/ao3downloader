@@ -34,7 +34,7 @@ Pick a colour palette and a font in **User settings**.
 
 | Windows | Mac (Apple silicon) | Mac (Intel) | Linux |
 | --- | --- | --- | --- |
-| [ficfairy-ao3downloader-windows.zip](https://github.com/alexandria-p/ficfairy/releases/latest/download/ficfairy-ao3downloader-windows.zip) | [ficfairy-ao3downloader-macos-apple-silicon.zip](https://github.com/alexandria-p/ficfairy/releases/latest/download/ficfairy-ao3downloader-macos-apple-silicon.zip) | [ficfairy-ao3downloader-macos-intel.zip](https://github.com/alexandria-p/ficfairy/releases/latest/download/ficfairy-ao3downloader-macos-intel.zip) | [ficfairy-ao3downloader-linux-x86_64.zip](https://github.com/alexandria-p/ficfairy/releases/latest/download/ficfairy-ao3downloader-linux-x86_64.zip) |
+| [ficfairy-ao3downloader-windows.zip](https://github.com/alexandria-p/FicFairy/releases/latest/download/ficfairy-ao3downloader-windows.zip) | [ficfairy-ao3downloader-macos-apple-silicon.zip](https://github.com/alexandria-p/FicFairy/releases/latest/download/ficfairy-ao3downloader-macos-apple-silicon.zip) | [ficfairy-ao3downloader-macos-intel.zip](https://github.com/alexandria-p/FicFairy/releases/latest/download/ficfairy-ao3downloader-macos-intel.zip) | [ficfairy-ao3downloader-linux-x86_64.zip](https://github.com/alexandria-p/FicFairy/releases/latest/download/ficfairy-ao3downloader-linux-x86_64.zip) |
 
 Unzip it, then start it:
 
@@ -44,13 +44,13 @@ Unzip it, then start it:
 
 Blocked on first start? See `README.txt` in the zip.
 
-Every version is on the [releases page](https://github.com/alexandria-p/ficfairy/releases/latest). There is no mobile release for now, but I would eventually like to make a solution that is more portable.
+Every version is on the [releases page](https://github.com/alexandria-p/FicFairy/releases/latest). There is no mobile release for now, but I would eventually like to make a solution that is more portable.
 
 . ݁₊ ⊹ . ݁ ⟡ ݁ . ⊹ ₊ ݁.
 
 ## Feedback, Bugs or Feature Requests?
 
-[Open an issue](https://github.com/alexandria-p/ficfairy/issues) on this GitHub (requires a GitHub account), or submit a ticket through the app by clicking the 'Feedback' button on the side of the screen (no account necessary).
+[Open an issue](https://github.com/alexandria-p/FicFairy/issues) on this GitHub (requires a GitHub account), or submit a ticket through the app by clicking the 'Feedback' button on the side of the screen (no account necessary).
 
 Windows has been thoroughly tested - but Mac and Linux, not so much. Please let me know if there are any issues and I will work on fixing them.
 
@@ -80,7 +80,7 @@ FicFairy's only official accounts are:
 
 - **Bluesky:** [@ficfairy.bsky.social](https://bsky.app/profile/ficfairy.bsky.social)
 - **Twitter/X:** [@ficfairy_ao3](https://x.com/ficfairy_ao3)
-- **GitHub:** this repository, [alexandria-p/ficfairy](https://github.com/alexandria-p/ficfairy)
+- **GitHub:** this repository, [alexandria-p/ficfairy](https://github.com/alexandria-p/FicFairy)
 
 I am not affiliated with any Ko-fi page, or any other account that asks for money in FicFairy's name - I do not accept money for FicFairy. If an account is not linked in this README, it is not controlled by me.
 
@@ -133,8 +133,8 @@ The logo was hand-drawn by me using Procreate on my iPad. Title font is [Doomsda
 
 ## More
 
-- [The wiki](https://github.com/alexandria-p/ficfairy/wiki): how to use each part of the app.
-- [Report a bug](https://github.com/alexandria-p/ficfairy/issues), or use the Feedback tab in the app.
+- [The wiki](https://github.com/alexandria-p/FicFairy/wiki): how to use each part of the app.
+- [Report a bug](https://github.com/alexandria-p/FicFairy/issues), or use the Feedback tab in the app.
 - [BlueSky @ficfairy.bsky.social](https://bsky.app/profile/ficfairy.bsky.social)
 - [Twitter/X @ficfairy_ao3](https://x.com/ficfairy_ao3)
 
@@ -153,4 +153,4 @@ Do not repost this work with the intent to pass it off as your own, and do not u
 
 𓍊𓋼𓍊𖡼.𖤣𖥧𖡼.𖤣𖥧𓋼𓍊𓋼
 
-[latest-release]: https://github.com/alexandria-p/ficfairy/releases/latest
+[latest-release]: https://github.com/alexandria-p/FicFairy/releases/latest
