@@ -2339,6 +2339,8 @@ def saving_for_real(tmp_path):
     fileops.saved_intact.side_effect = lambda p, n: FileOps.saved_intact(fileops, p, n)
     fileops.saved_problem.side_effect = lambda p, n: FileOps.saved_problem(fileops, p, n)
     fileops.delete_file.side_effect = lambda p: FileOps.delete_file(fileops, p)
+    fileops.rename_file.side_effect = lambda a, b: FileOps.rename_file(fileops, a, b)
+    fileops.exists.side_effect = lambda p: FileOps.exists(fileops, p)
     return ao3
 
 
@@ -2388,6 +2390,45 @@ def test_a_copy_overwritten_under_the_same_name_reads_the_same_as_a_replacement(
     assert strings.INFO_REPLACED_OLD_COPY.format('123 A 2024-12-14.html') \
         in capsys.readouterr().out
     assert '123' in ao3.updated
+
+
+def test_a_same_name_download_takes_the_place_of_the_old_copy_leaving_nothing_beside_it(tmp_path):
+    ao3 = saving_for_real(tmp_path)
+    (tmp_path / strings.WORKS_FOLDER_NAME / '123 A 2024-12-14.html').write_bytes(b'damaged')
+
+    ao3.save_download(WORK, 'HTML', '123 A 2024-12-14.html', b'fresh')
+
+    assert sorted(os.listdir(tmp_path / strings.WORKS_FOLDER_NAME)) == ['123 A 2024-12-14.html']
+    assert (tmp_path / strings.WORKS_FOLDER_NAME / '123 A 2024-12-14.html').read_bytes() == b'fresh'
+
+
+def test_a_same_name_download_that_lands_short_keeps_the_copy_it_would_have_replaced(tmp_path, capsys):
+    ao3 = saving_for_real(tmp_path)
+    (tmp_path / strings.WORKS_FOLDER_NAME / '123 A 2024-12-14.html').write_bytes(b'yours')
+    shortened_on_disk(ao3)
+
+    with pytest.raises(exceptions.SavedFileException):
+        ao3.save_download(WORK, 'HTML', '123 A 2024-12-14.html', b'fresh and long')
+
+    # the copy you had is untouched, and nothing half-written is left beside it
+    assert sorted(os.listdir(tmp_path / strings.WORKS_FOLDER_NAME)) == ['123 A 2024-12-14.html']
+    assert (tmp_path / strings.WORKS_FOLDER_NAME / '123 A 2024-12-14.html').read_bytes() == b'yours'
+    assert 'the old copy still exists' in capsys.readouterr().out
+
+
+def test_a_same_name_download_that_cannot_be_moved_into_place_puts_the_old_copy_back(tmp_path, capsys):
+    ao3 = saving_for_real(tmp_path)
+    (tmp_path / strings.WORKS_FOLDER_NAME / '123 A 2024-12-14.html').write_bytes(b'yours')
+    real = ao3.fileops.rename_file.side_effect
+    # the old copy moves aside, then the new one will not move into its name
+    ao3.fileops.rename_file.side_effect = lambda a, b: False if a.endswith(strings.SWAP_NEW_SUFFIX) else real(a, b)
+
+    with pytest.raises(exceptions.SavedFileException) as raised:
+        ao3.save_download(WORK, 'HTML', '123 A 2024-12-14.html', b'fresh')
+
+    assert sorted(os.listdir(tmp_path / strings.WORKS_FOLDER_NAME)) == ['123 A 2024-12-14.html']
+    assert (tmp_path / strings.WORKS_FOLDER_NAME / '123 A 2024-12-14.html').read_bytes() == b'yours'
+    assert 'your copy is kept as it was' in str(raised.value)
 
 
 # 1. the new file is not on disk as it arrived

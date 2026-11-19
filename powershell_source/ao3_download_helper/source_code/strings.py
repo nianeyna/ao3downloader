@@ -259,6 +259,11 @@ KEPT_NOT_DELETED = 'the older copy {} could not be deleted - it may be open in a
 UNCONFIRMED_REASON = 'checking the downloaded file {} failed, so it was left as it is and nothing else was deleted: {}'
 DAMAGED_REASON = 'the downloaded file {} {}, so it was removed'
 DAMAGED_REASON_KEPT_OLD = 'the downloaded file {} {}, so it was removed. the older copy {} is still there'
+# a download landing on a file of the same name goes in beside it first, then takes its place
+SWAP_NEW_SUFFIX = '.ficfairy-new'
+SWAP_OLD_SUFFIX = '.ficfairy-old'
+INFO_SWAP_FAILED = '    a new copy was downloaded whole, but could not be put in place of your copy, which is kept as it was: {}'
+SWAP_FAILED_REASON = 'the downloaded file {} arrived whole, but could not be put in place of your copy ({}) - your copy is kept as it was'
 DAMAGED_NOT_REMOVED = ' - but removing it failed too, so delete it by hand'
 SAVED_NOT_FOUND = 'could not be found at {}'
 SAVED_WRONG_SIZE = 'was the wrong size: expected {} bytes, found {}'
