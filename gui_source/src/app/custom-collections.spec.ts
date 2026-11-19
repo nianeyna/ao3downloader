@@ -428,6 +428,7 @@ describe('ticking works in the listing', () => {
       'Download/update now',
       'Mark as bookmark',
       'Add to a collection...',
+      'View index history',
     ]);
   });
 

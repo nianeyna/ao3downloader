@@ -117,6 +117,8 @@ export class WorkList {
   /** bookmarks you wrote a note on, and bookmarks you marked as a rec */
   protected readonly withNotes = signal(false);
   protected readonly recommended = signal(false);
+  /** only what has no index entry: a file the index does not match, or a work a collection lists */
+  protected readonly missingIndex = signal(false);
   /** hidden works are left out unless this is ticked - and then shown, marked as hidden */
   protected readonly showHidden = signal(false);
   /** tags a work must carry, every one of them, and tags it must not carry - as on ao3 */
@@ -162,6 +164,7 @@ export class WorkList {
         this.formatFilter() ||
         this.withNotes() ||
         this.recommended() ||
+        this.missingIndex() ||
         this.includeTags().length ||
         this.excludeTags().length
       ),
@@ -196,8 +199,10 @@ export class WorkList {
     const copies = this.copies();
     const withNotes = this.withNotes();
     const recommended = this.recommended();
+    const missingIndex = this.missingIndex();
 
     return this.visibleWorks().filter((work) => {
+      if (missingIndex && !work.unindexed && !work.placeholder) return false;
       if (type && bookmarkTypeOf(work) !== type) return false;
       if (origin && originOf(work) !== origin) return false;
       if (format) {
@@ -868,6 +873,7 @@ export class WorkList {
     this.originFilter.set('');
     this.formatFilter.set('');
     this.withNotes.set(false);
+    this.missingIndex.set(false);
     this.recommended.set(false);
     this.includeTags.set([]);
     this.excludeTags.set([]);
@@ -963,6 +969,43 @@ export class WorkList {
   protected resolveIssues(work: Bookmark): void {
     this.menuFor.set(null);
     if (!this.runGoing() && work.id && work.unindexed && !this.isLoose(work)) this.jobs.lookUpAsked.set([work.id]);
+  }
+
+  /** whether an entry has an index file to show: a work, series or external work the index holds */
+  protected canViewIndex(work: Bookmark): boolean {
+    return !!this.library.store() && !!work.id && !work.placeholder && !work.unindexed && !work.error;
+  }
+
+  /**
+   * Its index file - every reading it has had - in a tab of its own, never saved to the computer:
+   * the tab is opened at once (a tab opened after waiting on the library is taken for a pop-up
+   * and blocked), then shown the file as a page of its own.
+   */
+  protected async viewIndex(work: Bookmark): Promise<void> {
+    this.menuFor.set(null);
+    const tab = window.open('', '_blank');
+    if (!tab) return;
+    tab.opener = null;
+    let text: string | null = null;
+    try {
+      text = await this.library.indexText(work);
+    } catch {
+      text = null;
+    }
+    if (text === null) {
+      tab.document.title = 'No index file';
+      tab.document.body.textContent = `No index file was found for ${work.title || work.id}.`;
+      return;
+    }
+    let shown = text;
+    try {
+      shown = JSON.stringify(JSON.parse(text), null, 2);
+    } catch {
+      // shown as it is
+    }
+    const url = URL.createObjectURL(new Blob([shown], { type: 'application/json' }));
+    tab.location.href = url;
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   /** a row for a file whose name holds no work number: nothing to hide, tick or fetch it by */

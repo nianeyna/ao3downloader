@@ -1137,6 +1137,18 @@ export class Library {
    * bookmarks writes what AO3 says over it, as it does over any reading. The listing takes the
    * files in again (`refreshAfterRun`) once they are written. Answers how many changed.
    */
+  /**
+   * An entry's index file as it is in the library - every reading it has had, its history - or
+   * null when it has none. Found by number in its own folder, as Mark as bookmark finds it.
+   */
+  async indexText(entry: Bookmark): Promise<string | null> {
+    const store = this.store();
+    if (!store || !entry.id || entry.placeholder || entry.unindexed) return null;
+    const folder = indexFolderOf(entry);
+    const path = await entryFile(store, await store.list(folder, false).catch(() => []), entry.id);
+    return path ? store.read(path) : null;
+  }
+
   async setBookmarked(given: Bookmark | Bookmark[], bookmarked: boolean): Promise<number> {
     const store = this.store();
     if (!store) throw new Error('this library can only be read, so nothing can be marked in it');

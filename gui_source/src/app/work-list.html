@@ -196,6 +196,10 @@
       <input type="checkbox" name="recommended" [checked]="recommended()" (change)="recommended.set($any($event.target).checked)" />
       Bookmarks you recommended
     </label>
+    <label>
+      <input type="checkbox" name="missingIndex" [checked]="missingIndex()" (change)="missingIndex.set($any($event.target).checked)" />
+      Missing a FicFairy index
+    </label>
   </p>
 
   <p class="filter-hidden">
@@ -755,6 +759,14 @@
                       [title]="canCollect(work) ? '' : 'A series cannot be added to a collection - only works can'"
                       (click)="menuAdd(work)">
                       Add to a collection...
+                    </button>
+                  </li>
+                }
+                <!-- every entry with an index file: its readings, in a tab of their own -->
+                @if (canViewIndex(work)) {
+                  <li role="none">
+                    <button type="button" role="menuitem" class="view-index" (click)="viewIndex(work)">
+                      View index history
                     </button>
                   </li>
                 }
