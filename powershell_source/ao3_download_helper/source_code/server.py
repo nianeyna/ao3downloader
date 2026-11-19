@@ -4489,16 +4489,28 @@ def rescue_with_fichub(job: Job, fileops: FileOps, ao3, report) -> None:
         return
 
     works = [str(x['id']) for x in candidates]
-    print(strings.AO3_INFO_FICHUB_ASK.format(len(works), ', '.join(works)))
-    answer = job.ask({'name': FICHUB_QUESTION, 'count': len(works), 'ids': works,
-                      'choices': list(FICHUB_CHOICES)},
-                     {'choice': FICHUB_YES})
-    choice = answer.get('choice') if answer.get('choice') in FICHUB_CHOICES else FICHUB_YES
-    if job.record:
-        job.record.choice({'question': FICHUB_QUESTION, 'count': len(works), 'works': works,
-                           'choice': choice})
-    if choice != FICHUB_YES or job.cancel.is_set():
+    # an import's works that had no index entry at all when it began are tried without asking:
+    # with AO3 not giving them, FicHub's cached copy is better than no entry, whatever date the
+    # files have or lack. the question covers the rest
+    unasked = unindexed_import_works(job, ao3, works)
+    asked = [x for x in works if x not in unasked]
+    choice = FICHUB_YES
+    if asked:
+        print(strings.AO3_INFO_FICHUB_ASK.format(len(asked), ', '.join(asked)))
+        answer = job.ask({'name': FICHUB_QUESTION, 'count': len(asked), 'ids': asked,
+                          'choices': list(FICHUB_CHOICES)},
+                         {'choice': FICHUB_YES})
+        choice = answer.get('choice') if answer.get('choice') in FICHUB_CHOICES else FICHUB_YES
+        if job.record:
+            job.record.choice({'question': FICHUB_QUESTION, 'count': len(asked), 'works': asked,
+                               'choice': choice})
+    if unasked:
+        print(strings.AO3_INFO_FICHUB_NO_INDEX.format(len(unasked), ', '.join(sorted(unasked))))
+    if choice != FICHUB_YES:
         print(strings.AO3_INFO_FICHUB_DECLINED)
+        candidates = [x for x in candidates if str(x['id']) in unasked]
+        works = [str(x['id']) for x in candidates]
+    if not candidates or job.cancel.is_set():
         job.steps.skip('fichub')
         return
 
@@ -4569,6 +4581,20 @@ def rescue_with_fichub(job: Job, fileops: FileOps, ao3, report) -> None:
 
     if job.cancel.is_set(): return
     job.steps.done('fichub')
+
+
+def unindexed_import_works(job: Job, ao3, works: list[str]) -> set[str]:
+    """The works of an import that had no index entry at all when it began - those FicHub is
+    tried for without asking. None for any other run, or when the index as the run found it
+    cannot be told."""
+
+    if job.action != ACTION_IMPORT: return set()
+    try:
+        before = ao3.indexed_before_run()
+    except Exception:
+        return set()
+    if not isinstance(before, (set, frozenset)): return set()
+    return {x for x in works if x not in before}
 
 
 def fichub_formats_for(work: str, filetypes: list[str], existing: dict, index_only: set[str],

@@ -725,6 +725,40 @@ def test_a_work_an_import_only_looks_up_is_indexed_from_fichub_and_nothing_downl
 
 
 @pytest.mark.fichub
+def test_an_imports_work_with_no_index_entry_at_all_is_taken_from_fichub_without_asking(
+        library, monkeypatch, capsys):
+    fetched = fichub_serving(monkeypatch)
+    job, ao3, asked = a_run(library, ['JSON'], ao3_failed(), answer='no')
+    job.action = server.ACTION_IMPORT
+    job.options.update(indexOnly=['75354806'])
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    # a cached copy is better than no entry: not asked, and taken even with 'no' as the answer
+    assert asked == []
+    assert fetched == []
+    assert entry_of(library)[strings.RETRIEVED_FROM_FIELD]['site'] == 'fichub'
+    assert 'had no index entry at all' in capsys.readouterr().out
+
+
+@pytest.mark.fichub
+def test_an_imports_work_already_indexed_is_still_asked_about_before_fichub(library, monkeypatch):
+    folder = os.path.join(library.downloadfolder, strings.INDEXING_FOLDER_NAME)
+    os.makedirs(folder, exist_ok=True)
+    with open(os.path.join(folder, '75354806 Wolfbird - OpalApparition.json'), 'w', encoding='utf-8') as f:
+        json.dump({'id': '75354806', 'link': LINK, 'title': 'Wolfbird', 'date_updated': '2026-04-27'}, f)
+    fetched = fichub_serving(monkeypatch)
+    job, ao3, asked = a_run(library, ['JSON', 'EPUB'], ao3_failed(), answer='no')
+    job.action = server.ACTION_IMPORT
+
+    server.rescue_with_fichub(job, library, ao3, MagicMock())
+
+    assert [q['name'] for q, _ in asked] == ['fichub']
+    assert fetched == []
+    assert [x['id'] for x in ao3.failures] == ['75354806']
+
+
+@pytest.mark.fichub
 def test_an_import_not_replacing_outdated_copies_keeps_yours_and_fetches_only_what_is_missing(
         library, monkeypatch):
     a_copy(library, '75354806 Wolfbird - OpalApparition 2020-01-01.epub')

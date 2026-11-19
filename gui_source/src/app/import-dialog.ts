@@ -1101,7 +1101,6 @@ export class ImportDialog {
   }
   /** the formats to fetch for works without them - none ticked to begin with */
   protected readonly picked = signal<string[]>([]);
-  protected readonly replaceOutdated = signal(false);
   /** every downloadable format the helper offers, JSON aside (always written: it is the index) */
   protected readonly offered = computed(() => this.formats().filter((x) => x !== 'JSON'));
   /** the formats the found files are already in, so the page can say so */
@@ -1162,7 +1161,9 @@ export class ImportDialog {
   });
   /** whether anything is downloaded or replaced: an update chosen, and something to do */
   protected readonly updates = computed(
-    () => this.updating().length > 0 && (this.picked().length > 0 || this.replaceOutdated()),
+    // an update always replaces a copy AO3 or FicHub has a newer version of than the date in its
+    // name, so choosing which fics to update is enough
+    () => this.updating().length > 0,
   );
   /** the works a run is over: those looked up, those updated, and those with a file to repair */
   protected readonly scope = computed(() => {
@@ -1415,7 +1416,7 @@ export class ImportDialog {
         links: importLinks(works),
         count: works.length,
         filetypes: ['JSON', ...(updates ? this.picked() : [])],
-        replaceOutdated: updates && this.replaceOutdated(),
+        replaceOutdated: updates,
         // every work not updated is only looked up - one with a file to repair gets that alone
         indexOnly: [...taken].filter((id) => !updating.has(id)),
         lookups: this.lookups().filter((id) => taken.has(id)).length,

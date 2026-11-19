@@ -1170,7 +1170,7 @@ describe('ImportDialog', () => {
     await answerWith('replaceOlder', 'no');
     await answerWith('replaceUndated', 'yes');
     await click('Continue');
-    element.querySelector<HTMLInputElement>('input[name="updateScope"][value="skip"]')?.click();
+    element.querySelector<HTMLInputElement>('input[name="updateFetch"][value="skip"]')?.click();
     await fixture.whenStable();
     await click('Continue');
 
@@ -1191,7 +1191,7 @@ describe('ImportDialog', () => {
     await click('Continue');
     // the index question, then the formats, skipped
     await click('Continue');
-    element.querySelector<HTMLInputElement>('input[name="updateScope"][value="skip"]')!.click();
+    element.querySelector<HTMLInputElement>('input[name="updateFetch"][value="skip"]')!.click();
     await fixture.whenStable();
     await click('Continue');
 
@@ -1213,7 +1213,7 @@ describe('ImportDialog', () => {
     await fixture.whenStable();
     await answerWith('renameUndated', 'no');
     await click('Continue');
-    element.querySelector<HTMLInputElement>('input[name="updateScope"][value="skip"]')?.click();
+    element.querySelector<HTMLInputElement>('input[name="updateFetch"][value="skip"]')?.click();
     await fixture.whenStable();
     await click('Continue');
 
@@ -1298,7 +1298,7 @@ describe('ImportDialog', () => {
       // nothing renamed until every question is answered: the formats page comes first
       expect(step()).toBe('formats');
       expect(store.renamed).toEqual([]);
-      element.querySelector<HTMLInputElement>('input[name="updateScope"][value="skip"]')?.click();
+      element.querySelector<HTMLInputElement>('input[name="updateFetch"][value="skip"]')?.click();
       await fixture.whenStable();
       primary().click();
       await settle();
@@ -1324,7 +1324,7 @@ describe('ImportDialog', () => {
       indexFirst().click();
       await fixture.whenStable();
       await click('Continue');
-      element.querySelector<HTMLInputElement>('input[name="updateScope"][value="skip"]')?.click();
+      element.querySelector<HTMLInputElement>('input[name="updateFetch"][value="skip"]')?.click();
       await fixture.whenStable();
       primary().click();
       await settle();
@@ -1344,9 +1344,12 @@ describe('ImportDialog', () => {
       indexFirst().click();
       await fixture.whenStable();
       await click('Continue');
-      await click('Continue');
-      element.querySelector<HTMLInputElement>('input[name="updateScope"][value="skip"]')?.click();
+      // work 2 is indexed by its repair, so there is no index page: straight to the formats
+      expect(step()).toBe('formats');
+      element.querySelector<HTMLInputElement>('input[name="updateFetch"][value="skip"]')!.click();
       await fixture.whenStable();
+      await click('Continue');
+      await settle();
       await click('Continue');
 
       expect(started[0].request.repair).toEqual(['2 C - D.html']);
@@ -1362,7 +1365,7 @@ describe('ImportDialog', () => {
     await click('Continue');
     expect(step()).toBe('repair');
     await click('Continue');
-    element.querySelector<HTMLInputElement>('input[name="updateScope"][value="skip"]')?.click();
+    element.querySelector<HTMLInputElement>('input[name="updateFetch"][value="skip"]')?.click();
     await fixture.whenStable();
     await click('Continue');
 
@@ -1685,7 +1688,9 @@ describe('ImportDialog', () => {
     await click('Continue');
     expect(step()).toBe('formats');
     expect(element.textContent).toContain('Also download them in other formats?');
-    expect(element.textContent).toContain('Replace a copy you have when AO3 or FicHub has a newer version');
+    // replacing an outdated copy is what an update does, not a choice of its own
+    expect(element.querySelector('input[name="replaceOutdated"]')).toBeNull();
+    expect(element.querySelector('.fetch-warning')!.textContent).toContain('only updates files that have a date in their name');
   });
 
   function radio(name: string, value: string): HTMLInputElement | null {
@@ -1702,13 +1707,12 @@ describe('ImportDialog', () => {
     await fixture.whenStable();
   }
 
-  it('starts an import of every work found, with the formats ticked and whether to replace', async () => {
+  it('starts an import of every work found, with the formats ticked, replacing outdated copies', async () => {
     await open(ALL_DATED);
     await click('Continue');
     await click('Continue');
     expect(radio('updateScope', 'all')!.checked).toBe(true);
     await tick('format-EPUB');
-    await tick('replaceOutdated');
     await click('Continue');
 
     expect(started[0].request).toEqual({
@@ -1749,8 +1753,8 @@ describe('ImportDialog', () => {
     await click('Continue');
     await skipDates();
     await click('Continue');
-    await tick('replaceOutdated');
     await click('Continue');
+    expect(started[0].request.replaceOutdated).toBe(true);
     expect(started[0].request.links).toBe(
       'https://archiveofourown.org/works/1\nhttps://archiveofourown.org/works/7',
     );
@@ -1839,11 +1843,9 @@ describe('ImportDialog', () => {
     await click('Continue');
     await click('Continue');
     await tick('format-EPUB');
-    await tick('replaceOutdated');
     await choose('updateFetch', 'skip');
     expect(radio('updateScope', 'all')).toBeNull();
     expect(element.querySelector('input[name="format-EPUB"]')).toBeNull();
-    expect(element.querySelector('input[name="replaceOutdated"]')).toBeNull();
     await click('Continue');
 
     expect(started[0].request).toMatchObject({
@@ -1865,15 +1867,20 @@ describe('ImportDialog', () => {
     expect(closed).toEqual([null]);
   });
 
-  it('is done without a run when an update is chosen with nothing to download or replace', async () => {
+  it('runs whenever an update is chosen, with no format ticked, to replace outdated copies', async () => {
     await open(ALL_DATED, false, INDEXED_UNDATED);
     await click('Continue');
     await skipDates();
     await choose('lookup', 'later');
     await click('Continue');
-    expect(primary().textContent?.trim()).toBe('Done');
-    await click('Done');
-    expect(started).toEqual([]);
+    expect(primary().textContent?.trim()).toBe('Continue');
+    await click('Continue');
+    expect(started[0].request).toMatchObject({
+      links: 'https://archiveofourown.org/works/7',
+      filetypes: ['JSON'],
+      replaceOutdated: true,
+      scope: 'all',
+    });
   });
 
   it('never offers works again once told not to, writing them to the library', async () => {

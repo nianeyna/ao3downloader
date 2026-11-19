@@ -472,6 +472,8 @@ RETRIEVED_FROM_FIELD = 'retrieved_from'
 AO3_INFO_FICHUB_ASK = ('{} works could not be fetched from AO3 ({}). '
                        'waiting for you to choose whether to try FicHub for them...')
 AO3_INFO_FICHUB_DECLINED = 'not trying FicHub'
+AO3_INFO_FICHUB_NO_INDEX = ('{} of them had no index entry at all, so FicHub is tried for them '
+                            'without asking - a copy it has cached is better than none: {}')
 AO3_INFO_FICHUB_TRYING = 'trying FicHub for {} works: {}'
 # each said before the thing it describes happens, so the run says what it is waiting on
 AO3_INFO_FICHUB_CHECKING_FILES = 'checking which files you already have of these works...'
