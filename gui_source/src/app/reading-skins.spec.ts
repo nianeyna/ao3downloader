@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { DebugMode } from './debug-mode';
 import { Library } from './library';
 import { MemoryStore } from './memory-store';
-import { BROWSER_SKINS_KEY, BUILT_IN_READING_SKINS, DEFAULT_SKIN_KEY, LAYER_SKIN_KEY, ReadingSkins, skinProblem } from './reading-skins';
+import { BROWSER_SKINS_KEY, DEFAULT_SKIN_KEY, LAYER_SKIN_KEY, ReadingSkins, skinProblem } from './reading-skins';
 import { ReadingSkinsSettings } from './reading-skins-settings';
 import { hasWorkSkin, shownWork, withAo3Shape, withReadingSkin } from './skin-html';
 
@@ -266,25 +266,6 @@ describe('ReadingSkins', () => {
     expect(library.readingSkin()).toBe('');
   });
 
-  it('offers the skins that come with FicFairy, which can be the default and cannot be removed', async () => {
-    const { library, skins } = setUp(new MemoryStore());
-    const medieval = skins.skins().find((x) => x.name === 'Medieval parchment')!;
-
-    expect(medieval.place).toBe('builtin');
-    skins.setDefault('builtin:Medieval parchment');
-    TestBed.tick();
-    expect(library.readingSkin()).toContain('border-image');
-    expect(await skins.remove(medieval)).toContain('cannot be removed');
-    expect(skins.skins()).toContain(medieval);
-  });
-
-  it('every skin that comes with FicFairy can be put into a work', () => {
-    for (const skin of BUILT_IN_READING_SKINS) {
-      expect(skinProblem(skin.name, skin.css), skin.name).toBeNull();
-      expect(withReadingSkin(DOWNLOADED, skin.css), skin.name).toContain(skin.css);
-    }
-  });
-
   it('layers by default, and keeps the choice to leave it off in this browser', () => {
     const { library, skins } = setUp(new MemoryStore());
     expect(skins.layer()).toBe(true);
@@ -389,20 +370,7 @@ describe('ReadingSkinsSettings', () => {
     expect(element.querySelector('.skin-outcome')?.textContent).toContain('saved in your library');
     expect(element.querySelector('[data-skin="library:Cosy"] .skin-place')?.textContent).toContain('library');
     const options = [...element.querySelectorAll<HTMLOptionElement>('select[name=defaultReadingSkin] option')];
-    expect(options.map((x) => x.value)).toEqual(['', ...BUILT_IN_READING_SKINS.map((x) => `builtin:${x.name}`), 'library:Cosy']);
-  });
-
-  it('says a built-in skin comes with FicFairy, what it looks like and that it loads pictures, with no Remove', async () => {
-    TestBed.configureTestingModule({
-      providers: [{ provide: DebugMode, useValue: { on: () => true } }],
-    });
-    const fixture = TestBed.createComponent(ReadingSkinsSettings);
-    await fixture.whenStable();
-    const row = (fixture.nativeElement as HTMLElement).querySelector('[data-skin="builtin:Medieval parchment"]')!;
-
-    expect(row.querySelector('.skin-place')?.textContent).toContain('Comes with FicFairy');
-    expect(row.querySelector('.skin-about')?.textContent).toContain('another site');
-    expect(row.querySelector('.remove-skin')).toBeNull();
+    expect(options.map((x) => x.value)).toEqual(['', 'library:Cosy']);
   });
 
   it('offers layering ticked, and says what unticking it does', async () => {
@@ -420,6 +388,19 @@ describe('ReadingSkinsSettings', () => {
 
     expect(element.querySelector('.layer-hint')?.textContent).toContain('author\'s skin alone');
     expect(TestBed.inject(ReadingSkins).layer()).toBe(false);
+  });
+
+  it('offers no skins but those you add, and says so while there are none', async () => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: DebugMode, useValue: { on: () => true } }],
+    });
+    const fixture = TestBed.createComponent(ReadingSkinsSettings);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+
+    const options = [...element.querySelectorAll<HTMLOptionElement>('select[name=defaultReadingSkin] option')];
+    expect(options.map((x) => x.value)).toEqual(['']);
+    expect(element.querySelector('.no-skins')).not.toBeNull();
   });
 
   it('holds Save until there is a name and some CSS', async () => {

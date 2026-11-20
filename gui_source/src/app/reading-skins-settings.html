@@ -15,7 +15,7 @@
     <option value="" [selected]="!skins.defaultSkin()">None</option>
     @for (skin of skins.skins(); track id(skin)) {
       <option [value]="id(skin)" [selected]="skins.defaultId() === id(skin)">
-        {{ skin.name }} ({{ skin.place === 'builtin' ? 'comes with FicFairy' : skin.place === 'browser' ? 'this browser' : 'library' }})
+        {{ skin.name }} ({{ skin.place === 'browser' ? 'this browser' : 'library' }})
       </option>
     }
   </select>
@@ -52,23 +52,14 @@
         @if (skins.defaultId() === id(skin)) {
           <span class="badge">Default</span>
         }
-        @if (skin.place !== 'builtin') {
-          <button type="button" class="button subtle remove-skin" (click)="remove(skin)">
-            {{ confirmingRemove() === id(skin) ? 'Click again to remove' : 'Remove' }}
-          </button>
-        }
-        @if (skin.about) {
-          <span class="skin-about">
-            {{ skin.about }}
-            @if (skin.remote) {
-              Its pictures load from another site each time a work is opened with it, so it needs
-              the internet, and that site sees the request.
-            }
-          </span>
-        }
+        <button type="button" class="button subtle remove-skin" (click)="remove(skin)">
+          {{ confirmingRemove() === id(skin) ? 'Click again to remove' : 'Remove' }}
+        </button>
       </li>
     }
   </ul>
+} @else if (!skins.reading()) {
+  <p class="hint no-skins">No reading skins yet - add one below.</p>
 }
 
 <h4>Add a skin</h4>
