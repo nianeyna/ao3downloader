@@ -203,17 +203,22 @@ def test_the_preview_shows_the_version_the_next_deploy_will_give(tmp_path):
     assert announce.coming_version(tmp_path) == '2.0.0'
 
 
-def test_the_release_description_ends_with_the_note_bluesky_was_given():
+def test_the_release_description_opens_with_the_note_bluesky_was_given():
     body = announce.release_body('Faster Dropbox.\n')
-    assert body.startswith(announce.INSTALL_NOTES)
-    assert body.rstrip().endswith("**What's new:**\n\nFaster Dropbox.")
+    assert body.startswith("## What's new\n\nFaster Dropbox.\n")
+    # a line under what's new, then the instructions under a heading of the same size
+    whats_new, install = body.split('\n---\n', 1)
+    assert 'Faster Dropbox.' in whats_new
+    assert install.lstrip().startswith('## Installation instructions\n\n' + announce.INSTALL_NOTES)
+    assert announce.INSTALL_NOTES not in whats_new
 
 
 def test_a_release_not_announced_has_no_whats_new():
     for note in ('no-post', 'No-Post\n', ''):
         body = announce.release_body(note)
         assert "What's new" not in body
-        assert body.strip() == announce.INSTALL_NOTES.strip()
+        assert '---' not in body
+        assert body.strip() == ('## Installation instructions\n\n' + announce.INSTALL_NOTES).strip()
 
 
 def test_release_notes_writes_the_description(tmp_path, monkeypatch):

@@ -28,9 +28,10 @@ same as the release before it - a push straight to main that did not write one -
     python announce.py post --version 1.2.3 [--previous-note-file path]
     python announce.py release-notes --version 1.2.3  # the GitHub release's description
 
-**The GitHub release's description** (`release_body`) is the same for every release - how to
-install the app on each system - with the note Bluesky was given at the bottom, under "What's
-new". A release that is not announced (`SKIP_NOTE`) has no "What's new". The three app builds
+**The GitHub release's description** (`release_body`) opens with the note Bluesky was given,
+under a "What's new" heading and a line, then how to install the app on each system, under an
+"Installation instructions" heading of the same size. A release that is not announced
+(`SKIP_NOTE`) has no "What's new". The three app builds
 write it with `release-notes`, whichever of them makes the release first.
 """
 
@@ -162,6 +163,9 @@ LONGEST_VERSION = '9999.9999.9999'
 
 # region the github release
 
+NEW_HEADING = "## What's new"
+INSTALL_HEADING = '## Installation instructions'
+
 INSTALL_NOTES = '''\
 **Windows:**
 
@@ -189,12 +193,15 @@ If you are stuck, a README inside each zip has more details.'''
 
 
 def release_body(note: str) -> str:
-    """The GitHub release's description: `INSTALL_NOTES`, then the note Bluesky is given (as
-    `note_for` chose it) under "What's new" - or nothing more for a release not announced."""
+    """The GitHub release's description: the note Bluesky is given (as `note_for` chose it)
+    under a "What's new" heading, a line under it, then `INSTALL_NOTES` under an "Installation
+    instructions" heading of the same size - or only the instructions for a release not
+    announced."""
 
+    install = f"{INSTALL_HEADING}\n\n{INSTALL_NOTES}\n"
     if skipped(note) or not note.strip():
-        return INSTALL_NOTES + '\n'
-    return f"{INSTALL_NOTES}\n\n**What's new:**\n\n{note.strip()}\n"
+        return install
+    return f"{NEW_HEADING}\n\n{note.strip()}\n\n---\n\n{install}"
 
 
 def previous_note(version: str, root: Path = ROOT) -> str:
