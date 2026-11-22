@@ -18,7 +18,7 @@ Dislike reading? Go directly to either [Windows install](https://nianeyna.github
 
 ## Announcements
 
-New, easier installation instructions are here! You no longer need to install python manually (no more version worries) or unzip any folders or any of that stuff. Just download and run one file. Plus, it can detect updates to the script and install them for you, so you don't have to check back here for updates anymore!
+**2026-11-22, regarding the 2026 outage:** Until the incident with ao3's emergency maintenance is *fully resolved* and the site returns to normal operation, ao3downloader will be minimally functional. Since ao3 is currently running in a degraded state, and the site prioritizes real users over bot traffic, ao3downloader's ability to interact with the ao3 servers is very limited and unreliable at this time. The amount of time necessary to change the code to adapt to these circumstances would be longer than it will take for the archive to return, so if downloads are not working for you, please be patient and wait until the website returns to full functionality before trying again, to minimize both your own frustration and that of ao3's hardworking volunteer team. Thank you all in advance for your patience.
 
 ## Instructions
 
