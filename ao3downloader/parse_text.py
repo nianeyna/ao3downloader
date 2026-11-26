@@ -2,6 +2,8 @@ import datetime
 import os
 import re
 
+from unidecode import unidecode
+
 from ao3downloader import strings
 
 
@@ -58,6 +60,55 @@ def get_file_type(filetype: str) -> str:
     """
 
     return '.' + filetype.lower()
+
+
+def get_title_from_metadata(metadata: dict, pattern: str) -> list[str]:
+    """
+    creates a (non-truncated) filename for a work by substituting metadata values
+    into the filename pattern. the returned list contains one entry per path segment.
+    """
+
+    result = []
+    split_pattern = pattern.split('/')
+
+    for part in split_pattern:
+        part_result = part
+        for key, value in metadata.items():
+            part_result = part_result.replace(f'{{{key}}}', value)
+        result.append(part_result)
+
+    return result
+
+
+def get_download_slug(title: str, worknum: str) -> str:
+    """
+    creates the filename portion of an ao3 download link from the work title.
+    replicates the cleaning logic ao3 itself uses to generate download filenames
+    (Download#clean and Download#file_name in app/models/download.rb of the
+    otwarchive codebase) so that constructed links match the real ones exactly.
+    """
+
+    slug = re.sub(r'&[A-Za-z0-9_]+;', '', title) # remove html-entity-like sequences
+    slug = unidecode(slug) # transliterate to ascii
+    slug = re.sub(r'[^A-Za-z0-9_ -]', '', slug)
+    slug = re.sub(r' +', ' ', slug)
+    slug = slug.strip()
+    if len(slug) > 24: # truncate to 24 characters at a word boundary
+        cut = slug.rfind(' ', 0, 25)
+        if cut == -1: cut = 24
+        slug = slug[:cut]
+    slug = re.sub(r'\s', '_', slug)
+    if len(slug) < 3: # fall back to the work id if the cleaned title is too short
+        slug = f'{slug}_Work_{worknum}' if slug else f'Work_{worknum}'
+    return slug.strip()
+
+
+def get_download_url(worknum: str, slug: str, filetype: str, updated: str) -> str:
+    """
+    constructs an ao3 download link
+    """
+
+    return strings.AO3_DOWNLOAD_URL.format(worknum, slug, filetype.lower(), updated)
 
 
 def get_work_number(link: str) -> str | None:
@@ -200,6 +251,28 @@ def get_current_chapters(text: str, index: int) -> str:
             currentchap += c
     currentchap = currentchap[::-1]
     return currentchap
+
+
+# ao3 always renders display dates with english month abbreviations,
+# so it is safe to hardcode them here (using strptime with %b instead
+# would give different results depending on the user's system locale)
+MONTH_ABBREVIATIONS = {
+    'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
+    'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+
+
+def get_iso_date(text: str) -> str:
+    """
+    converts a date in the display format used on ao3 listing blurbs ('09 Jun 2025')
+    to the format used in the stats section of ao3 work pages ('2025-06-09').
+    returns an empty string if the input is not in the expected format.
+    """
+
+    match = re.fullmatch(r'(\d{1,2}) (\w{3}) (\d{4})', ' '.join(text.split()))
+    if not match: return ''
+    month = MONTH_ABBREVIATIONS.get(match.group(2))
+    if not month: return ''
+    return f'{match.group(3)}-{month}-{match.group(1).zfill(2)}'
 
 
 def get_last_visited(text: str) -> str:

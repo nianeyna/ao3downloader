@@ -5,9 +5,10 @@ from datetime import datetime
 
 import mobi
 import pytest
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 import ao3downloader.parse_soup as parse_soup
+import ao3downloader.parse_text as parse_text
 from ao3downloader import strings
 
 from test.conftest import ebook_fixtures
@@ -294,6 +295,26 @@ def test_get_work_metadata_from_work_returns_expected_keys(fixture_soup, snapsho
     assert metadata == snapshot
 
 
+def test_get_work_metadata_from_work_updated_uses_status_date_when_present(fixture_soup):
+    soup = fixture_soup('multipleSeries')
+
+    metadata = parse_soup.get_work_metadata_from_work(soup, 'https://archiveofourown.org/works/41214669')
+
+    assert metadata['updated'] == '2023-08-10'
+    assert metadata['updated'] != metadata['published']
+
+
+def test_get_work_metadata_from_work_updated_falls_back_to_published(fixture_soup):
+    # ao3 omits the status date for '1/1' works, so the published date is
+    # the closest available value (and the one listing blurbs display)
+    soup = fixture_soup('unlockedWork')
+
+    metadata = parse_soup.get_work_metadata_from_work(soup, 'https://archiveofourown.org/works/41822007')
+
+    assert metadata['updated'] == metadata['published']
+    assert metadata['updated'] != ''
+
+
 def test_get_work_metadata_from_list_returns_error_field_on_malformed_blurb():
     # no <li class="work-N"> present — blurb is None so .find will raise
     soup = BeautifulSoup('<html></html>', 'html.parser')
@@ -403,6 +424,151 @@ def test_get_work_metadata_from_list_plain_listing_sets_empty_optional_fields():
     assert result['bookmarker_notes'] == ''
     assert result['last_visited'] == ''
     assert result['times_visited'] == ''
+
+# endregion
+
+
+# region download link construction from blurbs
+
+def _work_blurb(fixture_soup, fixture: str, worknum: str):
+    blurb = parse_soup.get_work_blurb(fixture_soup(fixture), f'https://archiveofourown.org/works/{worknum}')
+    assert blurb is not None
+    return blurb
+
+
+def _blurb_metadata(fixture_soup, fixture: str, worknum: str) -> dict:
+    blurb = _work_blurb(fixture_soup, fixture, worknum)
+    return parse_soup.get_work_metadata_from_blurb(blurb, f'https://archiveofourown.org/works/{worknum}')
+
+
+def test_get_work_blurb_finds_the_requested_blurb(fixture_soup):
+    blurb = _work_blurb(fixture_soup, 'bookmarks', '66326125')
+
+    assert blurb.select('h4.heading a')[0].get('href') == '/works/66326125'
+
+
+def test_get_work_blurb_returns_none_when_absent(fixture_soup):
+    soup = fixture_soup('bookmarks')
+
+    assert parse_soup.get_work_blurb(soup, 'https://archiveofourown.org/works/999999999999') is None
+
+
+def test_get_work_blurb_returns_none_for_non_work_link(fixture_soup):
+    soup = fixture_soup('bookmarks')
+
+    assert parse_soup.get_work_blurb(soup, 'https://archiveofourown.org/series/123') is None
+
+
+@pytest.mark.parametrize('fixture', ['bookmarks', 'markedForLaterList'])
+def test_get_blurb_updated_timestamp_is_unix_timestamp(fixture_soup, fixture):
+    # the timestamp value changes whenever the fixtures are refreshed, so assert
+    # only the format here - accuracy is covered by the constructed link test below
+    timestamp = parse_soup.get_blurb_updated_timestamp(_work_blurb(fixture_soup, fixture, '66326125'))
+
+    assert timestamp is not None
+    assert timestamp.isdigit()
+
+
+def test_get_blurb_updated_timestamp_none_when_comment_missing():
+    # subscription listings (and any other listing without full blurbs) have no updated_at comment
+    html = (
+        '<li class="work blurb group work-99" id="work_99">'
+        '<div class="header module">'
+        '<h4 class="heading"><a href="/works/99">Some Work</a></h4>'
+        '</div></li>')
+    blurb = BeautifulSoup(html, 'html.parser').find('li')
+
+    assert isinstance(blurb, Tag)
+    assert parse_soup.get_blurb_updated_timestamp(blurb) is None
+
+
+def test_get_blurb_updated_timestamp_ignores_visible_text():
+    # the timestamp must come from an html comment, never from displayed text
+    html = (
+        '<li class="work blurb group work-99" id="work_99">'
+        '<div class="header module">updated_at=999'
+        '<h4 class="heading"><a href="/works/99">Some Work</a></h4>'
+        '</div></li>')
+    blurb = BeautifulSoup(html, 'html.parser').find('li')
+
+    assert isinstance(blurb, Tag)
+    assert parse_soup.get_blurb_updated_timestamp(blurb) is None
+
+
+@pytest.mark.parametrize('fixture', ['bookmarks', 'markedForLaterList'])
+def test_get_work_metadata_from_blurb_matches_work_page(fixture_soup, fixture):
+    # the two metadata sources must produce identical values so that filenames never
+    # depend on which one was used - otherwise already-downloaded works would stop
+    # being recognized. markedForLater is the work page for a work that also appears
+    # as a blurb in both listing fixtures.
+    link = 'https://archiveofourown.org/works/66326125'
+    work_metadata = parse_soup.get_work_metadata_from_work(fixture_soup('markedForLater'), link)
+    blurb_metadata = _blurb_metadata(fixture_soup, fixture, '66326125')
+
+    assert blurb_metadata == {key: work_metadata[key] for key in blurb_metadata}
+    # the keys blurbs cannot provide must be exactly the hardcoded fallback token list
+    assert set(work_metadata) - set(blurb_metadata) == set(strings.AO3_WORK_PAGE_ONLY_TOKENS)
+
+
+@pytest.mark.skipif(not os.path.exists(os.path.join(FIXTURES_DIR, 'incompleteWorkPage.html')),
+                    reason='run dev/refresh_fixtures.py --only-new to download the incompleteWorkPage fixture')
+def test_get_work_metadata_from_blurb_matches_work_page_with_status_date(fixture_soup):
+    # complements the test above, which covers a '1/1' work whose work page has no
+    # status date: 218676 is a chaptered wip, so this proves that a real status date
+    # equals the reformatted blurb datetime across the two metadata sources
+    link = 'https://archiveofourown.org/works/218676'
+    work_metadata = parse_soup.get_work_metadata_from_work(fixture_soup('incompleteWorkPage'), link)
+    blurb_metadata = _blurb_metadata(fixture_soup, 'bookmarks', '218676')
+
+    assert work_metadata['updated'] != work_metadata['published']
+    assert blurb_metadata == {key: work_metadata[key] for key in blurb_metadata}
+
+
+def test_get_work_metadata_from_blurb_multiple_series(fixture_soup):
+    result = _blurb_metadata(fixture_soup, 'bookmarks', '34816549')
+
+    assert result['series_title'] == 'MXTX - Retellings, No Paths Are Bound + Extras'
+    assert result['series_index'] == '1, 1'
+
+
+def test_get_work_metadata_from_blurb_updated_is_in_work_page_format(fixture_soup):
+    # multichapter work whose blurb datetime is a real last-updated date;
+    # the raw blurb text is '08 Sep 2022'
+    result = _blurb_metadata(fixture_soup, 'bookmarks', '34816549')
+
+    assert result['updated'] == '2022-09-08'
+
+
+def test_constructed_download_link_matches_work_page_link(fixture_soup):
+    # end to end: a download link constructed purely from listing blurb data must
+    # exactly match the real link scraped from the work page. because this runs
+    # against freshly refreshed fixtures in ci, it is the canary for ao3-side
+    # changes to the download filename logic or the updated_at comment.
+    link = 'https://archiveofourown.org/works/66326125'
+    blurb = _work_blurb(fixture_soup, 'markedForLaterList', '66326125')
+    metadata = parse_soup.get_work_metadata_from_blurb(blurb, link)
+    timestamp = parse_soup.get_blurb_updated_timestamp(blurb)
+    assert timestamp is not None
+    slug = parse_text.get_download_slug(metadata['title'], metadata['worknum'])
+
+    constructed = parse_text.get_download_url(metadata['worknum'], slug, 'EPUB', timestamp)
+
+    assert constructed == parse_soup.get_download_link(fixture_soup('markedForLater'), 'EPUB')
+
+
+@pytest.mark.parametrize('fixture, worknum', [
+    ('unlockedWork', '41822007'),
+    ('multipleSeries', '41214669'),
+])
+def test_download_slug_matches_work_page_link(fixture_soup, fixture, worknum):
+    # additional canary coverage for differently shaped titles: the slug computed
+    # from the work title must appear in the real scraped download link
+    link = f'https://archiveofourown.org/works/{worknum}'
+    soup = fixture_soup(fixture)
+    metadata = parse_soup.get_work_metadata_from_work(soup, link)
+    slug = parse_text.get_download_slug(metadata['title'], worknum)
+
+    assert f'/downloads/{worknum}/{slug}.epub' in parse_soup.get_download_link(soup, 'EPUB')
 
 # endregion
 

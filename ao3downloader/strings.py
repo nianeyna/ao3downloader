@@ -25,6 +25,7 @@ INI_DEBUG_LOGGING = 'EnableDebugLogging'
 INI_MAX_RETRIES = 'MaxRetries'
 INI_MAX_TIMEOUTS = 'MaxTimeouts'
 INI_DOWNLOAD_FOLDER = 'DownloadFolder'
+INI_LOG_WORKSKINS = 'LogCustomWorkSkins'
 
 INI_DEFAULT_NAME_LENGTH = 50
 INI_DEFAULT_NAME_PATTERN = '{worknum} {title} - {author}'
@@ -132,6 +133,7 @@ INFO_PARSING_LOGS = 'parsing data from log entries with timestamps starting at {
 INFO_LINKS_LIST_CANCELED = '\nlink list generation manually canceled. list may not be complete.'
 INFO_NO_WORKS_ON_PAGE = 'ending scrape because no work or series urls were found on page'
 INFO_PAGE_LIMIT_REACHED = 'ending scrape because page limit was reached'
+INFO_CONSTRUCTED_LINK_REJECTED = 'constructed download link was rejected; falling back to work page'
 
 MESSAGE_TOO_MANY_REQUESTS = 'ao3 has requested a {} second break\npaused at: {}\nresuming at: {}'
 MESSAGE_RESUMING = 'resuming execution'
@@ -160,6 +162,10 @@ AO3_DOMAIN = 'archiveofourown.org'
 AO3_BASE_URL = 'https://' + AO3_DOMAIN
 AO3_LOGIN_URL = AO3_BASE_URL + '/users/login'
 AO3_MARK_READ_URL = AO3_BASE_URL + '/works/{}/mark_as_read'
+AO3_DOWNLOAD_URL = AO3_BASE_URL + '/downloads/{}/{}.{}?updated_at={}'
+
+# filename pattern tokens that cannot be derived from listing blurbs
+AO3_WORK_PAGE_ONLY_TOKENS = ['published']
 
 AO3_PROCEED = 'Yes, Continue'
 AO3_MARK_READ = 'Mark as Read'

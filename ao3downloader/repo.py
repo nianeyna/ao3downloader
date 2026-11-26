@@ -59,8 +59,13 @@ class Repository:
     def get_book(self, url: str) -> bytes:
         """Get content from url. Intended for downloading works from ao3."""
 
-        response = self.my_request('GET', url).content
-        return response
+        return self.get_book_response(url).content
+
+
+    def get_book_response(self, url: str) -> requests.Response:
+        """Get the full response for a work download."""
+
+        return self.my_request('GET', url)
 
 
     def my_request(self, method: str, url: str, data: dict[str, str] | None = None) -> requests.Response:

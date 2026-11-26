@@ -3,6 +3,7 @@
 import os
 import traceback
 
+import requests
 from bs4 import BeautifulSoup
 
 from ao3downloader import exceptions, parse_soup, parse_text, strings
@@ -28,6 +29,7 @@ class Ao3:
         self.images = images
         self.mark = mark
         self.debug = fileops.get_ini_value_boolean(strings.INI_DEBUG_LOGGING, False)
+        self.workskins = fileops.get_ini_value_boolean(strings.INI_LOG_WORKSKINS, False)
 
 
     def download(self, link: str, visited: list[str] | None = None) -> None:
@@ -134,14 +136,14 @@ class Ao3:
             raise exceptions.InvalidLinkException(strings.ERROR_INVALID_LINK)
 
 
-    def download_recursive(self, link: str, log: dict, visited: list[str]) -> None:
+    def download_recursive(self, link: str, log: dict, visited: list[str], listing_soup: BeautifulSoup | None = None) -> None:
 
         if link in visited: return
         visited.append(link)
 
         if parse_text.is_work(link):
             log = {}
-            self.download_work(link, log, None)
+            self.download_work(link, log, None, listing_soup)
         elif parse_text.is_series(link):
             log = {}
             self.download_series(link, log, visited)        
@@ -157,7 +159,7 @@ class Ao3:
                     total_pages = parse_soup.get_total_pages(thesoup)
                 urls = parse_soup.get_work_and_series_urls(thesoup, include_series)
                 for url in urls:
-                    self.download_recursive(url, log, visited)
+                    self.download_recursive(url, log, visited, thesoup)
                 if not self.mark:
                     pagenum = parse_text.get_page_number(link)
                     if not total_pages or pagenum >= total_pages:
@@ -189,7 +191,7 @@ class Ao3:
                 work_urls = parse_soup.get_work_urls(series_soup)
                 if self.debug: self.fileops.write_log({'link': link, 'message': strings.INFO_STARTING_PAGE, 'level': 'debug'})
                 for work_url in work_urls:
-                    self.download_recursive(work_url, log, visited)
+                    self.download_recursive(work_url, log, visited, series_soup)
                 pagenum = parse_text.get_page_number(link)
                 if not total_pages or pagenum >= total_pages:
                     break
@@ -199,12 +201,12 @@ class Ao3:
             self.log_error(log, e)
 
 
-    def download_work(self, link: str, log: dict, chapters: str | None) -> None:
+    def download_work(self, link: str, log: dict, chapters: str | None, listing_soup: BeautifulSoup | None = None) -> None:
         """Download a single work"""
 
         try:
             log['link'] = link
-            downloaded = self.try_download(link, log, chapters)
+            downloaded = self.try_download(link, log, chapters, listing_soup)
             if downloaded == False: return
         except Exception as e:
             self.log_error(log, e)
@@ -213,8 +215,11 @@ class Ao3:
             self.fileops.write_log(log)
 
 
-    def try_download(self, work_url: str, log: dict, chapters: str | None) -> bool:
+    def try_download(self, work_url: str, log: dict, chapters: str | None, listing_soup: BeautifulSoup | None = None) -> bool:
         """Main download logic"""
+
+        if self.try_download_from_blurb(work_url, log, chapters, listing_soup):
+            return True
 
         thesoup = self.repo.get_soup(work_url)
         thesoup = self.proceed(thesoup)
@@ -229,7 +234,7 @@ class Ao3:
         title = parse_soup.get_title(thesoup, work_url, pattern)
         filename = parse_text.get_valid_filename(title, maximum)
         log['title'] = title
-        log['workskin'] = parse_soup.has_custom_skin(thesoup)
+        if self.workskins: log['workskin'] = parse_soup.has_custom_skin(thesoup)
 
         for filetype in self.filetypes:
             link = parse_soup.get_download_link(thesoup, filetype)
@@ -257,6 +262,63 @@ class Ao3:
         if self.mark:
             self.repo.mark_work_as_read(thesoup, work_url)
 
+        return True
+
+
+    def try_download_from_blurb(self, work_url: str, log: dict, chapters: str | None, listing_soup: BeautifulSoup | None) -> bool:
+        """Download a work using links constructed from listing blurb data. Returns False if this isn't possible."""
+
+        if listing_soup is None: return False # no listing available
+        if self.workskins: return False # workskin status can only be determined from the work page
+        if self.images: return False # images cannot be downloaded from a listing
+        if self.mark: return False # mark as read requires a csrf token from the work page
+
+        # some filename patterns require visiting the work page
+        pattern = self.fileops.get_ini_value(strings.INI_NAME_PATTERN, strings.INI_DEFAULT_NAME_PATTERN)
+        if any(f'{{{token}}}' in pattern for token in strings.AO3_WORK_PAGE_ONLY_TOKENS): return False
+
+        # make sure the blurb is actually available
+        blurb = parse_soup.get_work_blurb(listing_soup, work_url)
+        if blurb is None: return False
+
+        # updated_at is required in the download query string
+        updated = parse_soup.get_blurb_updated_timestamp(blurb)
+        if updated is None: return False
+
+        # recreate ao3's downloaded file name to use in the download link
+        metadata = parse_soup.get_work_metadata_from_blurb(blurb, work_url)
+
+        # if the blurb datetime was missing or in an unexpected format, the updated
+        # date can't be guaranteed to match the work page - fall back rather than
+        # risk generating a different filename for the same work
+        if not metadata['updated'] and '{updated}' in pattern: return False
+
+        ao3_name = parse_text.get_download_slug(metadata['title'], metadata['worknum'])
+
+        # construct our own file name to use when saving the file locally
+        maximum = self.fileops.get_ini_value_integer(strings.INI_NAME_LENGTH, strings.INI_DEFAULT_NAME_LENGTH)
+        title = parse_text.get_title_from_metadata(metadata, pattern)
+        filename = parse_text.get_valid_filename(title, maximum)
+
+        for filetype in self.filetypes:
+            link = parse_text.get_download_url(metadata['worknum'], ao3_name, filetype, updated)
+            response = self.repo.get_book_response(link)
+            if not self.is_download_response(response, filetype):
+                if self.debug: self.fileops.write_log({'link': link, 'message': strings.INFO_CONSTRUCTED_LINK_REJECTED, 'level': 'debug'})
+                return False
+            self.fileops.save_bytes(filename + parse_text.get_file_type(filetype), response.content)
+
+        log['title'] = title
+        return True
+
+
+    def is_download_response(self, response: requests.Response, filetype: str) -> bool:
+        """Check that the response to a constructed download link contains the requested file."""
+
+        if response.status_code != 200: return False
+        if '/downloads/' not in response.url: return False
+        content_type = str(response.headers.get('Content-Type', '')).lower()
+        if filetype != 'HTML' and content_type.startswith('text/html'): return False
         return True
 
 

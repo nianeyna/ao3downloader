@@ -26,12 +26,17 @@ def make_ao3(
     images: bool = False,
     mark: bool = False,
     debug: bool = False,
+    workskins: bool = False,
 ) -> tuple[Ao3, MagicMock, MagicMock]:
     """Create an Ao3 instance with mocked dependencies.
     Returns (ao3, repo_mock, fileops_mock)."""
     repo = MagicMock(spec=Repository)
     fileops = MagicMock(spec=FileOps)
-    fileops.get_ini_value_boolean.return_value = debug
+    ini_booleans = {strings.INI_DEBUG_LOGGING: debug, strings.INI_LOG_WORKSKINS: workskins}
+    fileops.get_ini_value_boolean.side_effect = lambda key, fallback: ini_booleans.get(key, fallback)
+    # return the default value for other ini reads (e.g. filename pattern and length)
+    fileops.get_ini_value.side_effect = lambda key, fallback, raw=False: fallback
+    fileops.get_ini_value_integer.side_effect = lambda key, fallback: fallback
     ao3 = Ao3(repo=repo, fileops=fileops, filetypes=filetypes or ['EPUB'],
               pages=pages, series=series, images=images, mark=mark)
     return ao3, repo, fileops
@@ -124,7 +129,21 @@ def test_try_download_happy_path() -> None:
     assert result is True
     fileops.save_bytes.assert_called_once_with('My Work.epub', b'epub content')
     assert log['title'] == ['My Work']
-    assert log['workskin'] is False
+    # the workskin log field is only included when the ini toggle is enabled
+    assert 'workskin' not in log
+
+
+def test_try_download_logs_workskin_when_enabled() -> None:
+    ao3, repo, _ = make_ao3(workskins=True)
+    repo.get_book.return_value = b'epub content'
+
+    with try_download_patches():
+        with patch('ao3downloader.parse_soup.has_custom_skin', return_value=True):
+            log: dict[str, object] = {}
+            result = ao3.try_download(WORK_URL, log, None)
+
+    assert result is True
+    assert log['workskin'] is True
 
 
 def test_try_download_multiple_filetypes() -> None:
@@ -276,6 +295,251 @@ def test_try_download_images_not_fetched_when_disabled() -> None:
             ao3.try_download(WORK_URL, {}, None)
 
     mock_img.assert_not_called()
+
+# endregion
+
+# region try_download_from_blurb() — constructed download links
+
+# synthetic listing page so that expected values stay deterministic
+# (real listing fixtures change content when they are refreshed from ao3)
+BLURB_LISTING_HTML = '''
+<ol class="index group">
+  <li class="work blurb group work-123">
+    <div class="header module">
+      <!-- updated_at=1700000000 -->
+      <h4 class="heading">
+        <a href="/works/123">My Work</a> by <a rel="author" href="/users/someone">someone</a>
+      </h4>
+      <h5 class="fandoms heading"><a class="tag" href="/tags/f">Fandom One</a></h5>
+      <p class="datetime">14 Nov 2023</p>
+    </div>
+    <ul class="tags commas">
+      <li class="warnings"><strong><a class="tag">No Archive Warnings Apply</a></strong></li>
+      <li class="relationships"><a class="tag">A/B</a></li>
+    </ul>
+    <dl class="stats">
+      <dd class="language">English</dd>
+      <dd class="words">1,234</dd>
+      <dd class="chapters">3/3</dd>
+    </dl>
+  </li>
+</ol>
+'''
+
+CONSTRUCTED_EPUB_URL = 'https://archiveofourown.org/downloads/123/My_Work.epub?updated_at=1700000000'
+
+
+def get_blurb_listing_soup(html: str = BLURB_LISTING_HTML) -> BeautifulSoup:
+    return BeautifulSoup(html, 'html.parser')
+
+
+def make_download_response(
+    status: int = 200,
+    url: str = CONSTRUCTED_EPUB_URL,
+    content_type: str = 'application/epub+zip',
+    content: bytes = b'book',
+) -> MagicMock:
+    response = MagicMock()
+    response.status_code = status
+    response.url = url
+    response.headers = {'Content-Type': content_type}
+    response.content = content
+    return response
+
+
+def test_try_download_from_blurb_happy_path() -> None:
+    ao3, repo, fileops = make_ao3(filetypes=['EPUB'])
+    repo.get_book_response.return_value = make_download_response()
+
+    log: dict[str, object] = {}
+    result = ao3.try_download(WORK_URL, log, None, get_blurb_listing_soup())
+
+    assert result is True
+    repo.get_soup.assert_not_called()
+    repo.get_book.assert_not_called()
+    repo.get_book_response.assert_called_once_with(CONSTRUCTED_EPUB_URL)
+    fileops.save_bytes.assert_called_once_with('123 My Work - someone.epub', b'book')
+    assert log['title'] == ['123 My Work - someone']
+    assert 'workskin' not in log
+
+
+def test_try_download_from_blurb_multiple_filetypes() -> None:
+    ao3, repo, fileops = make_ao3(filetypes=['EPUB', 'PDF'])
+    repo.get_book_response.return_value = make_download_response()
+
+    result = ao3.try_download(WORK_URL, {}, None, get_blurb_listing_soup())
+
+    assert result is True
+    repo.get_book_response.assert_any_call(CONSTRUCTED_EPUB_URL)
+    repo.get_book_response.assert_any_call(CONSTRUCTED_EPUB_URL.replace('.epub', '.pdf'))
+    fileops.save_bytes.assert_any_call('123 My Work - someone.epub', b'book')
+    fileops.save_bytes.assert_any_call('123 My Work - someone.pdf', b'book')
+
+
+@pytest.mark.parametrize('ao3_kwargs', [
+    {'workskins': True},
+    {'images': True},
+    {'mark': True},
+], ids=['workskins enabled', 'images enabled', 'mark enabled'])
+def test_try_download_from_blurb_gate_falls_back_to_work_page(ao3_kwargs: dict) -> None:
+    ao3, repo, _ = make_ao3(**ao3_kwargs)
+    repo.get_book.return_value = b'content'
+
+    with try_download_patches():
+        result = ao3.try_download(WORK_URL, {}, None, get_blurb_listing_soup())
+
+    assert result is True
+    repo.get_book_response.assert_not_called()
+    repo.get_soup.assert_called_once_with(WORK_URL)
+
+
+def test_try_download_from_blurb_chapters_check_falls_back_to_work_page() -> None:
+    """Update runs need the work page for the chapter count comparison."""
+    ao3, repo, _ = make_ao3()
+
+    with try_download_patches():
+        with patch('ao3downloader.parse_soup.get_current_chapters', return_value='3'):
+            result = ao3.try_download(WORK_URL, {}, '5', get_blurb_listing_soup())
+
+    assert result is False  # no update available; decided from the work page
+    repo.get_book_response.assert_not_called()
+    repo.get_soup.assert_called_once_with(WORK_URL)
+
+
+def test_try_download_from_blurb_no_blurb_falls_back_to_work_page() -> None:
+    ao3, repo, _ = make_ao3()
+    repo.get_book.return_value = b'content'
+    listing_soup = get_blurb_listing_soup('<ol class="index group"></ol>')
+
+    with try_download_patches():
+        result = ao3.try_download(WORK_URL, {}, None, listing_soup)
+
+    assert result is True
+    repo.get_book_response.assert_not_called()
+    repo.get_soup.assert_called_once_with(WORK_URL)
+
+
+def test_try_download_from_blurb_no_timestamp_falls_back_to_work_page() -> None:
+    """Blurbs without the updated_at comment (e.g. subscriptions pages) cannot
+    be used to construct download links."""
+    ao3, repo, _ = make_ao3()
+    repo.get_book.return_value = b'content'
+    listing_soup = get_blurb_listing_soup(BLURB_LISTING_HTML.replace('<!-- updated_at=1700000000 -->', ''))
+
+    with try_download_patches():
+        result = ao3.try_download(WORK_URL, {}, None, listing_soup)
+
+    assert result is True
+    repo.get_book_response.assert_not_called()
+    repo.get_soup.assert_called_once_with(WORK_URL)
+
+
+def test_try_download_from_blurb_work_page_only_token_falls_back_to_work_page() -> None:
+    """Filename patterns using tokens that blurbs don't carry require the work page."""
+    ao3, repo, fileops = make_ao3()
+    repo.get_book.return_value = b'content'
+    fileops.get_ini_value.side_effect = (
+        lambda key, fallback, raw=False: '{worknum} {published}' if key == strings.INI_NAME_PATTERN else fallback)
+
+    with try_download_patches():
+        result = ao3.try_download(WORK_URL, {}, None, get_blurb_listing_soup())
+
+    assert result is True
+    repo.get_book_response.assert_not_called()
+    repo.get_soup.assert_called_once_with(WORK_URL)
+
+
+def test_try_download_from_blurb_updated_token_uses_blurb_date() -> None:
+    """The {updated} token is filled from the blurb datetime, converted to the
+    same format the work page produces."""
+    ao3, repo, fileops = make_ao3(filetypes=['EPUB'])
+    repo.get_book_response.return_value = make_download_response()
+    fileops.get_ini_value.side_effect = (
+        lambda key, fallback, raw=False: '{worknum} {updated}' if key == strings.INI_NAME_PATTERN else fallback)
+
+    result = ao3.try_download(WORK_URL, {}, None, get_blurb_listing_soup())
+
+    assert result is True
+    repo.get_soup.assert_not_called()
+    fileops.save_bytes.assert_called_once_with('123 2023-11-14.epub', b'book')
+
+
+def test_try_download_from_blurb_missing_datetime_falls_back_when_pattern_needs_updated() -> None:
+    """If the blurb datetime is missing (or unparseable), {updated} can't be
+    filled consistently with the work page, so the work page flow takes over."""
+    ao3, repo, fileops = make_ao3()
+    repo.get_book.return_value = b'content'
+    fileops.get_ini_value.side_effect = (
+        lambda key, fallback, raw=False: '{worknum} {updated}' if key == strings.INI_NAME_PATTERN else fallback)
+    listing_soup = get_blurb_listing_soup(BLURB_LISTING_HTML.replace('<p class="datetime">14 Nov 2023</p>', ''))
+
+    with try_download_patches():
+        result = ao3.try_download(WORK_URL, {}, None, listing_soup)
+
+    assert result is True
+    repo.get_book_response.assert_not_called()
+    repo.get_soup.assert_called_once_with(WORK_URL)
+
+
+def test_try_download_from_blurb_missing_datetime_ok_when_pattern_does_not_need_it() -> None:
+    """A missing blurb datetime only matters if the filename pattern uses {updated}."""
+    ao3, repo, _ = make_ao3(filetypes=['EPUB'])
+    repo.get_book_response.return_value = make_download_response()
+    listing_soup = get_blurb_listing_soup(BLURB_LISTING_HTML.replace('<p class="datetime">14 Nov 2023</p>', ''))
+
+    result = ao3.try_download(WORK_URL, {}, None, listing_soup)
+
+    assert result is True
+    repo.get_soup.assert_not_called()
+
+
+@pytest.mark.parametrize('response_kwargs', [
+    {'status': 404},
+    {'content_type': 'text/html; charset=utf-8'},
+    {'url': 'https://archiveofourown.org/users/login'},
+], ids=['error status', 'html content type', 'redirected away'])
+def test_try_download_from_blurb_invalid_response_falls_back_to_work_page(response_kwargs: dict) -> None:
+    """Constructed links skip the work page checks for locked/deleted/hidden works,
+    so a response that isn't the requested file must trigger the work page flow
+    (which raises the appropriate exceptions)."""
+    ao3, repo, _ = make_ao3()
+    repo.get_book_response.return_value = make_download_response(**response_kwargs)
+    repo.get_book.return_value = b'content'
+
+    with try_download_patches():
+        result = ao3.try_download(WORK_URL, {}, None, get_blurb_listing_soup())
+
+    assert result is True
+    repo.get_book_response.assert_called_once()
+    repo.get_soup.assert_called_once_with(WORK_URL)
+
+
+def test_try_download_from_blurb_html_filetype_accepts_html_content_type() -> None:
+    ao3, repo, fileops = make_ao3(filetypes=['HTML'])
+    url = CONSTRUCTED_EPUB_URL.replace('.epub', '.html')
+    repo.get_book_response.return_value = make_download_response(url=url, content_type='text/html; charset=utf-8')
+
+    result = ao3.try_download(WORK_URL, {}, None, get_blurb_listing_soup())
+
+    assert result is True
+    repo.get_soup.assert_not_called()
+    fileops.save_bytes.assert_called_once_with('123 My Work - someone.html', b'book')
+
+
+def test_try_download_from_blurb_partial_save_falls_back_to_work_page() -> None:
+    """If a later filetype fails validation after an earlier one was saved, the work
+    page flow re-downloads everything and overwrites the earlier file."""
+    ao3, repo, fileops = make_ao3(filetypes=['EPUB', 'PDF'])
+    repo.get_book_response.side_effect = [make_download_response(), make_download_response(status=404)]
+    repo.get_book.return_value = b'content'
+
+    with try_download_patches():
+        result = ao3.try_download(WORK_URL, {}, None, get_blurb_listing_soup())
+
+    assert result is True
+    assert repo.get_book_response.call_count == 2
+    repo.get_soup.assert_called_once_with(WORK_URL)
+    assert repo.get_book.call_count == 2  # both filetypes re-downloaded via the work page
 
 # endregion
 
@@ -486,6 +750,24 @@ def test_download_recursive_mark_mode_refetches_same_url() -> None:
     assert repo.get_soup.call_count == 2
 
 
+def test_download_recursive_listing_passes_listing_soup_to_works() -> None:
+    ao3, repo, _ = make_ao3()
+    work1 = 'https://archiveofourown.org/works/111'
+    listing_soup = MagicMock()
+    repo.get_soup.return_value = listing_soup
+
+    with patch('ao3downloader.parse_text.is_work', side_effect=lambda url: '/works/' in url), \
+         patch('ao3downloader.parse_text.is_series', return_value=False), \
+         patch('ao3downloader.parse_soup.get_total_pages', return_value=None), \
+         patch('ao3downloader.parse_soup.get_work_and_series_urls', return_value=[work1]), \
+         patch('ao3downloader.parse_text.get_page_number', return_value=1), \
+         patch.object(Ao3, 'download_work') as mock_dl:
+        ao3.download_recursive(LISTING_URL, {}, [])
+
+    assert mock_dl.call_args is not None
+    assert mock_dl.call_args[0][3] is listing_soup
+
+
 def test_download_recursive_mark_mode_breaks_on_none() -> None:
     """Mark mode also breaks when total_pages is None."""
     ao3, repo, _ = make_ao3(mark=True)
@@ -547,6 +829,23 @@ def test_download_series_calls_proceed() -> None:
         ao3.download_series(SERIES_URL, {}, [])
 
     mock_proceed.assert_called_once()
+
+
+def test_download_series_passes_series_soup_to_works() -> None:
+    ao3, repo, _ = make_ao3()
+    work1 = 'https://archiveofourown.org/works/111'
+    series_soup = MagicMock()
+    repo.get_soup.return_value = series_soup
+
+    with patch.object(Ao3, 'proceed', side_effect=lambda soup: soup), \
+         patch('ao3downloader.parse_soup.get_total_pages', return_value=None), \
+         patch('ao3downloader.parse_soup.get_work_urls', return_value=[work1]), \
+         patch('ao3downloader.parse_text.get_page_number', return_value=1), \
+         patch.object(Ao3, 'download_recursive') as mock_dr:
+        ao3.download_series(SERIES_URL, {}, [])
+
+    assert mock_dr.call_args is not None
+    assert mock_dr.call_args[0][3] is series_soup
 
 
 def test_download_series_exception_logs_with_series_link() -> None:
@@ -751,9 +1050,11 @@ def test_get_work_links_invalid_link() -> None:
 
 # region Constructor
 
-def test_init_reads_debug_from_ini() -> None:
-    ao3, _, fileops = make_ao3(debug=True)
+def test_init_reads_booleans_from_ini() -> None:
+    ao3, _, fileops = make_ao3(debug=True, workskins=True)
     assert ao3.debug is True
-    fileops.get_ini_value_boolean.assert_called_once_with(strings.INI_DEBUG_LOGGING, False)
+    assert ao3.workskins is True
+    fileops.get_ini_value_boolean.assert_any_call(strings.INI_DEBUG_LOGGING, False)
+    fileops.get_ini_value_boolean.assert_any_call(strings.INI_LOG_WORKSKINS, False)
 
 # endregion

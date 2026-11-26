@@ -2,7 +2,7 @@ import re
 import traceback
 from typing import Any
 
-from bs4 import BeautifulSoup, ResultSet, Tag
+from bs4 import BeautifulSoup, Comment, ResultSet, Tag
 
 from ao3downloader import parse_text, strings
 from ao3downloader.exceptions import DownloadException, ProceedException, SeriesLinkException
@@ -241,17 +241,8 @@ def has_custom_skin(soup: BeautifulSoup) -> bool:
 def get_title(soup: BeautifulSoup, link: str, pattern: str) -> list[str]:
     """Get (non-truncated) filename for the work"""
 
-    result = []
     metadata = get_work_metadata_from_work(soup, link)
-    split_pattern = pattern.split('/')
-    
-    for part in split_pattern:
-        part_result = part
-        for key, value in metadata.items():
-            part_result = part_result.replace(f'{{{key}}}', value)
-        result.append(part_result)
-
-    return result
+    return parse_text.get_title_from_metadata(metadata, pattern)
 
 
 def get_work_metadata_from_work(soup: BeautifulSoup, link: str) -> dict:
@@ -268,7 +259,8 @@ def get_work_metadata_from_work(soup: BeautifulSoup, link: str) -> dict:
     metadata['chapters'] = get_current_chapters(soup)
     metadata['language'] = get_text_or_empty(soup, 'dd.language')
     metadata['published'] = get_text_or_empty(soup, 'dd.published')
-    metadata['updated'] = get_text_or_empty(soup, 'dd.status')
+    updated = get_text_or_empty(soup, 'dd.status')
+    metadata['updated'] = updated if updated else metadata['published']
     series_list = list(map(lambda x: get_series_from_span(x), soup.select('dd.series span.series span.position')))
     metadata['series_title'] = str.join(', ', list(map(lambda x: x[0], series_list)))
     metadata['series_index'] = str.join(', ', list(map(lambda x: x[1], series_list)))
@@ -334,7 +326,51 @@ def get_work_metadata_from_list(soup: BeautifulSoup, link: str) -> dict:
     return metadata
 
 
-def get_current_chapters(soup: BeautifulSoup) -> str:
+def get_work_blurb(soup: BeautifulSoup, link: str) -> Tag | None:
+    """Get the blurb element for a work from a listing page, or None if there isn't one"""
+
+    worknum = parse_text.get_work_number(link)
+    if not worknum: return None
+    blurb = soup.find('li', class_=f'work-{worknum}')
+    return blurb if isinstance(blurb, Tag) else None
+
+
+def get_blurb_updated_timestamp(blurb: Tag) -> str | None:
+    """Get the unix timestamp of the work's last update."""
+
+    header = blurb.select_one('div.header.module')
+    if not header: return None
+    for child in header.children:
+        if isinstance(child, Comment):
+            match = re.fullmatch(r'\s*updated_at=(\d+)\s*', child)
+            if match: return match.group(1)
+    return None
+
+
+def get_work_metadata_from_blurb(blurb: Tag, link: str) -> dict:
+    """Get work metadata from a listing blurb."""
+
+    metadata = {}
+    metadata['worknum'] = parse_text.get_work_number(link)
+    metadata['title'] = get_text_or_empty(blurb, 'div.header h4.heading a')
+    metadata['author'] = str.join(', ', list(x.get_text() for x in blurb.find_all('a', rel='author')))
+    if not metadata['author']: metadata['author'] = 'Anonymous'
+    metadata['fandom'] = str.join(', ', list(map(lambda x: x.get_text(), blurb.select('h5.fandoms a'))))
+    metadata['pairing'] = str.join(', ', list(map(lambda x: x.get_text(), blurb.select('li.relationships a'))))
+    metadata['rating'] = get_text_or_empty(blurb, 'span.rating')
+    metadata['warning'] = str.join(', ', list(map(lambda x: x.get_text(), blurb.select('li.warnings a'))))
+    metadata['category'] = get_text_or_empty(blurb, 'span.category')
+    metadata['words'] = get_text_or_empty(blurb, 'dd.words').replace(',', '').strip()
+    metadata['chapters'] = get_current_chapters(blurb)
+    metadata['language'] = get_text_or_empty(blurb, 'dd.language')
+    metadata['updated'] = parse_text.get_iso_date(get_text_or_empty(blurb, 'div.header p.datetime'))
+    series_list = list(map(lambda x: get_series_from_span(x), blurb.select('ul[class="series"] li')))
+    metadata['series_title'] = str.join(', ', list(map(lambda x: x[0], series_list)))
+    metadata['series_index'] = str.join(', ', list(map(lambda x: x[1], series_list)))
+    return metadata
+
+
+def get_current_chapters(soup: BeautifulSoup | Tag) -> str:
     chapters = list(soup.select('dl.stats dd.chapters'))
     if not chapters: return '-1'
     text = chapters[0].get_text().strip()

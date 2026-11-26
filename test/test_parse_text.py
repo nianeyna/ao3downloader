@@ -143,6 +143,74 @@ def test_get_file_type_lowercases_and_prefixes_dot(filetype, expected):
 # endregion
 
 
+# region get_title_from_metadata
+
+def test_get_title_from_metadata_replaces_tokens() -> None:
+    metadata = {'worknum': '123', 'title': 'My Work', 'author': 'Someone'}
+    result = parse_text.get_title_from_metadata(metadata, '{worknum} {title} - {author}')
+    assert result == ['123 My Work - Someone']
+
+
+def test_get_title_from_metadata_splits_directories() -> None:
+    metadata = {'author': 'Someone', 'title': 'My Work'}
+    result = parse_text.get_title_from_metadata(metadata, '{author}/{title}')
+    assert result == ['Someone', 'My Work']
+
+
+def test_get_title_from_metadata_leaves_unknown_tokens() -> None:
+    result = parse_text.get_title_from_metadata({'title': 'My Work'}, '{title} {foo}')
+    assert result == ['My Work {foo}']
+
+# endregion
+
+
+# region get_download_slug
+
+@pytest.mark.parametrize('title, expected', [
+    ('so I open the window to hear sounds of people', 'so_I_open_the_window_to'),
+    ('My Aim Is Steady And True', 'My_Aim_Is_Steady_And'),
+    ('Permablocking Specific Tags - Site Skin', 'Permablocking_Specific'),
+    ('Being An Account of An Abduction, and Its Aftermath', 'Being_An_Account_of_An'),
+])
+def test_get_download_slug_matches_real_ao3_filenames(title: str, expected: str) -> None:
+    # titles of works in the test fixtures, paired with the filenames of the
+    # actual download links found on those work pages
+    assert parse_text.get_download_slug(title, '123') == expected
+
+
+@pytest.mark.parametrize('title, expected', [
+    ('héllo wörld', 'hello_world'), # transliterated to ascii
+    ('a &amp; b', 'a_b'), # html-entity-like sequences removed entirely
+    ('Tom & Jerry', 'Tom_Jerry'), # bare ampersand stripped, leftover spaces squashed
+    ('some-hyphens_and Under scores', 'some-hyphens_and_Under'), # hyphens and underscores kept
+    ('x' * 30, 'x' * 24), # hard cut when there is no word boundary
+    ('x' * 24, 'x' * 24), # exactly 24 characters is not truncated
+    ('abcdefghij klmnopqrstuvw x', 'abcdefghij_klmnopqrstuvw'), # cut at the boundary, space excluded
+])
+def test_get_download_slug_cleans_like_ao3(title: str, expected: str) -> None:
+    assert parse_text.get_download_slug(title, '123') == expected
+
+
+@pytest.mark.parametrize('title, expected', [
+    ('', 'Work_123'),
+    ('!!!', 'Work_123'), # cleans to nothing
+    ('ab', 'ab_Work_123'),
+])
+def test_get_download_slug_short_titles_fall_back_to_work_id(title: str, expected: str) -> None:
+    assert parse_text.get_download_slug(title, '123') == expected
+
+# endregion
+
+
+# region get_download_url
+
+def test_get_download_url_formats_link() -> None:
+    result = parse_text.get_download_url('123', 'My_Work', 'EPUB', '1700000000')
+    assert result == 'https://archiveofourown.org/downloads/123/My_Work.epub?updated_at=1700000000'
+
+# endregion
+
+
 # region get_work_number
 
 @pytest.mark.parametrize('link, expected', [
@@ -306,6 +374,39 @@ def test_get_current_chapters_multi_digit():
 def test_get_current_chapters_handles_index_0():
     # No characters before index 0, so we get an empty string back.
     assert parse_text.get_current_chapters('/10', 0) == ''
+
+# endregion
+
+
+# region get_iso_date
+
+@pytest.mark.parametrize('text, expected', [
+    ('09 Jun 2025', '2025-06-09'),
+    ('9 Jun 2025', '2025-06-09'),
+    ('31 Dec 1999', '1999-12-31'),
+    ('  09 Jun\n2025  ', '2025-06-09'),
+], ids=['zero-padded day', 'single-digit day', 'end of year', 'extra whitespace'])
+def test_get_iso_date_converts_blurb_dates(text: str, expected: str):
+    assert parse_text.get_iso_date(text) == expected
+
+
+@pytest.mark.parametrize('month', range(1, 13))
+def test_get_iso_date_handles_every_month(month: int):
+    # strftime produces the same english month abbreviations ao3 uses
+    date = datetime.date(2020, month, 15)
+    assert parse_text.get_iso_date(date.strftime('%d %b %Y')) == date.strftime('%Y-%m-%d')
+
+
+@pytest.mark.parametrize('text', [
+    '',
+    '09 Foo 2025',
+    'Jun 2025',
+    '09 Jun 25',
+    '2025-06-09',
+    '3 days ago',
+], ids=['empty', 'unknown month', 'missing day', 'two-digit year', 'already iso', 'relative date'])
+def test_get_iso_date_returns_empty_for_unexpected_formats(text: str):
+    assert parse_text.get_iso_date(text) == ''
 
 # endregion
 

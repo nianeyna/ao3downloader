@@ -35,6 +35,9 @@ FIXTURES = [
     {"name": "bookmarks.html",             "url": "/users/ao3downloader_ci/bookmarks", "type": "page"},
     {"name": "deletedWork.html",           "url": "/works/99999999999",                "type": "page"},
     {"name": "hiddenWork.html",            "url": "/works/47308798",                   "type": "page"},
+    # work page for the chaptered wip that appears as a blurb in bookmarks.html,
+    # so the cross-source metadata tests can cover a work with a status date
+    {"name": "incompleteWorkPage.html",    "url": "/works/218676",                     "type": "page"},
     {"name": "lockedWorkLoggedOut.html",   "url": "/works/185710",                     "type": "page"},
     {"name": "multipleSeries.html",        "url": "/works/41214669",                   "type": "page"},
     {"name": "unlockedWork.html",          "url": "/works/41822007",                   "type": "page"},
